@@ -1,0 +1,17 @@
+{
+  "name": "telegram-filestore-bot",
+  "version": "1.0.0",
+  "description": "Telegram File Store Bot for Render",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "mongoose": "^8.3.1",
+    "telegraf": "^4.16.3"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}
