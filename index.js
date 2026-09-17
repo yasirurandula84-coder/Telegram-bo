@@ -44,18 +44,21 @@ bot.start(async (ctx) => {
 
 // Admin වීඩියෝවක් එව්වොත් එය ස්ටෝර් කර ලින්ක් එකක් සදා දීම
 bot.on(['video', 'document'], async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const ADMIN_ID = process.env.ADMIN_ID;
+
+    // මෙතැනදී පරීක්ෂා කරන්නේ වීඩියෝව එවන්නේ Admin ද කියලා පමණයි
+    if (ADMIN_ID && userId !== ADMIN_ID) {
+        return ctx.reply("❌ සමාවන්න! මෙම බොට් හරහා වීඩියෝ ගබඩා කිරීමට අවසර ඇත්තේ ඇඩ්මින්ට පමණි.");
+    }
+
     const message = ctx.message;
     const msgId = message.message_id;
-
     try {
-        // වීඩියෝව ඩේටාබේස් චැනල් එකට ෆෝවර්ඩ් කිරීම (සේව් කර තබා ගැනීමට)
         const forwarded = await ctx.telegram.forwardMessage(DB_CHANNEL_ID, ctx.chat.id, msgId);
         const dbMsgId = forwarded.message_id;
-
-        // අද්විතීය ටෝකන් එකක් හැදීම
         const token = Math.random().toString(36).substring(2, 10);
 
-        // ඩේටාබේස් එකේ සේව් කිරීම
         await FileModel.create({
             token: token,
             fileMsgId: dbMsgId
@@ -72,6 +75,7 @@ bot.on(['video', 'document'], async (ctx) => {
         ctx.reply("වීඩියෝව සේව් කරගැනීමේදී දෝෂයක් ඇති විය.");
     }
 });
+
 
 // Render එකට අවශ්‍ය සර්වර් හෝ පෝට් අවශ්‍යතාවය (Render Web Service එකක් ලෙස රන් කිරීමට)
 const PORT = process.env.PORT || 3000;
