@@ -39,6 +39,8 @@ app.get('/miniapp', (req, res) => {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Video Unlocker</title>
             <script src="https://cdn.tailwindcss.com"></script>
+            <!-- Telegram Web App SDK එක එකතු කිරීම -->
+            <script src="https://telegram.org/js/telegram-web-app.js"></script>
         </head>
         <body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-6 text-center">
             <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl max-w-sm w-full">
@@ -98,20 +100,18 @@ app.get('/miniapp', (req, res) => {
                 }
 
                 function getVideo() {
-    const botUsername = "${process.env.BOT_USERNAME || 'wallokaya_bot'}";
-    
-    // 1. පසුපසින් බොට් වෙත සිග්නල් එක යැවීම සඳහා ටෙලිග්‍රෑම් ලින්ක් එක ඕපන් වීම
-    window.location.href = "https://t.me/" + botUsername + "?start=getvideo_" + "${token}";
-    
-    // 2. යූසර්ට පේජ් එක ඇතුළෙන්ම මැසේජ් එකක් පෙන්වීම
-    const successBox = document.getElementById('success-box');
-    successBox.innerHTML = `
-        <div class="bg-green-900/50 border border-green-500 text-green-300 p-4 rounded-xl text-sm mb-4">
-            🎉 වීඩියෝව ඔබගේ ටෙලිග්‍රෑම් චැට් එකට සාර්ථකව එවනු ලැබුවා!<br><br>
-            <b>දැන් ඉහළින් ඇති (X) හෝ Close බටන් එක ඔබා මෙම පිටුව වසා ටෙලිග්‍රෑම් වෙත යන්න.</b>
-        </div>
-    `;
-}
+                    const botUsername = "${process.env.BOT_USERNAME || 'wallokaya_bot'}";
+                    
+                    // 1. බොට් වෙත සිග්නල් එක යැවීම
+                    window.location.href = "https://t.me/" + botUsername + "?start=getvideo_" + "${token}";
+                    
+                    // 2. Telegram Web App එක ස්වයංක්‍රීයව වසා දැමීම (Auto Close)
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        setTimeout(() => {
+                            window.Telegram.WebApp.close();
+                        }, 400); // මිලි තත්පර 400කට පසු ඇප් එක වැසී චැට් එක පෙන්වයි
+                    }
+                }
             </script>
         </body>
         </html>
