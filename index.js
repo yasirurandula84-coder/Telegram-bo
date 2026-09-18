@@ -98,10 +98,20 @@ app.get('/miniapp', (req, res) => {
                 }
 
                 function getVideo() {
-                    const botUsername = "${process.env.BOT_USERNAME || 'wallokaya_bot'}";
-                    // මෙහි getvideo_ එක එකතු කර ඇත, එවිට බොට් එය අඳුනාගෙන වීඩියෝව ලබා දේ
-                    window.location.href = "https://t.me/" + botUsername + "?start=getvideo_" + "${token}";
-                }
+    const botUsername = "${process.env.BOT_USERNAME || 'wallokaya_bot'}";
+    
+    // 1. පසුපසින් බොට් වෙත සිග්නල් එක යැවීම සඳහා ටෙලිග්‍රෑම් ලින්ක් එක ඕපන් වීම
+    window.location.href = "https://t.me/" + botUsername + "?start=getvideo_" + "${token}";
+    
+    // 2. යූසර්ට පේජ් එක ඇතුළෙන්ම මැසේජ් එකක් පෙන්වීම
+    const successBox = document.getElementById('success-box');
+    successBox.innerHTML = `
+        <div class="bg-green-900/50 border border-green-500 text-green-300 p-4 rounded-xl text-sm mb-4">
+            🎉 වීඩියෝව ඔබගේ ටෙලිග්‍රෑම් චැට් එකට සාර්ථකව එවනු ලැබුවා!<br><br>
+            <b>දැන් ඉහළින් ඇති (X) හෝ Close බටන් එක ඔබා මෙම පිටුව වසා ටෙලිග්‍රෑම් වෙත යන්න.</b>
+        </div>
+    `;
+}
             </script>
         </body>
         </html>
