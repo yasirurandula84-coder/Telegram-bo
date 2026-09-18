@@ -7,8 +7,8 @@ const DB_CHANNEL_ID = process.env.DB_CHANNEL_ID;
 const MONGO_URI = process.env.MONGO_URI;
 
 // ඔබේ Adsterra Smart Links 2 මෙතැනට දාන්න
-const AD_LINK_1 = process.env.AD_LINK_1 || "https://your-adsterra-link-1.com"; 
-const AD_LINK_2 = process.env.AD_LINK_2 || "https://your-adsterra-link-2.com";
+const AD_LINK_1 = process.env.AD_LINK_1 || "https://www.profitableratecpmnetwork.com/g7p33na9?key=d6d0cdc4f9da3f0a448d3a891515c3ac"; 
+const AD_LINK_2 = process.env.AD_LINK_2 || "https://www.profitableratecpmnetwork.com/x4nu2jpe7?key=e6f63d4148e5fe567831c01264bced81";
 
 // MongoDB Connection
 mongoose.connect(MONGO_URI)
