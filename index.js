@@ -98,7 +98,7 @@ app.get('/miniapp', (req, res) => {
                 }
 
                 function getVideo() {
-                    const botUsername = "${process.env.BOT_USERNAME || '@wallokaya_bot'}";
+                    const botUsername = "${process.env.BOT_USERNAME || 'wallokaya_bot'}";
                     window.location.href = "https://t.me/" + botUsername + "?start=" + "${token}";
                 }
             </script>
