@@ -22,7 +22,7 @@ const fileSchema = new mongoose.Schema({
 });
 const FileModel = mongoose.model('File', fileSchema);
 
-// 2. Mongoose Schema for User Ad Progress (යූසර්ගේ ඇඩ් බැලීමේ ප්‍රගතිය ට්‍රැක් කිරීමට)
+// 2. Mongoose Schema for User Ad Progress
 const userProgressSchema = new mongoose.Schema({
     userId: { type: Number, required: true },
     token: { type: String, required: true },
@@ -31,9 +31,35 @@ const userProgressSchema = new mongoose.Schema({
 });
 const UserProgressModel = mongoose.model('UserProgress', userProgressSchema);
 
-// /start command with Deep Link token (Ad Locker Step)
+// උපකාරක ෆන්ක්ෂන් එක: යූසර්ගේ වත්මන් ප්‍රගතිය මත බටන්ස් සෑදීම
+async function getAdKeyboard(userId, token) {
+    let progress = await UserProgressModel.findOne({ userId, token });
+    if (!progress) {
+        progress = await UserProgressModel.create({ userId, token, ad1Clicked: false, ad2Clicked: false });
+    }
+
+    const ad1Text = progress.ad1Clicked ? "✅ Ad 1 Viewed (Completed)" : "🔗 Click Here to View Ad 1";
+    const ad2Text = progress.ad2Clicked ? "✅ Ad 2 Viewed (Completed)" : "🔗 Click Here to View Ad 2";
+
+    let inlineKeyboard = [
+        // දැන් URL වෙනුවට callback_data දමා ඇත. එවිට යූසර් ක්ලික් කළ බව බොට් එකට අල්ලාගත හැක.
+        [{ text: ad1Text, callback_data: `click_ad1_${token}` }],
+        [{ text: ad2Text, callback_data: `click_ad2_${token}` }]
+    ];
+
+    // ඇඩ් 2ම ක්ලික් කර ඇත්නම් පමණක් 'Get Video Now' බටන් එක පෙන්වීම
+    if (progress.ad1Clicked && progress.ad2Clicked) {
+        inlineKeyboard.push([{ text: "🎬 Get Video Now", callback_data: `get_video_${token}` }]);
+    } else {
+        inlineKeyboard.push([{ text: "🔄 Check Status (Verify)", callback_data: `check_status_${token}` }]);
+    }
+
+    return inlineKeyboard;
+}
+
+// /start command with Deep Link token
 bot.start(async (ctx) => {
-    const payload = ctx.startPayload; // token එක
+    const payload = ctx.startPayload;
     const userId = ctx.from.id;
 
     if (!payload) {
@@ -46,35 +72,15 @@ bot.start(async (ctx) => {
             return ctx.reply("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
         }
 
-        // යූසර්ගේ ප්‍රගතිය ඩේටාබේස් එකෙන් සෙවීම හෝ සෑදීම
-        let progress = await UserProgressModel.findOne({ userId, token: payload });
-        if (!progress) {
-            progress = await UserProgressModel.create({ userId, token: payload });
-        }
-
-        // ටික් ලකුණු පෙන්වීමේ තත්ත්වය
-        const ad1Text = progress.ad1Clicked ? "✅ Ad 1 Viewed (Completed)" : "🔗 Click Here to View Ad 1";
-        const ad2Text = progress.ad2Clicked ? "✅ Ad 2 Viewed (Completed)" : "🔗 Click Here to View Ad 2";
-
-        let inlineKeyboard = [
-            [{ text: ad1Text, url: AD_LINK_1 }],
-            [{ text: ad2Text, url: AD_LINK_2 }]
-        ];
-
-        // ඇඩ් 2ම බලා ඇත්නම් 'Get Video' බටන් එක පෙන්වීම, නැත්නම් 'Verify' බටන් එක පෙන්වීම
-        if (progress.ad1Clicked && progress.ad2Clicked) {
-            inlineKeyboard.push([{ text: "🎬 Get Video Now", callback_data: `get_video_${payload}` }]);
-        } else {
-            inlineKeyboard.push([{ text: "🔄 Check Status & Verify", callback_data: `verify_ads_${payload}` }]);
-        }
+        const keyboard = await getAdKeyboard(userId, payload);
 
         await ctx.reply(
             "🔓 **වීඩියෝව අන්ලොක් කරගැනීමට පහත පියවර අනුගමනය කරන්න:**\n\n" +
-            "1. ඉහත **Ad 1** සහ **Ad 2** ලින්ක්ස් දෙක ක්ලික් කර දැන්වීම් නරඹන්න.\n" +
-            "2. දැන්වීම් බැලීමෙන් පසු පහත ඇති **'Check Status & Verify'** බටන් එක ඔබන්න.",
+            "1. ඉහත **Ad 1** සහ **Ad 2** බටන් ක්ලික් කර දැන්වීම් දෙක නරඹන්න.\n" +
+            "2. බැලීමෙන් පසු **'Check Status'** බටන් එක ඔබන්න.",
             {
                 parse_mode: 'Markdown',
-                reply_markup: { inline_keyboard: inlineKeyboard }
+                reply_markup: { inline_keyboard: keyboard }
             }
         );
 
@@ -84,32 +90,55 @@ bot.start(async (ctx) => {
     }
 });
 
-// 'Verify Ads' බටන් එක එබූ විට (ඇඩ් 2ම බැලූ බව තහවුරු කර ගැනීම)
-bot.action(/verify_ads_(.+)/, async (ctx) => {
+// Ad 1 ක්ලික් කළ විට (ඩේටාබේස් එකේ Ad 1 True කර, යූසර්ව ඇඩ් ලින්ක් එකට වෙබ් බ්‍රව්සර් එක හරහා යැවීම)
+bot.action(/click_ad1_(.+)/, async (ctx) => {
     const token = ctx.match[1];
     const userId = ctx.from.id;
 
-    // මෙහිදී යූසර් ලින්ක්ස් ක්ලික් කර පැමිණ Verify එබූ විට ඇඩ් 2 සම්පූර්ණ කළ ලෙස සටහන් වේ
-    await UserProgressModel.updateOne(
-        { userId, token },
-        { ad1Clicked: true, ad2Clicked: true }
-    );
+    await UserProgressModel.updateOne({ userId, token }, { ad1Clicked: true });
+    
+    // යූසර්ට ඇඩ් ලින්ක් එක විවෘත කරගැනීමට ඊට අදාළ ලින්ක් එක ඇක්ෂන් එකක් මඟින් හෝ ඇලර්ට් එකක් මඟින් දීම
+    await ctx.answerCbQuery("Opening Ad 1...", { url: AD_LINK_1 });
 
-    await ctx.answerCbQuery("✔ දැන්වීම් තහවුරු කරන ලදී!");
+    // මෙනු බටන්ස් අප්ඩේට් කිරීම
+    const keyboard = await getAdKeyboard(userId, token);
+    try {
+        await ctx.editMessageReplyMarkup({ inline_keyboard: keyboard });
+    } catch (e) {}
+});
 
-    // බටන්ස් අප්ඩේට් කිරීම (Get Video බටන් එක පෙන්වීම)
-    await ctx.editMessageText(
-        "🎉 සියලුම දැන්වීම් සාර්ථකව පරීක්ෂා කරන ලදී! දැන් පහත බොත්තම ඔබා ඔබේ වීඩියෝව ලබා ගන්න.",
-        {
-            reply_markup: {
-                inline_keyboard: [
-                    [{ text: "✅ Ad 1 Viewed", url: AD_LINK_1 }],
-                    [{ text: "✅ Ad 2 Viewed", url: AD_LINK_2 }],
-                    [{ text: "🎬 Get Video Now", callback_data: `get_video_${token}` }]
-                ]
-            }
-        }
-    );
+// Ad 2 ක්ලික් කළ විට
+bot.action(/click_ad2_(.+)/, async (ctx) => {
+    const token = ctx.match[1];
+    const userId = ctx.from.id;
+
+    await UserProgressModel.updateOne({ userId, token }, { ad2Clicked: true });
+    
+    await ctx.answerCbQuery("Opening Ad 2...", { url: AD_LINK_2 });
+
+    const keyboard = await getAdKeyboard(userId, token);
+    try {
+        await ctx.editMessageReplyMarkup({ inline_keyboard: keyboard });
+    } catch (e) {}
+});
+
+// 'Check Status' බටන් එක එබූ විට
+bot.action(/check_status_(.+)/, async (ctx) => {
+    const token = ctx.match[1];
+    const userId = ctx.from.id;
+
+    const progress = await UserProgressModel.findOne({ userId, token });
+
+    if (progress && progress.ad1Clicked && progress.ad2Clicked) {
+        await ctx.answerCbQuery("✔ සියලුම දැන්වීම් සාර්ථකයි!");
+        const keyboard = await getAdKeyboard(userId, token);
+        await ctx.editMessageText(
+            "🎉 දැන්වීම් දෙකම සාර්ථකව නරඹන ලදී! දැන් පහත බොත්තම ඔබා ඔබේ වීඩියෝව ලබා ගන්න.",
+            { reply_markup: { inline_keyboard: keyboard } }
+        );
+    } else {
+        await ctx.answerCbQuery("❌ කරුණාකර මුලින් Ad 1 සහ Ad 2 යන බටන් දෙකම ක්ලික් කර ඇඩ්ස් නරඹන්න!", { show_alert: true });
+    }
 });
 
 // 'Get Video Now' බටන් එක එබූ විට වීඩියෝව එවීම
