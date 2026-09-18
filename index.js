@@ -1,14 +1,15 @@
 const { Telegraf } = require('telegraf');
 const mongoose = require('mongoose');
+const http = require('http');
+const express = require('express');
 require('dotenv').config();
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const DB_CHANNEL_ID = process.env.DB_CHANNEL_ID;
 const MONGO_URI = process.env.MONGO_URI;
 
-// ඔබේ Adsterra Smart Links 2 මෙතැනට දාන්න
-const AD_LINK_1 = process.env.AD_LINK_1 || "https://www.profitableratecpmnetwork.com/g7p33na9?key=d6d0cdc4f9da3f0a448d3a891515c3ac"; 
-const AD_LINK_2 = process.env.AD_LINK_2 || "https://www.profitableratecpmnetwork.com/x4nu2jpe7?key=e6f63d4148e5fe567831c01264bced81";
+// ඔබේ Adsterra Smart Link එක
+const AD_LINK = process.env.AD_LINK || "https://www.profitableratecpmnetwork.com/g7p33na9?key=d6d0cdc4f9da3f0a448d3a891515c3ac"; 
 
 // MongoDB Connection
 mongoose.connect(MONGO_URI)
@@ -22,13 +23,70 @@ const fileSchema = new mongoose.Schema({
 });
 const FileModel = mongoose.model('File', fileSchema);
 
-// 2. Mongoose Schema for User Ad Progress
-const userProgressSchema = new mongoose.Schema({
-    userId: { type: Number, required: true },
-    token: { type: String, required: true },
-    verified: { type: Boolean, default: false }
+// Express App setup for Render (Bot + Web App combined)
+const app = express();
+app.use(express.urlencoded({ extended: true }));
+
+// Mini App HTML Page Endpoint (Render එකෙන්ම ලෝඩ් වන වෙබ් පේජ් එක)
+app.get('/miniapp', (req, res) => {
+    const token = req.query.token || '';
+    
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="si">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Video Unlocker</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+        </head>
+        <body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-6 text-center">
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl max-w-sm w-full">
+                <h1 class="text-xl font-bold mb-2">🎬 වීඩියෝව සූදානම් වෙමින් පවතී</h1>
+                <p class="text-slate-400 text-xs mb-6">කරුණාකර දැන්වීම පරීක්ෂා කර තත්පර කිහිපයක් රැඳී සිටින්න.</p>
+
+                <div id="timer-box" class="my-6">
+                    <div id="countdown" class="text-5xl font-extrabold text-sky-400 animate-pulse">5</div>
+                    <p class="text-xs text-slate-500 mt-2">දැන්වීම විවෘත වෙමින් පවතී...</p>
+                </div>
+
+                <div id="success-box" class="hidden">
+                    <p class="text-green-400 font-semibold mb-4 text-sm">✔ දැන්වීම නැරඹීම සාර්ථකයි!</p>
+                    <button onclick="get За getVideo()" id="unlock-btn" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg text-sm">
+                        🚀 වීඩියෝව ලබා ගන්න
+                    </button>
+                </div>
+            </div>
+
+            <script>
+                // පිටුව ඕපන් වූ වහාම Adsterra ලින්ක් එක ඕපන් වීම
+                const adUrl = "${AD_LINK}";
+                window.open(adUrl, '_blank');
+
+                let timeLeft = 5;
+                const countdownEl = document.getElementById('countdown');
+                const timerBox = document.getElementById('timer-box');
+                const successBox = document.getElementById('success-box');
+
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    countdownEl.innerText = timeLeft;
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        timerBox.classList.add('hidden');
+                        successBox.classList.remove('hidden');
+                    }
+                }, 1000);
+
+                function getVideo() {
+                    const botUsername = "${process.env.BOT_USERNAME || 'YourBotUsername'}";
+                    window.location.href = "https://t.me/" + botUsername + "?start=" + "${token}";
+                }
+            </script>
+        </body>
+        </html>
+    `);
 });
-const UserProgressModel = mongoose.model('UserProgress', userProgressSchema);
 
 // /start command with Deep Link token
 bot.start(async (ctx) => {
@@ -45,78 +103,27 @@ bot.start(async (ctx) => {
             return ctx.reply("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
         }
 
-        // යූසර්ගේ ප්‍රගතිය ඩේටාබේස් එකේ සෙවීම හෝ සෑදීම
-        let progress = await UserProgressModel.findOne({ userId, token: payload });
-        if (!progress) {
-            progress = await UserProgressModel.create({ userId, token: payload, verified: false });
-        }
+        // Render එකේ සර්වර් යූආර්එල් එක ලබා ගැනීම (Render එකෙන් AUTO දෙන Render external URL එක මෙහි පාවිච්චි වේ)
+        const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
+        const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
 
-        let inlineKeyboard = [
-            [{ text: "🔗 Click Here to View Ad 1", url: AD_LINK_1 }],
-            [{ text: "🔗 Click Here to View Ad 2", url: AD_LINK_2 }]
-        ];
-
-        if (progress.verified) {
-            inlineKeyboard.push([{ text: "🎬 Get Video Now", callback_data: `get_video_${payload}` }]);
-        } else {
-            inlineKeyboard.push([{ text: "🔄 Check Status & Verify", callback_data: `verify_ads_${payload}` }]);
-        }
-
+        // Telegram Web App button එක හරහා Mini App එක පෙන්වීම
         await ctx.reply(
-            "🔓 **වීඩියෝව අන්ලොක් කරගැනීමට පහත පියවර අනුගමනය කරන්න:**\n\n" +
-            "1. ඉහත **Ad 1** සහ **Ad 2** බටන් ක්ලික් කර දැන්වීම් දෙක නරඹන්න.\n" +
-            "2. දැන්වීම් බැලීමෙන් පසු පහත ඇති **'Check Status & Verify'** බටන් එක ඔබන්න.",
+            "🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n" +
+            "මෙම බොත්තම එබූ විට විවෘත වන පිටුවෙන් තත්පර 5ක් රැඳී සිට වීඩියෝව ලබා ගන්න.",
             {
                 parse_mode: 'Markdown',
-                reply_markup: { inline_keyboard: inlineKeyboard }
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: "▶️ Watch Ad & Get Video", web_app: { url: miniAppUrl } }]
+                    ]
+                }
             }
         );
 
     } catch (error) {
         console.error(error);
         ctx.reply("පද්ධතියේ දෝෂයක් සිදු විය. කරුණාකර පසුව උත්සාහ කරන්න.");
-    }
-});
-
-// 'Check Status & Verify' බටන් එක එබූ විට
-bot.action(/verify_ads_(.+)/, async (ctx) => {
-    const token = ctx.match[1];
-    const userId = ctx.from.id;
-
-    // යූසර් දැන්වීම් බලා පැමිණ Verfiy කළ බව සටහන් කිරීම
-    await UserProgressModel.updateOne({ userId, token }, { verified: true });
-
-    await ctx.answerCbQuery("✔ දැන්වීම් තහවුරු කරන ලදී!");
-
-    let inlineKeyboard = [
-        [{ text: "✅ Ad 1 Viewed", url: AD_LINK_1 }],
-        [{ text: "✅ Ad 2 Viewed", url: AD_LINK_2 }],
-        [{ text: "🎬 Get Video Now", callback_data: `get_video_${token}` }]
-    ];
-
-    try {
-        await ctx.editMessageText(
-            "🎉 සියලුම දැන්වීම් සාර්ථකව පරීක්ෂා කරන ලදී! දැන් පහත බොත්තම ඔබා ඔබේ වීඩියෝව ලබා ගන්න.",
-            { reply_markup: { inline_keyboard: inlineKeyboard } }
-        );
-    } catch (e) {}
-});
-
-// 'Get Video Now' බටන් එක එබූ විට වීඩියෝව එවීම
-bot.action(/get_video_(.+)/, async (ctx) => {
-    const token = ctx.match[1];
-    const fileDoc = await FileModel.findOne({ token });
-
-    if (!fileDoc) {
-        return ctx.answerCbQuery("❌ ගොනුව හමුවී නැත!", { show_alert: true });
-    }
-
-    try {
-        await ctx.answerCbQuery("🎉 මෙන්න ඔබේ වීඩියෝව!");
-        await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
-    } catch (error) {
-        console.error(error);
-        ctx.answerCbQuery("❌ වීඩියෝව එවීමේදී දෝෂයක් ඇති විය.", { show_alert: true });
     }
 });
 
@@ -153,16 +160,10 @@ bot.on(['video', 'document'], async (ctx) => {
     }
 });
 
-// Render එකට අවශ්‍ය සර්වර් සහ පෝට් සැකසුම
+// Telegram bot launch & Express Server start
 const PORT = process.env.PORT || 3000;
-const http = require('http');
-const server = http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Bot is running successfully!');
-});
-
-server.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
     bot.launch();
 });
 
