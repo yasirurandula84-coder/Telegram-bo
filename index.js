@@ -43,40 +43,59 @@ app.get('/miniapp', (req, res) => {
         <body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-6 text-center">
             <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl max-w-sm w-full">
                 <h1 class="text-xl font-bold mb-2">🎬 වීඩියෝව සූදානම් වෙමින් පවතී</h1>
-                <p class="text-slate-400 text-xs mb-6">කරුණාකර දැන්වීම පරීක්ෂා කර තත්පර කිහිපයක් රැඳී සිටින්න.</p>
+                <p class="text-slate-400 text-xs mb-6">කරුණාකර පහත දැක්වෙන දැන්වීම නරඹා තත්පර 5ක් රැඳී සිටින්න.</p>
 
-                <div id="timer-box" class="my-6">
-                    <div id="countdown" class="text-5xl font-extrabold text-sky-400 animate-pulse">5</div>
-                    <p class="text-xs text-slate-500 mt-2">දැන්වීම විවෘත වෙමින් පවතී...</p>
+                <!-- ඇඩ් එක ඕපන් කරගැනීමට බටන් එකක් (Pop-up blocker මඟහරවා ගැනීමට) -->
+                <div class="mb-4">
+                    <a href="${AD_LINK}" target="_blank" id="ad-link-btn" onclick="startTimer()" class="inline-block w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg text-sm mb-3">
+                        🔗 දැන්වීම විවෘත කරන්න (Click Here)
+                    </a>
+                </div>
+
+                <div id="timer-box" class="my-4 hidden">
+                    <div id="countdown" class="text-4xl font-extrabold text-sky-400 animate-pulse">5</div>
+                    <p class="text-xs text-slate-500 mt-2">තත්පර කිහිපයක් රැඳී සිටින්න...</p>
                 </div>
 
                 <div id="success-box" class="hidden">
                     <p class="text-green-400 font-semibold mb-4 text-sm">✔ දැන්වීම නැරඹීම සාර්ථකයි!</p>
-                    <button onclick="get За getVideo()" id="unlock-btn" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg text-sm">
+                    <button onclick="getVideo()" id="unlock-btn" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg text-sm">
                         🚀 වීඩියෝව ලබා ගන්න
                     </button>
                 </div>
             </div>
 
             <script>
-                // පිටුව ඕපන් වූ වහාම Adsterra ලින්ක් එක ඕපන් වීම
-                const adUrl = "${AD_LINK}";
-                window.open(adUrl, '_blank');
+                let timerStarted = false;
 
-                let timeLeft = 5;
-                const countdownEl = document.getElementById('countdown');
-                const timerBox = document.getElementById('timer-box');
-                const successBox = document.getElementById('success-box');
+                function startTimer() {
+                    if (timerStarted) return;
+                    timerStarted = true;
 
-                const timer = setInterval(() => {
-                    timeLeft--;
-                    countdownEl.innerText = timeLeft;
-                    if (timeLeft <= 0) {
-                        clearInterval(timer);
-                        timerBox.classList.add('hidden');
-                        successBox.classList.remove('hidden');
-                    }
-                }, 1000);
+                    // බටන් එක පෙනුම වෙනස් කිරීම
+                    const adBtn = document.getElementById('ad-link-btn');
+                    adBtn.innerText = "✅ දැන්වීම විවෘත විය";
+                    adBtn.classList.remove('bg-sky-600', 'hover:bg-sky-500');
+                    adBtn.classList.add('bg-slate-800', 'text-slate-400');
+
+                    // ටයිමර් එක පෙන්වීම
+                    const timerBox = document.getElementById('timer-box');
+                    timerBox.classList.remove('hidden');
+
+                    let timeLeft = 5;
+                    const countdownEl = document.getElementById('countdown');
+                    const successBox = document.getElementById('success-box');
+
+                    const timer = setInterval(() => {
+                        timeLeft--;
+                        countdownEl.innerText = timeLeft;
+                        if (timeLeft <= 0) {
+                            clearInterval(timer);
+                            timerBox.classList.add('hidden');
+                            successBox.classList.remove('hidden');
+                        }
+                    }, 1000);
+                }
 
                 function getVideo() {
                     const botUsername = "${process.env.BOT_USERNAME || 'YourBotUsername'}";
