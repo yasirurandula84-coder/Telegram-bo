@@ -99,7 +99,8 @@ app.get('/miniapp', (req, res) => {
 
                 function getVideo() {
                     const botUsername = "${process.env.BOT_USERNAME || 'wallokaya_bot'}";
-                    window.location.href = "https://t.me/" + botUsername + "?start=" + "${token}";
+                    // මෙහි getvideo_ එක එකතු කර ඇත, එවිට බොට් එය අඳුනාගෙන වීඩියෝව ලබා දේ
+                    window.location.href = "https://t.me/" + botUsername + "?start=getvideo_" + "${token}";
                 }
             </script>
         </body>
@@ -117,19 +118,34 @@ bot.start(async (ctx) => {
     }
 
     try {
+        // යූසර් ඇඩ්ස් බලා පැමිණ ඇත්දැයි පරීක්ෂා කිරීම (getvideo_ සමඟ පටන් ගනීද යන්න)
+        if (payload.startsWith("getvideo_")) {
+            const token = payload.replace("getvideo_", "");
+            const fileDoc = await FileModel.findOne({ token });
+
+            if (!fileDoc) {
+                return ctx.reply("❌ සමාවන්න, මෙම ගොනුව හමුවී නැත හෝ කල් ඉකුත් වී ඇත.");
+            }
+
+            // දැන්වීම බලා පැමිණි නිසා කෙලින්ම වීඩියෝව යැවීම
+            await ctx.reply("🎉 දැන්වීම සාර්ථකව නරඹන ලදී! මෙන්න ඔබේ වීඩියෝව:");
+            return await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
+        }
+
+        // සාමාන්‍ය ලින්ක් එකකින් පැමිණි නම් Mini App එක පෙන්වීම
         const fileDoc = await FileModel.findOne({ token: payload });
         if (!fileDoc) {
             return ctx.reply("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
         }
 
-        // Render එකේ සර්වර් යූආර්එල් එක ලබා ගැනීම (Render එකෙන් AUTO දෙන Render external URL එක මෙහි පාවිච්චි වේ)
+        // Render එකේ සර්වර් යූආර්එල් එක ලබා ගැනීම
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
 
         // Telegram Web App button එක හරහා Mini App එක පෙන්වීම
         await ctx.reply(
             "🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n" +
-            "මෙම බොත්තම එබූ විට විවෘත වන පිටුවෙන් තත්පර 5ක් රැඳී සිට වීඩියෝව ලබා ගන්න.",
+            "මෙම බොත්තම එබූ විට විවෘත වන පිටුවෙන් දැන්වීම බලා තත්පර 5ක් රැඳී සිට වීඩියෝව ලබා ගන්න.",
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
