@@ -144,11 +144,8 @@ bot.start(async (ctx) => {
             return ctx.reply("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
         }
 
-                const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
+        const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
-        
-        // උදාහරණයක් ලෙස "වීඩියෝ එක ලබා ගන්නේ කෙසේද?" පෙන්වන ටෙලිග්‍රෑම් වීඩියෝ ලින්ක් එක (ඔබේ චැනල් එකේ පෝස්ට් එකක ලින්ක් එක මෙතැනට දාන්න)
-        const tutorialVideoLink = "https://t.me/wallokaya_bot?start=743vwc0m"; // අවශ්‍ය නම් වෙනත් ටියුටෝරියල් ලින්ක් එකක් දෙන්න
 
         await ctx.reply(
             `🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
@@ -159,7 +156,7 @@ bot.start(async (ctx) => {
                 reply_markup: {
                     inline_keyboard: [
                         [{ text: "▶️ Watch Ad & Get Video", web_app: { url: miniAppUrl } }],
-                        [{ text: "❓ වීඩියෝව ලබා ගන්නේ කෙසේද? (Guide)", url: tutorialVideoLink }]
+                        [{ text: "❓ වීඩියෝව ලබා ගන්නේ කෙසේද? (Guide)", callback_data: "how_to_use" }]
                     ]
                 }
             }
@@ -168,6 +165,23 @@ bot.start(async (ctx) => {
     } catch (error) {
         console.error(error);
         ctx.reply("පද්ධතියේ දෝෂයක් සිදු විය. කරුණාකර පසුව උත්සාහ කරන්න.");
+    }
+});
+
+// Guide බටන් එක එබූ විට ක්‍රියාත්මක වන කොටස (චැට් එක ඇතුළෙන්ම උපදෙස් පෙන්වීම)
+bot.action('how_to_use', async (ctx) => {
+    try {
+        await ctx.answerCbQuery();
+        await ctx.reply(
+            `📖 **වීඩියෝවක් ලබාගන්නේ කෙසේද? (පියවර)**\n\n` +
+            `1️⃣ මුලින්ම **"▶️ Watch Ad & Get Video"** බොත්තම ඔබන්න.\n` +
+            `2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න.\n` +
+            `3️⃣ කාලය අවසන් වූ පසු මතුවන **"🚀 වීඩියෝව ලබා ගන්න"** බොත්තම ඔබන්න.\n` +
+            `4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය වීඩියෝව ලැබෙනු ඇත!`,
+            { parse_mode: 'Markdown' }
+        );
+    } catch (error) {
+        console.error(error);
     }
 });
 
