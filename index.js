@@ -144,8 +144,11 @@ bot.start(async (ctx) => {
             return ctx.reply("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
         }
 
-        const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
+                const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
+        
+        // උදාහරණයක් ලෙස "වීඩියෝ එක ලබා ගන්නේ කෙසේද?" පෙන්වන ටෙලිග්‍රෑම් වීඩියෝ ලින්ක් එක (ඔබේ චැනල් එකේ පෝස්ට් එකක ලින්ක් එක මෙතැනට දාන්න)
+        const tutorialVideoLink = "https://t.me/wallokaya_bot?start=743vwc0m"; // අවශ්‍ය නම් වෙනත් ටියුටෝරියල් ලින්ක් එකක් දෙන්න
 
         await ctx.reply(
             `🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
@@ -155,7 +158,8 @@ bot.start(async (ctx) => {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: "▶️ Watch Ad & Get Video", web_app: { url: miniAppUrl } }]
+                        [{ text: "▶️ Watch Ad & Get Video", web_app: { url: miniAppUrl } }],
+                        [{ text: "❓ වීඩියෝව ලබා ගන්නේ කෙසේද? (Guide)", url: tutorialVideoLink }]
                     ]
                 }
             }
