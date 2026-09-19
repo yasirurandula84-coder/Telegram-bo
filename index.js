@@ -184,15 +184,27 @@ bot.action('how_to_use', async (ctx) => {
     }
 });
 
-// Admin වීඩියෝවක් එව්වොත්: ඔබ එවූ වීඩියෝවෙන්ම ස්වයංක්‍රීය Thumbnail එකත්, Watch Full Video බටන් එකත් එක්ක පෝස්ට් එක ලැබීම
-// Temp ස්ටෝරේජ් එකක් ෆොටෝ සහ වීඩියෝ එකතු කරගන්න
+// --- Admin Upload Section ---
 const pendingUploads = new Map();
 
-// 1. ඇඩ්මින් Photo එකක් එව්වොත් (Thumbnail එක ලෙස)
-// Temp ස්ටෝරේජ් එකක් ෆොටෝ සහ වීඩියෝ එකතු කරගන්න
-const pendingUploads = new Map();
+// 1. ඇඩ්මින් Thumbnail (Photo) එක එව්වොත්
+bot.on('photo', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const ADMIN_ID = process.env.ADMIN_ID;
 
+    if (ADMIN_ID && userId !== ADMIN_ID) return;
 
+    const photo = ctx.message.photo;
+    const largestPhoto = photo[photo.length - 1].file_id;
+    const caption = ctx.message.caption || "🔥 නව වීඩියෝවක් නරඹන්න!";
+
+    pendingUploads.set(userId, {
+        photoFileId: largestPhoto,
+        caption: caption
+    });
+
+    await ctx.reply("📸 Thumbnail එක ලැබුණා! දැන් මේකට අදාළ **වීඩියෝව (Video file එක)** එවන්න.");
+});
 
 // 2. ඇඩ්මින් Video එකක් එව්වොත්
 bot.on(['video', 'document'], async (ctx) => {
@@ -212,7 +224,6 @@ bot.on(['video', 'document'], async (ctx) => {
     const msgId = message.message_id;
     
     try {
-        // Database චැනල් එකට වීඩියෝව ෆෝවර්ඩ් කරගැනීම
         const forwarded = await ctx.telegram.forwardMessage(DB_CHANNEL_ID, ctx.chat.id, msgId);
         const dbMsgId = forwarded.message_id;
         const token = Math.random().toString(36).substring(2, 10);
@@ -226,7 +237,7 @@ bot.on(['video', 'document'], async (ctx) => {
         const botUsername = ctx.botInfo.username;
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
 
-        // 1. Thumbnail එක සහ Watch Full Video බටන් එක පමණක් ඇති පිරිසිදු පෝස්ට් එක යැවීම
+        // පිරිසිදු Thumbnail පෝස්ට් එක යැවීම
         await ctx.telegram.sendPhoto(ctx.chat.id, pending.photoFileId, {
             caption: pending.caption,
             parse_mode: 'Markdown',
@@ -237,7 +248,7 @@ bot.on(['video', 'document'], async (ctx) => {
             }
         });
 
-        // 2. උපදෙස් සහ ඩිරෙක්ට් ලින්ක් එක වෙනම මැසේජ් එකකින් යැවීම
+        // ඩිරෙක්ට් ලින්ක් එක වෙනම යැවීම
         await ctx.reply(
             `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n` +
             `👆 ඉහත පෝස්ට් එක ඔබේ චැනල් එකට ෆෝවර්ඩ් කරන්න.\n\n` +
@@ -245,7 +256,6 @@ bot.on(['video', 'document'], async (ctx) => {
             { parse_mode: 'Markdown' }
         );
 
-        // තාවකාලික දත්ත ක්ලියර් කිරීම
         pendingUploads.delete(userId);
 
     } catch (error) {
@@ -253,7 +263,6 @@ bot.on(['video', 'document'], async (ctx) => {
         ctx.reply("වීඩියෝව සේව් කරගැනීමේදී දෝෂයක් ඇති විය.");
     }
 });
-
 
 // /stats කමාන්ඩ් එක
 bot.command('stats', async (ctx) => {
