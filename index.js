@@ -185,7 +185,30 @@ bot.action('how_to_use', async (ctx) => {
 });
 
 // Admin වීඩියෝවක් එව්වොත්: ඔබ එවූ වීඩියෝවෙන්ම ස්වයංක්‍රීය Thumbnail එකත්, Watch Full Video බටන් එකත් එක්ක පෝස්ට් එක ලැබීම
-// Admin වීඩියෝවක් එව්වොත්: වීඩියෝව වෙනුවට එහි Thumbnail (Photo) එක සහ බටන් එක පෝස්ට් එකක් ලෙස එවීම
+// Temp ස්ටෝරේජ් එකක් ෆොටෝ සහ වීඩියෝ එකතු කරගන්න
+const pendingUploads = new Map();
+
+// 1. ඇඩ්මින් Photo එකක් එව්වොත් (Thumbnail එක ලෙස)
+bot.on('photo', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const ADMIN_ID = process.env.ADMIN_ID;
+
+    if (ADMIN_ID && userId !== ADMIN_ID) return;
+
+    const photo = ctx.message.photo;
+    const largestPhoto = photo[photo.length - 1].file_id;
+    const caption = ctx.message.caption || "🔥 නව වීඩියෝවක් නරඹන්න!";
+
+    // ෆොටෝ එක තාවකාලිකව සේව් කරගන්න (මෙය රිප්ලයි කරන වීඩියෝව සමඟ මැච් කිරීමට)
+    pendingUploads.set(userId, {
+        photoFileId: largestPhoto,
+        caption: caption
+    });
+
+    ctx.reply("📸 Thumbnail එක ලැබුණා! දැන් මේකට අදාළ **වීඩියෝව (Video file එක) Reply කරලා** එවන්න.");
+});
+
+// 2. ඇඩ්මින් Video එකක් එව්වොත් (හෝ ෆොටෝ එකට රිප්ලයි කළොත්)
 bot.on(['video', 'document'], async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -194,11 +217,16 @@ bot.on(['video', 'document'], async (ctx) => {
         return ctx.reply("❌ සමාවන්න! මෙම බොට් හරහා වීඩියෝ ගබඩා කිරීමට අවසර ඇත්තේ ඇඩ්මින්ට පමණි.");
     }
 
+    const pending = pendingUploads.get(userId);
+    if (!pending) {
+        return ctx.reply("⚠️ කරුණාකර මුලින්ම Thumbnail එකක් (Photo එකක්) එවන්න, නැතහොත් ෆොටෝ එකට රිප්ලයි ලෙස වීඩියෝව එවන්න.");
+    }
+
     const message = ctx.message;
     const msgId = message.message_id;
     
     try {
-        // 1. Database චැනල් එකට වීඩියෝව ෆෝවර්ඩ් කරගැනීම
+        // Database චැනල් එකට වීඩියෝව ෆෝවර්ඩ් කරගැනීම
         const forwarded = await ctx.telegram.forwardMessage(DB_CHANNEL_ID, ctx.chat.id, msgId);
         const dbMsgId = forwarded.message_id;
         const token = Math.random().toString(36).substring(2, 10);
@@ -211,41 +239,23 @@ bot.on(['video', 'document'], async (ctx) => {
 
         const botUsername = ctx.botInfo.username;
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
-        const captionText = message.caption || "🔥 නව වීඩියෝවක් නරඹන්න!";
 
-        const postCaption = `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n${captionText}\n\n👇 **චැනල් එකට දැමීමට පහත පෝස්ට් එක ෆෝවර්ඩ් කරන්න:**`;
+        // ඔබ එවපු Thumbnail එක උඩම Watch Full Video බටන් එක දාලා පෝස්ට් එක එවීම
+        await ctx.telegram.sendPhoto(ctx.chat.id, pending.photoFileId, {
+            caption: `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n${pending.caption}\n\n👇 **චැනල් එකට දැමීමට පහත පෝස්ට් එක ෆෝවර්ඩ් කරන්න:**`,
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: "▶️ Watch Full Video", url: shareLink }]
+                ]
+            }
+        });
 
-        const replyMarkup = {
-            inline_keyboard: [
-                [{ text: "▶️ Watch Full Video", url: shareLink }]
-            ]
-        };
+        // ඩිරෙක්ට් ලින්ක් එකත් යැවීම
+        ctx.reply(`🔗 **Direct Share Link:**\n\`${shareLink}\``, { parse_mode: 'Markdown' });
 
-        // 2. වීඩියෝවට Thumbnail එකක් (thumb) තිබේ නම්, ෆුල් වීඩියෝව යවනවා වෙනුවට ඒ Thumbnail එක (Photo) පමණක් යැවීම
-        if (message.video && message.video.thumbnail) {
-            const thumbFileId = message.video.thumbnail.file_id;
-            await ctx.telegram.sendPhoto(ctx.chat.id, thumbFileId, {
-                caption: postCaption,
-                parse_mode: 'Markdown',
-                reply_markup: replyMarkup
-            });
-        } 
-        // ඩොකියුමන්ට් එකක Thumbnail එකක් තිබේ නම්
-        else if (message.document && message.document.thumbnail) {
-            const thumbFileId = message.document.thumbnail.file_id;
-            await ctx.telegram.sendPhoto(ctx.chat.id, thumbFileId, {
-                caption: postCaption,
-                parse_mode: 'Markdown',
-                reply_markup: replyMarkup
-            });
-        } 
-        // Thumbnail එකක් නැත්නම්, ෆුල් වීඩියෝව වෙනුවට ඩිෆෝල්ට් ටෙක්ස්ට් පෝස්ට් එකක් සහ බටන් එක යැවීම
-        else {
-            await ctx.reply(postCaption, {
-                parse_mode: 'Markdown',
-                reply_markup: replyMarkup
-            });
-        }
+        // තාවකාලික දත්ත ක්ලියර් කිරීම
+        pendingUploads.delete(userId);
 
     } catch (error) {
         console.error(error);
