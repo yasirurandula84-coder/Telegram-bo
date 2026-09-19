@@ -16,7 +16,7 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB Connected Successfully!'))
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// 1. Mongoose Schema for Files (Views ගණන බලා ගැනීමට 'views' field එක එකතු කර ඇත)
+// Mongoose Schema for Files
 const fileSchema = new mongoose.Schema({
     token: { type: String, required: true, unique: true },
     fileMsgId: { type: Number, required: true },
@@ -24,7 +24,7 @@ const fileSchema = new mongoose.Schema({
 });
 const FileModel = mongoose.model('File', fileSchema);
 
-// Express App setup for Render (Bot + Web App combined)
+// Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
@@ -112,10 +112,9 @@ app.get('/miniapp', (req, res) => {
     `);
 });
 
-// /start command with Deep Link token
+// /start command
 bot.start(async (ctx) => {
     const payload = ctx.startPayload;
-    const userId = ctx.from.id;
 
     if (!payload) {
         return ctx.reply("ආයුබෝවන්! මම File Store Bot එකයි. වීඩියෝ ලබා ගැනීමට නිවැරදි ලින්ක් එකක් භාවිතා කරන්න.");
@@ -168,7 +167,7 @@ bot.start(async (ctx) => {
     }
 });
 
-// Guide බටන් එක එබූ විට ක්‍රියාත්මක වන කොටස (චැට් එක ඇතුළෙන්ම උපදෙස් පෙන්වීම)
+// Guide Action
 bot.action('how_to_use', async (ctx) => {
     try {
         await ctx.answerCbQuery();
@@ -185,7 +184,7 @@ bot.action('how_to_use', async (ctx) => {
     }
 });
 
-// Admin වීඩියෝවක් එව්වොත් එය ස්ටෝර් කර ලින්ක් එකක් සදා දීම
+// Admin වීඩියෝවක් එව්වොත්: Thumbnail එක සහ "Watch Full Video" බටන් එකත් එක්ක පූර්ණ පෝස්ට් එකක් (Preview) එවීම
 bot.on(['video', 'document'], async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -196,7 +195,9 @@ bot.on(['video', 'document'], async (ctx) => {
 
     const message = ctx.message;
     const msgId = message.message_id;
+    
     try {
+        // 1. Database චැනල් එකට වීඩියෝව ෆෝවර්ඩ් කරගැනීම
         const forwarded = await ctx.telegram.forwardMessage(DB_CHANNEL_ID, ctx.chat.id, msgId);
         const dbMsgId = forwarded.message_id;
         const token = Math.random().toString(36).substring(2, 10);
@@ -209,17 +210,41 @@ bot.on(['video', 'document'], async (ctx) => {
 
         const botUsername = ctx.botInfo.username;
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
+        const captionText = message.caption || "🔥 නව වීඩියෝවක් නරඹන්න!";
 
-        ctx.reply(`✅ වීඩියෝව සාර්ථකව ගබඩා විය!\n\n🔗 **Share Link:**\n\`${shareLink}\``, {
-            parse_mode: 'Markdown'
-        });
+        // 2. ඇඩ්මින්ට චැට් එකේදීම Thumbnail එක (වීඩියෝව/ෆයිල් එක) සහ බටන් එක සහිත පෝස්ට් එක පෙන්වීම
+        if (message.video) {
+            await ctx.replyWithVideo(message.video.file_id, {
+                caption: `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n${captionText}\n\n👇 **චැනල් එකට දැමීමට පහත පෝස්ට් එක ෆෝවර්ඩ් (Forward) කරන්න:**`,
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: "▶️ Watch Full Video", url: shareLink }]
+                    ]
+                }
+            });
+        } else if (message.document) {
+            await ctx.replyWithDocument(message.document.file_id, {
+                caption: `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n${captionText}\n\n👇 **චැනල් එකට දැමීමට පහත පෝස්ට් එක ෆෝවර්ඩ් (Forward) කරන්න:**`,
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: "▶️ Watch Full Video", url: shareLink }]
+                    ]
+                }
+            });
+        }
+
+        // ත්‍රෙඩ් එක පැහැදිලි වීමට කෙටි ලින්ක් එකක් ද යැවීම
+        ctx.reply(`🔗 **Direct Share Link:**\n\`${shareLink}\``, { parse_mode: 'Markdown' });
+
     } catch (error) {
         console.error(error);
         ctx.reply("වීඩියෝව සේව් කරගැනීමේදී දෝෂයක් ඇති විය.");
     }
 });
 
-// Admin ට වීඩියෝවක Views ගණන බලා ගැනීමට /stats කමාන්ඩ් එක
+// /stats කමාන්ඩ් එක
 bot.command('stats', async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
