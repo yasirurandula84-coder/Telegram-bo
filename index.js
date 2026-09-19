@@ -189,26 +189,12 @@ bot.action('how_to_use', async (ctx) => {
 const pendingUploads = new Map();
 
 // 1. ඇඩ්මින් Photo එකක් එව්වොත් (Thumbnail එක ලෙස)
-bot.on('photo', async (ctx) => {
-    const userId = ctx.from.id.toString();
-    const ADMIN_ID = process.env.ADMIN_ID;
+// Temp ස්ටෝරේජ් එකක් ෆොටෝ සහ වීඩියෝ එකතු කරගන්න
+const pendingUploads = new Map();
 
-    if (ADMIN_ID && userId !== ADMIN_ID) return;
 
-    const photo = ctx.message.photo;
-    const largestPhoto = photo[photo.length - 1].file_id;
-    const caption = ctx.message.caption || "🔥 නව වීඩියෝවක් නරඹන්න!";
 
-    // ෆොටෝ එක තාවකාලිකව සේව් කරගන්න (මෙය රිප්ලයි කරන වීඩියෝව සමඟ මැච් කිරීමට)
-    pendingUploads.set(userId, {
-        photoFileId: largestPhoto,
-        caption: caption
-    });
-
-    ctx.reply("📸 Thumbnail එක ලැබුණා! දැන් මේකට අදාළ **වීඩියෝව (Video file එක) Reply කරලා** එවන්න.");
-});
-
-// 2. ඇඩ්මින් Video එකක් එව්වොත් (හෝ ෆොටෝ එකට රිප්ලයි කළොත්)
+// 2. ඇඩ්මින් Video එකක් එව්වොත්
 bot.on(['video', 'document'], async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -219,7 +205,7 @@ bot.on(['video', 'document'], async (ctx) => {
 
     const pending = pendingUploads.get(userId);
     if (!pending) {
-        return ctx.reply("⚠️ කරුණාකර මුලින්ම Thumbnail එකක් (Photo එකක්) එවන්න, නැතහොත් ෆොටෝ එකට රිප්ලයි ලෙස වීඩියෝව එවන්න.");
+        return ctx.reply("⚠️ කරුණාකර මුලින්ම Thumbnail එකක් (Photo එකක්) එවන්න.");
     }
 
     const message = ctx.message;
@@ -240,9 +226,9 @@ bot.on(['video', 'document'], async (ctx) => {
         const botUsername = ctx.botInfo.username;
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
 
-        // ඔබ එවපු Thumbnail එක උඩම Watch Full Video බටන් එක දාලා පෝස්ට් එක එවීම
+        // 1. Thumbnail එක සහ Watch Full Video බටන් එක පමණක් ඇති පිරිසිදු පෝස්ට් එක යැවීම
         await ctx.telegram.sendPhoto(ctx.chat.id, pending.photoFileId, {
-            caption: `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n${pending.caption}\n\n👇 **චැනල් එකට දැමීමට පහත පෝස්ට් එක ෆෝවර්ඩ් කරන්න:**`,
+            caption: pending.caption,
             parse_mode: 'Markdown',
             reply_markup: {
                 inline_keyboard: [
@@ -251,8 +237,13 @@ bot.on(['video', 'document'], async (ctx) => {
             }
         });
 
-        // ඩිරෙක්ට් ලින්ක් එකත් යැවීම
-        ctx.reply(`🔗 **Direct Share Link:**\n\`${shareLink}\``, { parse_mode: 'Markdown' });
+        // 2. උපදෙස් සහ ඩිරෙක්ට් ලින්ක් එක වෙනම මැසේජ් එකකින් යැවීම
+        await ctx.reply(
+            `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n` +
+            `👆 ඉහත පෝස්ට් එක ඔබේ චැනල් එකට ෆෝවර්ඩ් කරන්න.\n\n` +
+            `🔗 **Direct Share Link:**\n\`${shareLink}\``, 
+            { parse_mode: 'Markdown' }
+        );
 
         // තාවකාලික දත්ත ක්ලියර් කිරීම
         pendingUploads.delete(userId);
