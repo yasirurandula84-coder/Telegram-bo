@@ -184,7 +184,7 @@ bot.action('how_to_use', async (ctx) => {
     }
 });
 
-// Admin වීඩියෝවක් එව්වොත්: Thumbnail එක සහ "Watch Full Video" බටන් එකත් එක්ක පූර්ණ පෝස්ට් එකක් (Preview) එවීම
+// Admin වීඩියෝවක් එව්වොත්: ඔබ එවූ වීඩියෝවෙන්ම ස්වයංක්‍රීය Thumbnail එකත්, Watch Full Video බටන් එකත් එක්ක පෝස්ට් එක ලැබීම
 bot.on(['video', 'document'], async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -212,10 +212,10 @@ bot.on(['video', 'document'], async (ctx) => {
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
         const captionText = message.caption || "🔥 නව වීඩියෝවක් නරඹන්න!";
 
-        // 2. ඇඩ්මින්ට චැට් එකේදීම Thumbnail එක (වීඩියෝව/ෆයිල් එක) සහ බටන් එක සහිත පෝස්ට් එක පෙන්වීම
+        // 2. ඔබ එවූ වීඩියෝවෙන්ම (Thumbnail එකත් සමඟ) බටන් එක දමා ඇඩ්මින්ට පෝස්ට් එක එවීම
         if (message.video) {
-            await ctx.replyWithVideo(message.video.file_id, {
-                caption: `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n${captionText}\n\n👇 **චැනල් එකට දැමීමට පහත පෝස්ට් එක ෆෝවර්ඩ් (Forward) කරන්න:**`,
+            await ctx.telegram.sendVideo(ctx.chat.id, message.video.file_id, {
+                caption: `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n${captionText}\n\n👇 **චැනල් එකට දැමීමට පහත පෝස්ට් එක ෆෝවර්ඩ් කරන්න:**`,
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
@@ -224,8 +224,8 @@ bot.on(['video', 'document'], async (ctx) => {
                 }
             });
         } else if (message.document) {
-            await ctx.replyWithDocument(message.document.file_id, {
-                caption: `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n${captionText}\n\n👇 **චැනල් එකට දැමීමට පහත පෝස්ට් එක ෆෝවර්ඩ් (Forward) කරන්න:**`,
+            await ctx.telegram.sendDocument(ctx.chat.id, message.document.file_id, {
+                caption: `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n${captionText}\n\n👇 **චැනල් එකට දැමීමට පහත පෝස්ට් එක ෆෝවර්ඩ් කරන්න:**`,
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
@@ -234,9 +234,6 @@ bot.on(['video', 'document'], async (ctx) => {
                 }
             });
         }
-
-        // ත්‍රෙඩ් එක පැහැදිලි වීමට කෙටි ලින්ක් එකක් ද යැවීම
-        ctx.reply(`🔗 **Direct Share Link:**\n\`${shareLink}\``, { parse_mode: 'Markdown' });
 
     } catch (error) {
         console.error(error);
