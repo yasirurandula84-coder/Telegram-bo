@@ -185,6 +185,7 @@ bot.action('how_to_use', async (ctx) => {
 });
 
 // Admin වීඩියෝවක් එව්වොත්: ඔබ එවූ වීඩියෝවෙන්ම ස්වයංක්‍රීය Thumbnail එකත්, Watch Full Video බටන් එකත් එක්ක පෝස්ට් එක ලැබීම
+// Admin වීඩියෝවක් එව්වොත්: වීඩියෝව වෙනුවට එහි Thumbnail (Photo) එක සහ බටන් එක පෝස්ට් එකක් ලෙස එවීම
 bot.on(['video', 'document'], async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -212,26 +213,37 @@ bot.on(['video', 'document'], async (ctx) => {
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
         const captionText = message.caption || "🔥 නව වීඩියෝවක් නරඹන්න!";
 
-        // 2. ඔබ එවූ වීඩියෝවෙන්ම (Thumbnail එකත් සමඟ) බටන් එක දමා ඇඩ්මින්ට පෝස්ට් එක එවීම
-        if (message.video) {
-            await ctx.telegram.sendVideo(ctx.chat.id, message.video.file_id, {
-                caption: `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n${captionText}\n\n👇 **චැනල් එකට දැමීමට පහත පෝස්ට් එක ෆෝවර්ඩ් කරන්න:**`,
+        const postCaption = `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n${captionText}\n\n👇 **චැනල් එකට දැමීමට පහත පෝස්ට් එක ෆෝවර්ඩ් කරන්න:**`;
+
+        const replyMarkup = {
+            inline_keyboard: [
+                [{ text: "▶️ Watch Full Video", url: shareLink }]
+            ]
+        };
+
+        // 2. වීඩියෝවට Thumbnail එකක් (thumb) තිබේ නම්, ෆුල් වීඩියෝව යවනවා වෙනුවට ඒ Thumbnail එක (Photo) පමණක් යැවීම
+        if (message.video && message.video.thumbnail) {
+            const thumbFileId = message.video.thumbnail.file_id;
+            await ctx.telegram.sendPhoto(ctx.chat.id, thumbFileId, {
+                caption: postCaption,
                 parse_mode: 'Markdown',
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: "▶️ Watch Full Video", url: shareLink }]
-                    ]
-                }
+                reply_markup: replyMarkup
             });
-        } else if (message.document) {
-            await ctx.telegram.sendDocument(ctx.chat.id, message.document.file_id, {
-                caption: `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n${captionText}\n\n👇 **චැනල් එකට දැමීමට පහත පෝස්ට් එක ෆෝවර්ඩ් කරන්න:**`,
+        } 
+        // ඩොකියුමන්ට් එකක Thumbnail එකක් තිබේ නම්
+        else if (message.document && message.document.thumbnail) {
+            const thumbFileId = message.document.thumbnail.file_id;
+            await ctx.telegram.sendPhoto(ctx.chat.id, thumbFileId, {
+                caption: postCaption,
                 parse_mode: 'Markdown',
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: "▶️ Watch Full Video", url: shareLink }]
-                    ]
-                }
+                reply_markup: replyMarkup
+            });
+        } 
+        // Thumbnail එකක් නැත්නම්, ෆුල් වීඩියෝව වෙනුවට ඩිෆෝල්ට් ටෙක්ස්ට් පෝස්ට් එකක් සහ බටන් එක යැවීම
+        else {
+            await ctx.reply(postCaption, {
+                parse_mode: 'Markdown',
+                reply_markup: replyMarkup
             });
         }
 
@@ -240,6 +252,7 @@ bot.on(['video', 'document'], async (ctx) => {
         ctx.reply("වීඩියෝව සේව් කරගැනීමේදී දෝෂයක් ඇති විය.");
     }
 });
+
 
 // /stats කමාන්ඩ් එක
 bot.command('stats', async (ctx) => {
