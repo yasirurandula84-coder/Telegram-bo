@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const DB_CHANNEL_ID = process.env.DB_CHANNEL_ID;
+const MAIN_CHANNEL_ID = process.env.MAIN_CHANNEL_ID || "@wal_lokaya1"; // ස්වයංක්‍රීයව පෝස්ට් වැටෙන ප්‍රධාන චැනල් එක
 const MONGO_URI = process.env.MONGO_URI;
 
 // අනිවාර්යයෙන් join වී සිටිය යුතු චැනල් එක
@@ -144,7 +145,7 @@ bot.start(async (ctx) => {
     const userIdStr = userId.toString();
     const payload = ctx.startPayload;
 
-    // යුසර් බොට් එකට එන සෑම අවස්ථාවකම ඩේටාබේස් එකේ සේව් වීම (මුල් වතාවට එන වෙලාව සේව් වේ)
+    // යුසර් බොට් එකට එන සෑම අවස්ථාවකම ඩේටාබේස් එකේ සේව් වීම
     try {
         await UserModel.updateOne(
             { userId: userIdStr }, 
@@ -255,17 +256,13 @@ bot.command('stats', async (ctx) => {
     }
 
     try {
-        // 1. සම්පූර්ණ යුසර්ස්ලා ගණන
         const totalUsers = await UserModel.countDocuments({});
-
-        // 2. මෙම මාසයේ (Current Month) අලුතින් ආපු යුසර්ස්ලා ගණන
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const monthlyUsers = await UserModel.countDocuments({
             joinedAt: { $gte: startOfMonth }
         });
 
-        // 3. ගොනු සහ views ගණන
         const totalFiles = await FileModel.countDocuments({});
         const files = await FileModel.find({});
         let totalViews = 0;
@@ -418,7 +415,7 @@ bot.action('how_to_use', async (ctx) => {
     }
 });
 
-// --- Admin Upload Section ---
+// --- Admin Upload & Auto-Post Section ---
 const pendingUploads = new Map();
 
 bot.on('photo', async (ctx) => {
@@ -456,6 +453,7 @@ bot.on(['video', 'document'], async (ctx) => {
     const msgId = message.message_id;
     
     try {
+        // වීඩියෝව ඩේටාබේස් චැනල් එකට ෆෝවර්ඩ් කිරීම
         const forwarded = await ctx.telegram.forwardMessage(DB_CHANNEL_ID, ctx.chat.id, msgId);
         const dbMsgId = forwarded.message_id;
         const token = Math.random().toString(36).substring(2, 10);
@@ -469,7 +467,16 @@ bot.on(['video', 'document'], async (ctx) => {
         const botUsername = ctx.botInfo.username;
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
 
-        await ctx.telegram.sendPhoto(ctx.chat.id, pending.photoFileId, {
+        // 1. ඇඩ්මින්ට චැට් එකේ කන්ෆර්මේෂන් මැසේජ් එක යැවීම
+        await ctx.reply(
+            `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n` +
+            `🚀 **ප්‍රධාන චැනල් එකට ස්වයංක්‍රීයව පෝස්ට් එක යවන ලදී!**\n\n` +
+            `🔗 **Direct Share Link:**\n\`${shareLink}\``, 
+            { parse_mode: 'Markdown' }
+        );
+
+        // 2. ඔබ නියම කර ඇති ප්‍රධාන චැනල් එකට (Main Channel) ස්වයංක්‍රීයව පෝස්ට් එක යැවීම
+        await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
             caption: pending.caption,
             parse_mode: 'Markdown',
             reply_markup: {
@@ -479,18 +486,11 @@ bot.on(['video', 'document'], async (ctx) => {
             }
         });
 
-        await ctx.reply(
-            `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n` +
-            `👆 ඉහත පෝස්ට් එක ඔබේ චැනල් එකට ෆෝවර්ඩ් කරන්න.\n\n` +
-            `🔗 **Direct Share Link:**\n\`${shareLink}\``, 
-            { parse_mode: 'Markdown' }
-        );
-
         pendingUploads.delete(userId);
 
     } catch (error) {
         console.error(error);
-        ctx.reply("වීඩියෝව සේව් කරගැනීමේදී දෝෂයක් ඇති විය.");
+        ctx.reply("වීඩියෝව සේව් කරගැනීමේදී සහ ඔටෝ පෝස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
 
