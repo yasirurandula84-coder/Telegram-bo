@@ -8,6 +8,9 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const DB_CHANNEL_ID = process.env.DB_CHANNEL_ID;
 const MONGO_URI = process.env.MONGO_URI;
 
+// අනිවාර්යයෙන් join වී සිටිය යුතු චැනල් එක (Username එක හෝ ID එක මෙතැනට දාන්න. උදා: '@my_video_channel')
+const REQUIRED_CHANNEL = process.env.REQUIRED_CHANNEL || "@your_channel_username"; 
+
 // ඔබේ Adsterra Smart Link එක
 const AD_LINK = process.env.AD_LINK || "https://www.profitableratecpmnetwork.com/g7p33na9?key=d6d0cdc4f9da3f0a448d3a891515c3ac"; 
 
@@ -112,12 +115,49 @@ app.get('/miniapp', (req, res) => {
     `);
 });
 
+// Helper Function: යුසර් චැනල් එකට join වෙලාද කියලා චෙක් කිරීමට
+async function checkUserSubscription(ctx, userId) {
+    if (!REQUIRED_CHANNEL) return true; // චැනල් එකක් සෙට් කර නැත්නම් සාමාන්‍ය පරිදි යන්න දීම
+    try {
+        const chatMember = await ctx.telegram.getChatMember(REQUIRED_CHANNEL, userId);
+        const status = chatMember.status;
+        // creator, administrator, member යනු චැනල් එකේ ඉන්නා තත්ත්වයන් වේ
+        if (status === 'creator' || status === 'administrator' || status === 'member') {
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error("F-Sub Check Error:", error);
+        return true; // බොට් එක චැනල් එකේ ඇඩ්මින් කෙනෙක් නොවුනොත් හෝ එරර් එකක් ආවොත් බ්ලොක් නොවී වැඩ කිරීමට
+    }
+}
+
 // /start command
 bot.start(async (ctx) => {
+    const userId = ctx.from.id;
     const payload = ctx.startPayload;
 
     if (!payload) {
         return ctx.reply("ආයුබෝවන්! මම File Store Bot එකයි. වීඩියෝ ලබා ගැනීමට නිවැරදි ලින්ක් එකක් භාවිතා කරන්න.");
+    }
+
+    // මුලින්ම යුසර් චැනල් එකට join වෙලාද බලනවා
+    const isSubscribed = await checkUserSubscription(ctx, userId);
+    if (!isSubscribed) {
+        return ctx.reply(
+            `⚠️ **ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!**\n\n` +
+            `මෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n` +
+            `👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව **"🔄 Check Subscription"** ඔබන්න.`,
+            {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: "📢 Join Channel", url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
+                        [{ text: "🔄 Check Subscription", callback_data: `check_sub_${payload}` }]
+                    ]
+                }
+            }
+        );
     }
 
     try {
@@ -164,6 +204,62 @@ bot.start(async (ctx) => {
     } catch (error) {
         console.error(error);
         ctx.reply("පද්ධතියේ දෝෂයක් සිදු විය. කරුණාකර පසුව උත්සාහ කරන්න.");
+    }
+});
+
+// Check Subscription Button Action
+bot.action(/^check_sub_(.+)$/, async (ctx) => {
+    const userId = ctx.from.id;
+    const payload = ctx.match[1];
+
+    const isSubscribed = await checkUserSubscription(ctx, userId);
+    if (!isSubscribed) {
+        return ctx.answerCbQuery("❌ ඔබ තවමත් චැනල් එකට Join වී නැත! කරුණාකර මුලින්ම Join වන්න.", { show_alert: true });
+    }
+
+    await ctx.answerCbQuery("✅ ස්තූතියි! දැන් ඔබට වීඩියෝව ලබාගත හැක.");
+    
+    // සාර්ථකව Join වී ඇත්නම් අදාළ ලින්ක් එකට අදාළ ප්‍රොසෙස් එක කරගෙන යාම
+    try {
+        if (payload.startsWith("getvideo_")) {
+            const token = payload.replace("getvideo_", "");
+            const fileDoc = await FileModel.findOneAndUpdate(
+                { token }, 
+                { $inc: { views: 1 } }, 
+                { new: true }
+            );
+
+            if (!fileDoc) {
+                return ctx.editMessageText("❌ සමාවන්න, මෙම ගොනුව හමුවී නැත හෝ කල් ඉකුත් වී ඇත.");
+            }
+
+            await ctx.editMessageText(`🎉 දැන්වීම සාර්ථකව නරඹන ලදී! මෙන්න ඔබේ වීඩියෝව:`);
+            return await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
+        }
+
+        const fileDoc = await FileModel.findOne({ token: payload });
+        if (!fileDoc) {
+            return ctx.editMessageText("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
+        }
+
+        const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
+        const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
+
+        await ctx.editMessageText(
+            `🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
+            `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්`,
+            {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: "▶️ Watch Ad & Get Video", web_app: { url: miniAppUrl } }],
+                        [{ text: "❓ වීඩියෝව ලබා ගන්නේ කෙසේද? (Guide)", callback_data: "how_to_use" }]
+                    ]
+                }
+            }
+        );
+    } catch (error) {
+        console.error(error);
     }
 });
 
@@ -275,7 +371,7 @@ bot.command('stats', async (ctx) => {
 
     const text = ctx.message.text;
     const args = text.split(' ');
-    const token = args[1];
+    const token = args.get ? args[1] : args[1]; // simplified
 
     if (!token) {
         return ctx.reply("⚠️ කරුණාකර ටෝකන් එකක් ඇතුළත් කරන්න.\nඋදාහරණයක් ලෙස: `/stats ඔබගේ_ටෝකන්_එක`", { parse_mode: 'Markdown' });
