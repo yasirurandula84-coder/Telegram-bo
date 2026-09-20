@@ -152,7 +152,6 @@ async function checkAndUpdateLimit(userIdStr) {
         user = await UserModel.create({ userId: userIdStr, lastDownloadDate: todayStr, downloadsToday: 0, currentLimit: 10 });
     }
 
-    // දවස වෙනස් වී ඇත්නම් ඩවුන්ලෝඩ් ගණන 0 කිරීම
     if (user.lastDownloadDate !== todayStr) {
         user.downloadsToday = 0;
         user.shareCount = 0;
@@ -180,7 +179,6 @@ bot.start(async (ctx) => {
         return ctx.reply("ආයුබෝවන්! මම File Store Bot එකයි. වීඩියෝ ලබා ගැනීමට නිවැරදි ලින්ක් එකක් භාවිතා කරන්න.");
     }
 
-    // චැනල් එකට join වෙලාද බලනවා
     const isSubscribed = await checkUserSubscription(ctx, userId);
     if (!isSubscribed) {
         return ctx.reply(
@@ -203,11 +201,9 @@ bot.start(async (ctx) => {
         if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
             
-            // ඩේලි ලිමිට් එක පරීක්ෂා කිරීම
             let user = await checkAndUpdateLimit(userIdStr);
 
             if (user.downloadsToday >= user.currentLimit) {
-                // ඉල්ලූ පරිදි 18+ ටෙක්ස්ට් එක සහ චැනල් ලින්ක් එක සමඟ ශෙයාර් මැසේජ් එක හැදීම
                 let shareText = `🔥 ලෝකයේ වෙනත් කිසිම තැනක නැති සුපිරිම අලුත්ම 18+ වීඩියෝ එකතු වන අපේ චැනල් එකට දැන්ම එකතු වෙන්න! 👇\n\nhttps://t.me/wal_lokaya1`;
                 let encodedText = encodeURIComponent(shareText);
                 let nextGoal = user.currentLimit === 10 ? 2 : (user.currentLimit === 30 ? 4 : 0);
@@ -242,14 +238,11 @@ bot.start(async (ctx) => {
                 return ctx.reply("❌ සමාවන්න, මෙම ගොනුව හමුවී නැත හෝ කල් ඉකුත් වී ඇත.");
             }
 
-            // ඩවුන්ලෝඩ් ගණන වැඩි කිරීම
             user.downloadsToday += 1;
             await user.save();
 
-            // වීඩියෝව යැවීම
             const sentVideo = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
             
-            // විනාඩි 30කින් මැකෙන බවට දැනුම්දෙන පණිවිඩය
             const warningMsg = await ctx.reply(
                 `⚠️ **අවධානයට:**\n` +
                 `මෙම වීඩියෝව **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
@@ -257,7 +250,6 @@ bot.start(async (ctx) => {
                 { parse_mode: 'Markdown' }
             );
 
-            // විනාඩි 30 කට පසු මැකීමට සෙටප් කිරීම
             setTimeout(async () => {
                 try {
                     await ctx.telegram.deleteMessage(ctx.chat.id, sentVideo.message_id);
@@ -299,9 +291,11 @@ bot.start(async (ctx) => {
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
 
-      await ctx.editMessageText(
+        // මෙහි නැරඹුම් වාර (Views) සහ අද බාගත් ප්‍රමාණය නිවැරදිව එකතු කර ඇත
+        await ctx.reply(
             `🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
-            `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්`,
+            `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්\n` +
+            `📊 අද බාගත කළ වාර: ${user.downloadsToday} /${user.currentLimit}`,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
@@ -312,6 +306,7 @@ bot.start(async (ctx) => {
                 }
             }
         );
+
     } catch (error) {
         console.error(error);
         ctx.reply("පද්ධතියේ දෝෂයක් සිදු විය. කරුණාකර පසුව උත්සාහ කරන්න.");
@@ -327,7 +322,7 @@ bot.action('check_share_status', async (ctx) => {
         return ctx.answerCbQuery("❌ දත්ත හමුවී නැත.", { show_alert: true });
     }
 
-    user.shareCount += 2; // ශෙයාර් බටන් එක ක්ලික් කර ආපසු පැමිණීම පරීක්ෂා කිරීම
+    user.shareCount += 2; 
 
     if (user.currentLimit === 10 && user.shareCount >= 2) {
         user.currentLimit = 30; 
@@ -377,7 +372,7 @@ bot.command('stats', async (ctx) => {
 
     } catch (error) {
         console.error("Stats error:", error);
-        ctx.reply("❌ සංඛ්‍යාලේඛන ලබාගැනීමේදී දෝෂයක් ඇති විය.");
+        await ctx.reply("❌ සංඛ්‍යාලේඛන ලබාගැනීමේදී දෝෂයක් ඇති විය.");
     }
 });
 
@@ -417,7 +412,7 @@ bot.command('broadcast', async (ctx) => {
 
     } catch (error) {
         console.error("Broadcast error:", error);
-        ctx.reply("❌ බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
+        await ctx.reply("❌ බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
 
@@ -524,8 +519,10 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
 
+        // F-Sub චෙක් කර අවසන් වූ පසුත් Views සහ Downloads පෙන්වන ලෙස යාවත්කාලීන කරන ලදී
         await ctx.editMessageText(
             `🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
+            `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්\n` +
             `📊 අද බාගත කළ වාර: ${user.downloadsToday} /${user.currentLimit}`,
             {
                 parse_mode: 'Markdown',
