@@ -27,9 +27,10 @@ const fileSchema = new mongoose.Schema({
 });
 const FileModel = mongoose.model('File', fileSchema);
 
-// Mongoose Schema for Users (Broadcast සඳහා අවශ්‍ය වේ)
+// Mongoose Schema for Users (joinedAt සමඟ මාසිකව යුසර්ස්ලා ගණන් කිරීමට)
 const userSchema = new mongoose.Schema({
-    userId: { type: String, required: true, unique: true }
+    userId: { type: String, required: true, unique: true },
+    joinedAt: { type: Date, default: Date.now }
 });
 const UserModel = mongoose.model('User', userSchema);
 
@@ -143,11 +144,11 @@ bot.start(async (ctx) => {
     const userIdStr = userId.toString();
     const payload = ctx.startPayload;
 
-    // යුසර් බොට් එකට එන සෑම අවස්ථාවකම ඩේටාබේස් එකේ සේව් වීම (Broadcast සඳහා)
+    // යුසර් බොට් එකට එන සෑම අවස්ථාවකම ඩේටාබේස් එකේ සේව් වීම (මුල් වතාවට එන වෙලාව සේව් වේ)
     try {
         await UserModel.updateOne(
             { userId: userIdStr }, 
-            { $set: { userId: userIdStr } }, 
+            { $setOnInsert: { joinedAt: new Date() }, $set: { userId: userIdStr } }, 
             { upsert: true }
         );
     } catch (err) {
@@ -244,6 +245,49 @@ bot.start(async (ctx) => {
     }
 });
 
+// --- ADMIN STATS COMMAND (/stats) ---
+bot.command('stats', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const ADMIN_ID = process.env.ADMIN_ID;
+
+    if (ADMIN_ID && userId !== ADMIN_ID) {
+        return ctx.reply("❌ මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.");
+    }
+
+    try {
+        // 1. සම්පූර්ණ යුසර්ස්ලා ගණන
+        const totalUsers = await UserModel.countDocuments({});
+
+        // 2. මෙම මාසයේ (Current Month) අලුතින් ආපු යුසර්ස්ලා ගණන
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthlyUsers = await UserModel.countDocuments({
+            joinedAt: { $gte: startOfMonth }
+        });
+
+        // 3. ගොනු සහ views ගණන
+        const totalFiles = await FileModel.countDocuments({});
+        const files = await FileModel.find({});
+        let totalViews = 0;
+        files.forEach(file => {
+            totalViews += file.views;
+        });
+
+        await ctx.reply(
+            `📊 **බොට් හි සංඛ්‍යාලේඛන (Bot Statistics)**\n\n` +
+            `👥 මුළු යුසර්ස්ලා (Total Users): **${totalUsers}**\n` +
+            `📅 මෙම මාසයේ අලුත් යුසර්ස්ලා (This Month): **${monthlyUsers}**\n` +
+            `📁 ගබඩා කර ඇති වීඩියෝ ගණන: **${totalFiles}**\n` +
+            `👁️ මුළු වීඩියෝ නැරඹුම් වාර (Total Views): **${totalViews}**`,
+            { parse_mode: 'Markdown' }
+        );
+
+    } catch (error) {
+        console.error("Stats error:", error);
+        await ctx.reply("❌ සංඛ්‍යාලේඛන ලබාගැනීමේදී දෝෂයක් ඇති විය.");
+    }
+});
+
 // --- ADMIN BROADCAST COMMAND (/broadcast) ---
 bot.command('broadcast', async (ctx) => {
     const userId = ctx.from.id.toString();
@@ -253,7 +297,6 @@ bot.command('broadcast', async (ctx) => {
         return ctx.reply("❌ මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.");
     }
 
-    // /broadcast කියන වචනය අයින් කරලා ඉතිරි ටෙස්ට් එක ගන්නවා
     const broadcastText = ctx.message.text.replace('/broadcast', '').trim();
 
     if (!broadcastText) {
@@ -271,11 +314,9 @@ bot.command('broadcast', async (ctx) => {
             try {
                 await ctx.telegram.sendMessage(user.userId, broadcastText, { parse_mode: 'Markdown' });
                 successCount++;
-                // Telegram Rate Limit මඟහරවා ගැනීමට මිලි තත්පර 50ක පොඩි ප්‍රමාදයක්
                 await new Promise(resolve => setTimeout(resolve, 50));
             } catch (err) {
                 failCount++;
-                // යුසර් බොට්ව බ්ලොක් කර ඇත්නම් මෙහිදී ෆේල් වේ
             }
         }
 
@@ -312,7 +353,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 return ctx.editMessageText("❌ සමාවන්න, මෙම ගොනුව හමුවී නැත හෝ කල් ඉකුත් වී ඇත.");
             }
 
-            await ctx.deleteMessage(); // Join වෙන්න කියපු පරණ මැසේජ් එක අයින් කරනවා
+            await ctx.deleteMessage();
 
             const sentVideo = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
             const warningMsg = await ctx.reply(
