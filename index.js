@@ -27,6 +27,12 @@ const fileSchema = new mongoose.Schema({
 });
 const FileModel = mongoose.model('File', fileSchema);
 
+// Mongoose Schema for Users (Broadcast සඳහා අවශ්‍ය වේ)
+const userSchema = new mongoose.Schema({
+    userId: { type: String, required: true, unique: true }
+});
+const UserModel = mongoose.model('User', userSchema);
+
 // Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -131,10 +137,22 @@ async function checkUserSubscription(ctx, userId) {
     }
 }
 
-// /start command
+// /start command & User Saving for Broadcast
 bot.start(async (ctx) => {
     const userId = ctx.from.id;
+    const userIdStr = userId.toString();
     const payload = ctx.startPayload;
+
+    // යුසර් බොට් එකට එන සෑම අවස්ථාවකම ඩේටාබේස් එකේ සේව් වීම (Broadcast සඳහා)
+    try {
+        await UserModel.updateOne(
+            { userId: userIdStr }, 
+            { $set: { userId: userIdStr } }, 
+            { upsert: true }
+        );
+    } catch (err) {
+        console.error("User save error:", err);
+    }
 
     if (!payload) {
         return ctx.reply("ආයුබෝවන්! මම File Store Bot එකයි. වීඩියෝ ලබා ගැනීමට නිවැරදි ලින්ක් එකක් භාවිතා කරන්න.");
@@ -176,15 +194,15 @@ bot.start(async (ctx) => {
             // වීඩියෝව යැවීම
             const sentVideo = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
             
-            // විනාඩි 30කින් මැකෙන බවට දැනුම්දෙන පණිවිඩය (Save/Download කරගැනීමට මතක් කිරීමත් සමඟ)
+            // විනාඩි 30කින් මැකෙන බවට දැනුම්දෙන පණිවිඩය
             const warningMsg = await ctx.reply(
-                `⚠️ **חשוב / IMPORTANT NOTICE:**\n` +
+                `⚠️ **අවධානයට:**\n` +
                 `මෙම වීඩියෝව **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
                 `💾 අවශ්‍ය නම් දැන්ම ඉහත වීඩියෝව **Save to Downloads** හෝ **Forward** කර සුරක්ෂිත කරගන්න. නැවත අවශ්‍ය වුවහොත් චැනල් එකේ ලින්ක් එකෙන් පැමිණ ලබාගත හැක.`,
                 { parse_mode: 'Markdown' }
             );
 
-            // විනාඩි 30 කට පසු (මිලි තත්පර 30 * 60 * 1000) මැකීමට සෙටප් කිරීම
+            // විනාඩි 30 කට පසු මැකීමට සෙටප් කිරීම
             setTimeout(async () => {
                 try {
                     await ctx.telegram.deleteMessage(ctx.chat.id, sentVideo.message_id);
@@ -223,6 +241,49 @@ bot.start(async (ctx) => {
     } catch (error) {
         console.error(error);
         ctx.reply("පද්ධතියේ දෝෂයක් සිදු විය. කරුණාකර පසුව උත්සාහ කරන්න.");
+    }
+});
+
+// --- ADMIN BROADCAST COMMAND (/broadcast) ---
+bot.command('broadcast', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const ADMIN_ID = process.env.ADMIN_ID;
+
+    if (ADMIN_ID && userId !== ADMIN_ID) {
+        return ctx.reply("❌ මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.");
+    }
+
+    // /broadcast කියන වචනය අයින් කරලා ඉතිරි ටෙස්ට් එක ගන්නවා
+    const broadcastText = ctx.message.text.replace('/broadcast', '').trim();
+
+    if (!broadcastText) {
+        return ctx.reply("⚠️ කරුණාකර යැවිය යුතු පණිවිඩය සමඟ විධානය භාවිතා කරන්න.\n\nඋදාහරණයක් ලෙස:\n`/broadcast 🔥 අලුත් වීඩියෝවක් නරඹන්න පහත ලින්ක් එකට යන්න!`", { parse_mode: 'Markdown' });
+    }
+
+    try {
+        const users = await UserModel.find({});
+        let successCount = 0;
+        let failCount = 0;
+
+        await ctx.reply(`📢 බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ විය... (මුළු යුසර්ස්ලා: ${users.length})`);
+
+        for (const user of users) {
+            try {
+                await ctx.telegram.sendMessage(user.userId, broadcastText, { parse_mode: 'Markdown' });
+                successCount++;
+                // Telegram Rate Limit මඟහරවා ගැනීමට මිලි තත්පර 50ක පොඩි ප්‍රමාදයක්
+                await new Promise(resolve => setTimeout(resolve, 50));
+            } catch (err) {
+                failCount++;
+                // යුසර් බොට්ව බ්ලොක් කර ඇත්නම් මෙහිදී ෆේල් වේ
+            }
+        }
+
+        await ctx.reply(`✅ **බ්‍රෝඩ්කාස්ට් අවසන්!**\n\n🎯 සාර්ථකව යැවුණු ගණන: ${successCount}\n❌ අසාර්ථක වූ ගණන: ${failCount}`, { parse_mode: 'Markdown' });
+
+    } catch (error) {
+        console.error("Broadcast error:", error);
+        await ctx.reply("❌ බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
 
