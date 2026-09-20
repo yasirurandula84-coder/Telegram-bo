@@ -8,8 +8,8 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const DB_CHANNEL_ID = process.env.DB_CHANNEL_ID;
 const MONGO_URI = process.env.MONGO_URI;
 
-// අනිවාර්යයෙන් join වී සිටිය යුතු චැනල් එක (Username එක හෝ ID එක මෙතැනට දාන්න. උදා: '@my_video_channel')
-const REQUIRED_CHANNEL = process.env.REQUIRED_CHANNEL || "@your_channel_username"; 
+// අනිවාර්යයෙන් join වී සිටිය යුතු චැනල් එක
+const REQUIRED_CHANNEL = process.env.REQUIRED_CHANNEL || "@wal_lokaya1"; 
 
 // ඔබේ Adsterra Smart Link එක
 const AD_LINK = process.env.AD_LINK || "https://www.profitableratecpmnetwork.com/g7p33na9?key=d6d0cdc4f9da3f0a448d3a891515c3ac"; 
@@ -117,18 +117,17 @@ app.get('/miniapp', (req, res) => {
 
 // Helper Function: යුසර් චැනල් එකට join වෙලාද කියලා චෙක් කිරීමට
 async function checkUserSubscription(ctx, userId) {
-    if (!REQUIRED_CHANNEL) return true; // චැනල් එකක් සෙට් කර නැත්නම් සාමාන්‍ය පරිදි යන්න දීම
+    if (!REQUIRED_CHANNEL) return true;
     try {
         const chatMember = await ctx.telegram.getChatMember(REQUIRED_CHANNEL, userId);
         const status = chatMember.status;
-        // creator, administrator, member යනු චැනල් එකේ ඉන්නා තත්ත්වයන් වේ
         if (status === 'creator' || status === 'administrator' || status === 'member') {
             return true;
         }
         return false;
     } catch (error) {
         console.error("F-Sub Check Error:", error);
-        return true; // බොට් එක චැනල් එකේ ඇඩ්මින් කෙනෙක් නොවුනොත් හෝ එරර් එකක් ආවොත් බ්ලොක් නොවී වැඩ කිරීමට
+        return true;
     }
 }
 
@@ -141,7 +140,7 @@ bot.start(async (ctx) => {
         return ctx.reply("ආයුබෝවන්! මම File Store Bot එකයි. වීඩියෝ ලබා ගැනීමට නිවැරදි ලින්ක් එකක් භාවිතා කරන්න.");
     }
 
-    // මුලින්ම යුසර් චැනල් එකට join වෙලාද බලනවා
+    // චැනල් එකට join වෙලාද බලනවා
     const isSubscribed = await checkUserSubscription(ctx, userId);
     if (!isSubscribed) {
         return ctx.reply(
@@ -174,8 +173,28 @@ bot.start(async (ctx) => {
                 return ctx.reply("❌ සමාවන්න, මෙම ගොනුව හමුවී නැත හෝ කල් ඉකුත් වී ඇත.");
             }
 
-            await ctx.reply(`🎉 දැන්වීම සාර්ථකව නරඹන ලදී! (මෙම වීඩියෝව මේ වන විට ${fileDoc.views} දෙනෙක් නරඹා ඇත)\n\nමෙන්න ඔබේ වීඩියෝව:`);
-            return await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
+            // වීඩියෝව යැවීම
+            const sentVideo = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
+            
+            // විනාඩි 30කින් මැකෙන බවට දැනුම්දෙන පණිවිඩය (Save/Download කරගැනීමට මතක් කිරීමත් සමඟ)
+            const warningMsg = await ctx.reply(
+                `⚠️ **חשוב / IMPORTANT NOTICE:**\n` +
+                `මෙම වීඩියෝව **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
+                `💾 අවශ්‍ය නම් දැන්ම ඉහත වීඩියෝව **Save to Downloads** හෝ **Forward** කර සුරක්ෂිත කරගන්න. නැවත අවශ්‍ය වුවහොත් චැනල් එකේ ලින්ක් එකෙන් පැමිණ ලබාගත හැක.`,
+                { parse_mode: 'Markdown' }
+            );
+
+            // විනාඩි 30 කට පසු (මිලි තත්පර 30 * 60 * 1000) මැකීමට සෙටප් කිරීම
+            setTimeout(async () => {
+                try {
+                    await ctx.telegram.deleteMessage(ctx.chat.id, sentVideo.message_id);
+                    await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id);
+                } catch (err) {
+                    console.error("Auto delete error:", err);
+                }
+            }, 30 * 60 * 1000);
+
+            return;
         }
 
         const fileDoc = await FileModel.findOne({ token: payload });
@@ -219,7 +238,6 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
 
     await ctx.answerCbQuery("✅ ස්තූතියි! දැන් ඔබට වීඩියෝව ලබාගත හැක.");
     
-    // සාර්ථකව Join වී ඇත්නම් අදාළ ලින්ක් එකට අදාළ ප්‍රොසෙස් එක කරගෙන යාම
     try {
         if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
@@ -233,8 +251,26 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 return ctx.editMessageText("❌ සමාවන්න, මෙම ගොනුව හමුවී නැත හෝ කල් ඉකුත් වී ඇත.");
             }
 
-            await ctx.editMessageText(`🎉 දැන්වීම සාර්ථකව නරඹන ලදී! මෙන්න ඔබේ වීඩියෝව:`);
-            return await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
+            await ctx.deleteMessage(); // Join වෙන්න කියපු පරණ මැසේජ් එක අයින් කරනවා
+
+            const sentVideo = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
+            const warningMsg = await ctx.reply(
+                `⚠️ **අවධානයට:**\n` +
+                `මෙම වීඩියෝව **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
+                `💾 අවශ්‍ය නම් දැන්ම ඉහත වීඩියෝව **Save to Downloads** කර සුරක්ෂිත කරගන්න.`,
+                { parse_mode: 'Markdown' }
+            );
+
+            setTimeout(async () => {
+                try {
+                    await ctx.telegram.deleteMessage(ctx.chat.id, sentVideo.message_id);
+                    await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id);
+                } catch (err) {
+                    console.error("Auto delete error:", err);
+                }
+            }, 30 * 60 * 1000);
+
+            return;
         }
 
         const fileDoc = await FileModel.findOne({ token: payload });
@@ -283,7 +319,6 @@ bot.action('how_to_use', async (ctx) => {
 // --- Admin Upload Section ---
 const pendingUploads = new Map();
 
-// 1. ඇඩ්මින් Thumbnail (Photo) එක එව්වොත්
 bot.on('photo', async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -302,7 +337,6 @@ bot.on('photo', async (ctx) => {
     await ctx.reply("📸 Thumbnail එක ලැබුණා! දැන් මේකට අදාළ **වීඩියෝව (Video file එක)** එවන්න.");
 });
 
-// 2. ඇඩ්මින් Video එකක් එව්වොත්
 bot.on(['video', 'document'], async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -333,7 +367,6 @@ bot.on(['video', 'document'], async (ctx) => {
         const botUsername = ctx.botInfo.username;
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
 
-        // පිරිසිදු Thumbnail පෝස්ට් එක යැවීම
         await ctx.telegram.sendPhoto(ctx.chat.id, pending.photoFileId, {
             caption: pending.caption,
             parse_mode: 'Markdown',
@@ -344,7 +377,6 @@ bot.on(['video', 'document'], async (ctx) => {
             }
         });
 
-        // ඩිරෙක්ට් ලින්ක් එක වෙනම යැවීම
         await ctx.reply(
             `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n` +
             `👆 ඉහත පෝස්ට් එක ඔබේ චැනල් එකට ෆෝවර්ඩ් කරන්න.\n\n` +
@@ -357,41 +389,6 @@ bot.on(['video', 'document'], async (ctx) => {
     } catch (error) {
         console.error(error);
         ctx.reply("වීඩියෝව සේව් කරගැනීමේදී දෝෂයක් ඇති විය.");
-    }
-});
-
-// /stats කමාන්ඩ් එක
-bot.command('stats', async (ctx) => {
-    const userId = ctx.from.id.toString();
-    const ADMIN_ID = process.env.ADMIN_ID;
-
-    if (ADMIN_ID && userId !== ADMIN_ID) {
-        return ctx.reply("❌ මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.");
-    }
-
-    const text = ctx.message.text;
-    const args = text.split(' ');
-    const token = args.get ? args[1] : args[1]; // simplified
-
-    if (!token) {
-        return ctx.reply("⚠️ කරුණාකර ටෝකන් එකක් ඇතුළත් කරන්න.\nඋදාහරණයක් ලෙස: `/stats ඔබගේ_ටෝකන්_එක`", { parse_mode: 'Markdown' });
-    }
-
-    try {
-        const fileDoc = await FileModel.findOne({ token: token.trim() });
-        if (!fileDoc) {
-            return ctx.reply("❌ මෙම ටෝකන් එකට අදාළ වීඩියෝවක් හමුවී නැත.");
-        }
-
-        ctx.reply(
-            `📊 **වීඩියෝ විස්තර (Video Stats):**\n\n` +
-            `🔑 Token: \`${fileDoc.token}\`\n` +
-            `👁️‍🗨️ සම්පූර්ණ නැරඹුම් වාර (Views): **${fileDoc.views}** ක්`,
-            { parse_mode: 'Markdown' }
-        );
-    } catch (error) {
-        console.error(error);
-        ctx.reply("දෝෂයක් සිදු විය.");
     }
 });
 
