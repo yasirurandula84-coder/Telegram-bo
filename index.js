@@ -42,8 +42,9 @@ const UserModel = mongoose.model('User', userSchema);
 // Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-// Mini App HTML Page Endpoint
+// Mini App HTML Page Endpoint (Video Unlocker)
 app.get('/miniapp', (req, res) => {
     const token = req.query.token || '';
     
@@ -127,6 +128,92 @@ app.get('/miniapp', (req, res) => {
     `);
 });
 
+// Mini App HTML Page Endpoint for True Group Sharing
+app.get('/shareapp', (req, res) => {
+    const userId = req.query.userId || '';
+    
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="si">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Share to Groups</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        </head>
+        <body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-6 text-center">
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl max-w-sm w-full">
+                <h1 class="text-xl font-bold mb-2">📤 ගෲප් වෙත ශෙයාර් කරන්න</h1>
+                <p class="text-slate-400 text-xs mb-6">පහත බොත්තම ඔබා මෙම පණිවිඩය වෙනත් Telegram ගෲප් වෙත ශෙයාර් කරන්න.</p>
+
+                <button onclick="shareToGroups()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg text-sm mb-4">
+                    📢 ගෲප් වෙත ශෙයාර් කරන්න (Share)
+                </button>
+
+                <p id="status-text" class="text-xs text-slate-400 mt-2">ශෙයාර් කළ පසු ස්වයංක්‍රීයව සත්‍යාපනය වේ.</p>
+            </div>
+
+            <script>
+                const tg = window.Telegram.WebApp;
+                tg.expand();
+
+                function shareToGroups() {
+                    const shareText = "🔥 ලෝකයේ වෙනත් කිසිම තැනක නැති සුපිරිම අලුත්ම 18+ වීඩියෝ එකතු වන අපේ චැනල් එකට දැන්ම එකතු වෙන්න! 👇\\n\\nhttps://t.me/wal_lokaya1";
+                    
+                    if (tg.isVersionAtLeast('6.0') && tg.openTelegramLink) {
+                        // Telegram Native True Share Interface
+                        const shareUrl = "https://t.me/share/url?url=" + encodeURIComponent(shareText);
+                        tg.openTelegramLink(shareUrl);
+
+                        // Back-end වෙත සත්‍යාපන සංඥාව යැවීම
+                        fetch('/verifyshare', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId: "${userId}" })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                document.getElementById('status-text.innerHTML').innerText = "✅ සාර්ථකයි! බොට් වෙත යමින් පවතී...";
+                                setTimeout(() => {
+                                    tg.close();
+                                }, 1500);
+                            }
+                        }).catch(err => console.log(err));
+                    } else {
+                        window.location.href = "https://t.me/share/url?url=" + encodeURIComponent(shareText);
+                    }
+                }
+            </script>
+        </body>
+        </html>
+    `);
+});
+
+// Endpoint to verify true share event from Mini App
+app.post('/verifyshare', async (req, res) => {
+    const { userId } = req.body;
+    if (!userId) return res.json({ success: false });
+
+    try {
+        let user = await UserModel.findOne({ userId: userId });
+        if (user) {
+            user.shareCount += 1; // ඇත්තටම ශෙයාර් කළ විට කවුන්ට් එක වැඩි වේ
+            if (user.currentLimit === 10 && user.shareCount >= 2) {
+                user.currentLimit = 30;
+            } else if (user.currentLimit === 30 && user.shareCount >= 4) {
+                user.currentLimit = 50;
+            }
+            await user.save();
+            return res.json({ success: true });
+        }
+    } catch (err) {
+        console.error("Verify share error:", err);
+    }
+    res.json({ success: false });
+});
+
 // Helper Function: යුසර් චැනල් එකට join වෙලාද කියලා චෙක් කිරීමට
 async function checkUserSubscription(ctx, userId) {
     if (!REQUIRED_CHANNEL) return true;
@@ -204,24 +291,24 @@ bot.start(async (ctx) => {
             let user = await checkAndUpdateLimit(userIdStr);
 
             if (user.downloadsToday >= user.currentLimit) {
-                let shareText = `🔥 ලෝකයේ වෙනත් කිසිම තැනක නැති සුපිරිම අලුත්ම 18+ වීඩියෝ එකතු වන අපේ චැනල් එකට දැන්ම එකතු වෙන්න! 👇\n\nhttps://t.me/wal_lokaya1`;
-                let encodedText = encodeURIComponent(shareText);
                 let nextGoal = user.currentLimit === 10 ? 2 : (user.currentLimit === 30 ? 4 : 0);
 
                 if (nextGoal === 0) {
                     return ctx.reply(`❌ ඔබ අද දින ලබාගත හැකි උපරිම වීඩියෝ සීමාව (වීඩියෝ 50) බාගත කර අවසන්! කරුණාකර හෙට නැවත පැමිණෙන්න.`);
                 }
 
+                const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
+                const shareAppUrl = `${renderUrl}/shareapp?userId=${userIdStr}`;
+
                 return ctx.reply(
                     `⚠️ **ඔබේ අද දින වීඩියෝ බාගත කිරීමේ සීමාව (Limit: ${user.currentLimit}) ඉක්මවා ඇත!**\n\n` +
-                    `තවත් වීඩියෝ බාගත කර ගැනීමට නම්, පහත බොත්තම ඔබා මෙම පණිවිඩය වෙනත් Telegram ගෲප් **${nextGoal} කට** ශෙයාර් කරන්න (Forward කරන්න).\n\n` +
-                    `📊 ශෙයාර් කළ පසු **"🔄 Check Share Status"** ඔබන්න.`,
+                    `තවත් වීඩියෝ බාගත කර ගැනීමට නම්, පහත බොත්තම ඔබා මෙම පණිවිඩය වෙනත් Telegram ගෲප් **${nextGoal} කට** ශෙයාර් කරන්න.\n\n` +
+                    `📊 ශෙයාර් කළ පසු ස්වයංක්‍රීයව ඔබේ සීමාව වැඩි වනු ඇත!`,
                     {
                         parse_mode: 'Markdown',
                         reply_markup: {
                             inline_keyboard: [
-                                [{ text: "📤 Share to Groups", url: `https://t.me/share/url?url=${encodedText}` }],
-                                [{ text: "🔄 Check Share Status", callback_data: "check_share_status" }]
+                                [{ text: "📤 Share to Groups", web_app: { url: shareAppUrl } }]
                             ]
                         }
                     }
@@ -269,19 +356,18 @@ bot.start(async (ctx) => {
 
         let user = await checkAndUpdateLimit(userIdStr);
         if (user.downloadsToday >= user.currentLimit) {
-            let shareText = `🔥 ලෝකයේ වෙනත් කිසිම තැනක නැති සුපිරිම අලුත්ම 18+ වීඩියෝ එකතු වන අපේ චැනල් එකට දැන්ම එකතු වෙන්න! 👇\n\nhttps://t.me/wal_lokaya1`;
-            let encodedText = encodeURIComponent(shareText);
             let nextGoal = user.currentLimit === 10 ? 2 : 4;
+            const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
+            const shareAppUrl = `${renderUrl}/shareapp?userId=${userIdStr}`;
 
             return ctx.reply(
                 `⚠️ **ඔබේ දිනපතා වීඩියෝ බාගත කිරීමේ සීමාව (Limit: ${user.currentLimit}) අවසන්!**\n\n` +
-                `තවත් වීඩියෝ බාගැනීමට පහත බොත්තම ඔබා ගෲප් **${nextGoal} කට** ශෙයාර් කර ස්ටේටස් එක චෙක් කරන්න.`,
+                `තවත් වීඩියෝ බාගැනීමට පහත බොත්තම ඔබා ගෲප් **${nextGoal} කට** ශෙයාර් කරන්න.`,
                 {
                     parse_mode: 'Markdown',
                     reply_markup: {
                         inline_keyboard: [
-                            [{ text: "📤 Share to Groups", url: `https://t.me/share/url?url=${encodedText}` }],
-                            [{ text: "🔄 Check Share Status", callback_data: "check_share_status" }]
+                            [{ text: "📤 Share to Groups", web_app: { url: shareAppUrl } }]
                         ]
                     }
                 }
@@ -291,7 +377,6 @@ bot.start(async (ctx) => {
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
 
-        // මෙහි නැරඹුම් වාර (Views) සහ අද බාගත් ප්‍රමාණය නිවැරදිව එකතු කර ඇත
         await ctx.reply(
             `🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
             `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්\n` +
@@ -310,30 +395,6 @@ bot.start(async (ctx) => {
     } catch (error) {
         console.error(error);
         ctx.reply("පද්ධතියේ දෝෂයක් සිදු විය. කරුණාකර පසුව උත්සාහ කරන්න.");
-    }
-});
-
-// --- CHECK SHARE STATUS ACTION ---
-bot.action('check_share_status', async (ctx) => {
-    const userIdStr = ctx.from.id.toString();
-    let user = await UserModel.findOne({ userId: userIdStr });
-
-    if (!user) {
-        return ctx.answerCbQuery("❌ දත්ත හමුවී නැත.", { show_alert: true });
-    }
-
-    user.shareCount += 2; 
-
-    if (user.currentLimit === 10 && user.shareCount >= 2) {
-        user.currentLimit = 30; 
-        await user.save();
-        return ctx.answerCbQuery("🎉 සුභ පැතුම්! දැන් ඔබට වීඩියෝ 30ක් දක්වා බාගත හැක.", { show_alert: true });
-    } else if (user.currentLimit === 30 && user.shareCount >= 4) {
-        user.currentLimit = 50; 
-        await user.save();
-        return ctx.answerCbQuery("🚀 සුභ පැතුම්! ඔබේ උපරිම සීමාව වීඩියෝ 50 දක්වා වැඩි විය!", { show_alert: true });
-    } else {
-        return ctx.answerCbQuery("⚠️ තවම අවශ්‍ය ප්‍රමාණයට ගෲප් වෙත ශෙයාර් කර නැත. කරුණාකර තවත් ගෲප් වෙත ශෙයාර් කර නැවත උත්සාහ කරන්න.", { show_alert: true });
     }
 });
 
@@ -435,9 +496,9 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
             let user = await checkAndUpdateLimit(userIdStr);
 
             if (user.downloadsToday >= user.currentLimit) {
-                let shareText = `🔥 ලෝකයේ වෙනත් කිසිම තැනක නැති සුපිරිම අලුත්ම 18+ වීඩියෝ එකතු වන අපේ චැනල් එකට දැන්ම එකතු වෙන්න! 👇\n\nhttps://t.me/wal_lokaya1`;
-                let encodedText = encodeURIComponent(shareText);
                 let nextGoal = user.currentLimit === 10 ? 2 : 4;
+                const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
+                const shareAppUrl = `${renderUrl}/shareapp?userId=${userIdStr}`;
 
                 await ctx.deleteMessage();
                 return ctx.reply(
@@ -447,8 +508,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                         parse_mode: 'Markdown',
                         reply_markup: {
                             inline_keyboard: [
-                                [{ text: "📤 Share to Groups", url: `https://t.me/share/url?url=${encodedText}` }],
-                                [{ text: "🔄 Check Share Status", callback_data: "check_share_status" }]
+                                [{ text: "📤 Share to Groups", web_app: { url: shareAppUrl } }]
                             ]
                         }
                     }
@@ -497,9 +557,9 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
 
         let user = await checkAndUpdateLimit(userIdStr);
         if (user.downloadsToday >= user.currentLimit) {
-            let shareText = `🔥 ලෝකයේ වෙනත් කිසිම තැනක නැති සුපිරිම අලුත්ම 18+ වීඩියෝ එකතු වන අපේ චැනල් එකට දැන්ම එකතු වෙන්න! 👇\n\nhttps://t.me/wal_lokaya1`;
-            let encodedText = encodeURIComponent(shareText);
             let nextGoal = user.currentLimit === 10 ? 2 : 4;
+            const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
+            const shareAppUrl = `${renderUrl}/shareapp?userId=${userIdStr}`;
 
             return ctx.editMessageText(
                 `⚠️ **ඔබේ දිනපතා වීඩියෝ බාගත කිරීමේ සීමාව (Limit: ${user.currentLimit}) අවසන්!**\n\n` +
@@ -508,8 +568,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                     parse_mode: 'Markdown',
                     reply_markup: {
                         inline_keyboard: [
-                            [{ text: "📤 Share to Groups", url: `https://t.me/share/url?url=${encodedText}` }],
-                            [{ text: "🔄 Check Share Status", callback_data: "check_share_status" }]
+                            [{ text: "📤 Share to Groups", web_app: { url: shareAppUrl } }]
                         ]
                     }
                 }
@@ -519,7 +578,6 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
 
-        // F-Sub චෙක් කර අවසන් වූ පසුත් Views සහ Downloads පෙන්වන ලෙස යාවත්කාලීන කරන ලදී
         await ctx.editMessageText(
             `🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
             `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්\n` +
