@@ -299,9 +299,9 @@ bot.start(async (ctx) => {
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
 
-        await ctx.reply(
+      await ctx.editMessageText(
             `🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
-            `📊 අද බාගත කළ වාර: ${user.downloadsToday} /${user.currentLimit}`,
+            `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්`,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
@@ -312,7 +312,6 @@ bot.start(async (ctx) => {
                 }
             }
         );
-
     } catch (error) {
         console.error(error);
         ctx.reply("පද්ධතියේ දෝෂයක් සිදු විය. කරුණාකර පසුව උත්සාහ කරන්න.");
