@@ -294,10 +294,16 @@ bot.command('broadcast', async (ctx) => {
         return ctx.reply("❌ මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.");
     }
 
-    const broadcastText = ctx.message.text.replace('/broadcast', '').trim();
+    // බැලිය යුතුයි මැසේජ් එකට ෆොටෝ එකක්, වීඩියෝ එකක් හෝ කැප්ෂන් එකක් තියෙනවද කියලා
+    const repliedMessage = ctx.message.reply_to_message;
 
-    if (!broadcastText) {
-        return ctx.reply("⚠️ කරුණාකර යැවිය යුතු පණිවිඩය සමඟ විධානය භාවිතා කරන්න.\n\nඋදාහරණයක් ලෙස:\n`/broadcast 🔥 අලුත් වීඩියෝවක් නරඹන්න පහත ලින්ක් එකට යන්න!`", { parse_mode: 'Markdown' });
+    if (!repliedMessage) {
+        return ctx.reply(
+            "⚠️ **පින්තූරයක් හෝ වීඩියෝවක් බ්‍රෝඩ්කාස්ට් කරන්නේ ಹೇಗೆ?**\n\n" +
+            "1️⃣ මුලින්ම ඔබට යවන්න අවශ්‍ය **Photo එක හෝ Video එක** චැට් එකට එවන්න (කැප්ෂන් එකත් සමඟ).\n" +
+            "2️⃣ ඊටපස්සේ ඒ ෆොටෝ එකට හෝ වීඩියෝවට **Reply** කරලා `/broadcast` කියලා ටයිප් කරලා එවන්න.",
+            { parse_mode: 'Markdown' }
+        );
     }
 
     try {
@@ -305,13 +311,14 @@ bot.command('broadcast', async (ctx) => {
         let successCount = 0;
         let failCount = 0;
 
-        await ctx.reply(`📢 බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ විය... (මුළු යුසර්ස්ලා: ${users.length})`);
+        await ctx.reply(`📢 මීਡੀයා බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ විය... (මුළු යුසර්ස්ලා: ${users.length})`);
 
         for (const user of users) {
             try {
-                await ctx.telegram.sendMessage(user.userId, broadcastText, { parse_mode: 'Markdown' });
+                // රිප්ளை කළ මැසේජ් එක ෆොටෝ එකක්, වීඩියෝ එකක් හෝ වෙනත් දෙයක්ද කියලා බලලා යුසර්ට කොපි කිරීම
+                await ctx.telegram.copyMessage(user.userId, ctx.chat.id, repliedMessage.message_id);
                 successCount++;
-                await new Promise(resolve => setTimeout(resolve, 50));
+                await new Promise(resolve => setTimeout(resolve, 50)); // Telegram flood limit එක මඟහරවා ගැනීමට
             } catch (err) {
                 failCount++;
             }
@@ -324,7 +331,6 @@ bot.command('broadcast', async (ctx) => {
         await ctx.reply("❌ බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
-
 // Check Subscription Button Action
 bot.action(/^check_sub_(.+)$/, async (ctx) => {
     const userId = ctx.from.id;
