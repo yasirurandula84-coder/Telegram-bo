@@ -20,10 +20,11 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB Connected Successfully!'))
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// Mongoose Schema for Files
+
+// Mongoose Schema for Files (Collection සඳහා Array එකක් ලෙස)
 const fileSchema = new mongoose.Schema({
     token: { type: String, required: true, unique: true },
-    fileMsgId: { type: Number, required: true },
+    fileMsgIds: { type: [Number], required: true }, // වීඩියෝ කිහිපයක ID එකතු කිරීමට
     views: { type: Number, default: 0 }
 });
 const FileModel = mongoose.model('File', fileSchema);
@@ -194,27 +195,29 @@ bot.start(async (ctx) => {
             }
 
             // වීඩියෝව යැවීම
-            const sentVideo = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
+                        // කලෙක්ෂන් එකේ ඇති සියලුම වීඩියෝ එකින් එක පිළිවෙළට යැවීම
+            for (let i = 0; i < fileDoc.fileMsgIds.length; i++) {
+                await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgIds[i]);
+                // වීඩියෝ අතර කුඩා පරතරයක් තබා පිළිවෙළට යැවීමට
+                await new Promise(resolve => setTimeout(resolve, 400));
+            }
             
-            // විනාඩි 30කින් මැකෙන බවට දැනුම්දෙන පණිවිඩය
             const warningMsg = await ctx.reply(
                 `⚠️ **අවධානයට:**\n` +
-                `මෙම වීඩියෝව **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
-                `💾 අවශ්‍ය නම් දැන්ම ඉහත වීඩියෝව **Save to Downloads** හෝ **Forward** කර සුරක්ෂිත කරගන්න. නැවත අවශ්‍ය වුවහොත් චැනල් එකේ ලින්ක් එකෙන් පැමිණ ලබාගත හැක.`,
+                `මෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
+                `💾 අවශ්‍ය නම් දැන්ම ඉහත වීඩියෝ **Save** කර සුරක්ෂිත කරගන්න.`,
                 { parse_mode: 'Markdown' }
             );
 
-            // විනාඩි 30 කට පසු මැකීමට සෙටප් කිරීම
+            // විනාඩි 30 කට පසු මැකීමට සෙටප් කිරීම (අවශ්‍ය නම් කලෙක්ෂන් එකේ මැසේජ් හැම එකක්ම ඩිලීට් වන ලෙස හෝ වෝනිං මැසේජ් එක ඩිලීට් වන ලෙස තබාගත හැක)
             setTimeout(async () => {
                 try {
-                    await ctx.telegram.deleteMessage(ctx.chat.id, sentVideo.message_id);
                     await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id);
-                } catch (err) {
-                    console.error("Auto delete error:", err);
-                }
+                } catch (err) {}
             }, 30 * 60 * 1000);
 
             return;
+
         }
       
         const fileDoc = await FileModel.findOne({ token: payload });
@@ -358,24 +361,29 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
 
             await ctx.deleteMessage();
 
-            const sentVideo = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
+                        // කලෙක්ෂන් එකේ ඇති සියලුම වීඩියෝ එකින් එක පිළිවෙළට යැවීම
+            for (let i = 0; i < fileDoc.fileMsgIds.length; i++) {
+                await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgIds[i]);
+                // වීඩියෝ අතර කුඩා පරතරයක් තබා පිළිවෙළට යැවීමට
+                await new Promise(resolve => setTimeout(resolve, 400));
+            }
+            
             const warningMsg = await ctx.reply(
                 `⚠️ **අවධානයට:**\n` +
-                `මෙම වීඩියෝව **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
-                `💾 අවශ්‍ය නම් දැන්ම ඉහත වීඩියෝව **Save to Downloads** කර සුරක්ෂිත කරගන්න.`,
+                `මෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
+                `💾 අවශ්‍ය නම් දැන්ම ඉහත වීඩියෝ **Save** කර සුරක්ෂිත කරගන්න.`,
                 { parse_mode: 'Markdown' }
             );
 
+            // විනාඩි 30 කට පසු මැකීමට සෙටප් කිරීම (අවශ්‍ය නම් කලෙක්ෂන් එකේ මැසේජ් හැම එකක්ම ඩිලීට් වන ලෙස හෝ වෝනිං මැසේජ් එක ඩිලීට් වන ලෙස තබාගත හැක)
             setTimeout(async () => {
                 try {
-                    await ctx.telegram.deleteMessage(ctx.chat.id, sentVideo.message_id);
                     await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id);
-                } catch (err) {
-                    console.error("Auto delete error:", err);
-                }
+                } catch (err) {}
             }, 30 * 60 * 1000);
 
             return;
+
         }
 
         const fileDoc = await FileModel.findOne({ token: payload });
@@ -421,7 +429,7 @@ bot.action('how_to_use', async (ctx) => {
     }
 });
 
-// --- Admin Upload & Auto-Post Section ---
+// Admin Upload & Auto-Post Section
 const pendingUploads = new Map();
 
 bot.on('photo', async (ctx) => {
@@ -436,58 +444,76 @@ bot.on('photo', async (ctx) => {
 
     pendingUploads.set(userId, {
         photoFileId: largestPhoto,
-        caption: caption
+        caption: caption,
+        videoMsgIds: [] 
     });
 
-    await ctx.reply("📸 Thumbnail එක ලැබුණා! දැන් මේකට අදාළ **වීඩියෝව (Video file එක)** එවන්න.");
+    await ctx.reply("📸 Thumbnail එක ලැබුණා! දැන් මේකට අදාළ **වීඩියෝව (හෝ වීඩියෝ කිහිපයක්)** එකින් එක එවන්න. සියල්ල එවා අවසන් වූ පසු **/done** කමාන්ඩ් එක එවන්න.");
 });
 
+// වීඩියෝ එකතු කරගැනීම
 bot.on(['video', 'document'], async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
 
-    if (ADMIN_ID && userId !== ADMIN_ID) {
-        return ctx.reply("❌ සමාවන්න! මෙම බොට් හරහා වීඩියෝ ගබඩා කිරීමට අවසර ඇත්තේ ඇඩ්මින්ට පමණි.");
-    }
+    if (ADMIN_ID && userId !== ADMIN_ID) return;
 
     const pending = pendingUploads.get(userId);
     if (!pending) {
         return ctx.reply("⚠️ කරුණාකර මුලින්ම Thumbnail එකක් (Photo එකක්) එවන්න.");
     }
 
-    const message = ctx.message;
-    const msgId = message.message_id;
-    
     try {
-        // වීඩියෝව ඩේටාබේස් චැනල් එකට ෆෝවර්ඩ් කිරීම
-        const forwarded = await ctx.telegram.forwardMessage(DB_CHANNEL_ID, ctx.chat.id, msgId);
-        const dbMsgId = forwarded.message_id;
+        const forwarded = await ctx.telegram.forwardMessage(DB_CHANNEL_ID, ctx.chat.id, ctx.message.message_id);
+        pending.videoMsgIds.push(forwarded.message_id);
+        pendingUploads.set(userId, pending);
+
+        await ctx.reply(`✅ වීඩියෝව එකතු විය! (මුළු ගණන: ${pending.videoMsgIds.length}). තවත් ඇත්නම් එවන්න, නැතහොත් **/done** ටයිප් කරන්න.`);
+    } catch (error) {
+        console.error(error);
+        ctx.reply("වීඩියෝව සේව් කිරීමේදී දෝෂයක් ඇති විය.");
+    }
+});
+
+// /done කමාන්ඩ් එක මඟින් පෝස්ට් එක ප්‍රධාන චැනල් එකට යැවීම
+bot.command('done', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const ADMIN_ID = process.env.ADMIN_ID;
+
+    if (ADMIN_ID && userId !== ADMIN_ID) return;
+
+    const pending = pendingUploads.get(userId);
+    if (!pending || pending.videoMsgIds.length === 0) {
+        return ctx.reply("⚠️ කරුණාකර මුලින්ම Thumbnail එකක් සහ වීඩියෝවක් හෝ කිහිපයක් එවන්න.");
+    }
+
+    try {
         const token = Math.random().toString(36).substring(2, 10);
 
         await FileModel.create({
             token: token,
-            fileMsgId: dbMsgId,
+            fileMsgIds: pending.videoMsgIds,
             views: 0
         });
 
         const botUsername = ctx.botInfo.username;
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
 
-        // 1. ඇඩ්මින්ට චැට් එකේ කන්ෆර්මේෂන් මැසේජ් එක යැවීම
         await ctx.reply(
-            `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n` +
-            `🚀 **ප්‍රධාන චැනල් එකට ස්වයංක්‍රීයව පෝස්ට් එක යවන ලදී!**\n\n` +
-            `🔗 **Direct Share Link:**\n\`${shareLink}\``, 
+            `✅ **සාර්ථකව ගබඩා විය!** (වීඩියෝ ගණන: ${pending.videoMsgIds.length})\n\n` +
+            `🚀 **ප්‍රධාන චැනල් එකට පෝස්ට් එක යවන ලදී!**`, 
             { parse_mode: 'Markdown' }
         );
 
-        // 2. ඔබ නියම කර ඇති ප්‍රධාන චැනල් එකට (Main Channel) ස්වයංක්‍රීයව පෝස්ට් එක යැවීම
+        // වීඩියෝ ගණන 1කට වඩා වැඩියි නම් "Watch Full Collection", නැතහොත් "Watch Full Video" ලෙස බටන් එක හැදීම
+        const buttonText = pending.videoMsgIds.length > 1 ? "▶️ Watch Full Collection" : "▶️ Watch Full Video";
+
         await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
             caption: pending.caption,
             parse_mode: 'Markdown',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: "▶️ Watch Full Video", url: shareLink }]
+                    [{ text: buttonText, url: shareLink }]
                 ]
             }
         });
@@ -496,9 +522,10 @@ bot.on(['video', 'document'], async (ctx) => {
 
     } catch (error) {
         console.error(error);
-        ctx.reply("වීඩියෝව සේව් කරගැනීමේදී සහ ඔටෝ පෝස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
+        ctx.reply("ප්‍රධාන චැනල් එකට පෝස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
+
 
 // Telegram bot launch & Express Server start
 const PORT = process.env.PORT || 3000;
