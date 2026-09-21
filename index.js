@@ -195,10 +195,11 @@ bot.start(async (ctx) => {
             }
 
             // වීඩියෝව යැවීම
-                        // කලෙක්ෂන් එකේ ඇති සියලුම වීඩියෝ එකින් එක පිළිවෙළට යැවීම
+                                    // කලෙක්ෂන් එකේ ඇති සියලුම වීඩියෝ එකින් එක පිළිවෙළට යැවීම සහ ID එකතු කරගැනීම
+            let sentVideoIds = [];
             for (let i = 0; i < fileDoc.fileMsgIds.length; i++) {
-                await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgIds[i]);
-                // වීඩියෝ අතර කුඩා පරතරයක් තබා පිළිවෙළට යැවීමට
+                const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgIds[i]);
+                sentVideoIds.push(sentMsg.message_id); // යැවූ වීඩියෝවේ ID එක සේව් කරගැනීම
                 await new Promise(resolve => setTimeout(resolve, 400));
             }
             
@@ -209,14 +210,22 @@ bot.start(async (ctx) => {
                 { parse_mode: 'Markdown' }
             );
 
-            // විනාඩි 30 කට පසු මැකීමට සෙටප් කිරීම (අවශ්‍ය නම් කලෙක්ෂන් එකේ මැසේජ් හැම එකක්ම ඩිලීට් වන ලෙස හෝ වෝනිං මැසේජ් එක ඩිලීට් වන ලෙස තබාගත හැක)
+            // විනාඩි 30 කට පසු යැවූ සියලුම වීඩියෝ සහ වෝනිං මැසේජ් එක ස්වයංක්‍රීයව මැකී යාම
             setTimeout(async () => {
                 try {
-                    await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id);
-                } catch (err) {}
+                    // යැවූ සියලුම වීඩියෝ මැකීම
+                    for (let msgId of sentVideoIds) {
+                        await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
+                    }
+                    // වෝනිං මැසේජ් එක මැකීම
+                    await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id).catch(() => {});
+                } catch (err) {
+                    console.error("Auto delete error:", err);
+                }
             }, 30 * 60 * 1000);
 
             return;
+
 
         }
       
