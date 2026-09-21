@@ -216,7 +216,7 @@ bot.start(async (ctx) => {
 
             return;
         }
-
+      
         const fileDoc = await FileModel.findOne({ token: payload });
         if (!fileDoc) {
             return ctx.reply("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
