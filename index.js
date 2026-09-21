@@ -28,15 +28,10 @@ const fileSchema = new mongoose.Schema({
 });
 const FileModel = mongoose.model('File', fileSchema);
 
-// Mongoose Schema for Users (Referral සහ Limit විස්තර සමඟ)
+// Mongoose Schema for Users (joinedAt සමඟ මාසිකව යුසර්ස්ලා ගණන් කිරීමට)
 const userSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
-    joinedAt: { type: Date, default: Date.now },
-    downloadsToday: { type: Number, default: 0 },
-    lastDownloadDate: { type: String, default: "" },
-    referredBy: { type: String, default: null }, // ක කාගේ ලින්ක් එකෙන් ආවාද
-    referralCount: { type: Number, default: 0 },   // රෙෆර් කළ සංඛ්‍යාව
-    extraLimit: { type: Number, default: 0 }     // රෙෆරල් නිසා ලැබුණු අමතර ලිමිට් එක
+    joinedAt: { type: Date, default: Date.now }
 });
 const UserModel = mongoose.model('User', userSchema);
 
@@ -144,86 +139,25 @@ async function checkUserSubscription(ctx, userId) {
     }
 }
 
-// Helper Function: දිනකට අදාළ Limit එක රීසෙට් සහ චෙක් කිරීම
-async function checkAndUpdateLimit(userIdStr) {
-    const todayStr = new Date().toISOString().split('T')[0];
-    let user = await UserModel.findOne({ userId: userIdStr });
-
-    if (!user) {
-        user = await UserModel.create({ userId: userIdStr, lastDownloadDate: todayStr, downloadsToday: 0 });
-    }
-
-    if (user.lastDownloadDate !== todayStr) {
-        user.downloadsToday = 0;
-        user.lastDownloadDate = todayStr;
-        await user.save();
-    }
-
-    return user;
-}
-
-// /start command & Referral System & User Saving
+// /start command & User Saving for Broadcast
 bot.start(async (ctx) => {
     const userId = ctx.from.id;
     const userIdStr = userId.toString();
     const payload = ctx.startPayload;
 
+    // යුසර් බොට් එකට එන සෑම අවස්ථාවකම ඩේටාබේස් එකේ සේව් වීම
     try {
-        let user = await UserModel.findOne({ userId: userIdStr });
-        if (!user) {
-            // අලුත් යුසර් කෙනෙක්
-            let referrerId = null;
-            if (payload && payload.startsWith("ref_")) {
-                referrerId = payload.replace("ref_", "");
-                // තමන්ගේම ලින්ක් එකෙන් තමන් රෙෆර් වීම වැළැක්වීම
-                if (referrerId === userIdStr) {
-                    referrerId = null;
-                }
-            }
-
-            user = await UserModel.create({
-                userId: userIdStr,
-                joinedAt: new Date(),
-                downloadsToday: 0,
-                lastDownloadDate: new Date().toISOString().split('T')[0],
-                referredBy: referrerId,
-                referralCount: 0,
-                extraLimit: 0
-            });
-
-            // රෙෆරර් (Referrer) කෙනෙක් සිටී නම් සහ ඔහු F-Sub කර ඇත්නම් ඌට ලකුණු/ලිමිට් එක දීම
-            if (referrerId) {
-                let referrerUser = await UserModel.findOne({ userId: referrerId });
-                if (referrerUser) {
-                    referrerUser.referralCount += 1;
-                    referrerUser.extraLimit += 5; // එක් අයෙකුට වීඩියෝ 5ක් බැගින් අමතර ලිමිට් එක වැඩිවේ
-                    await referrerUser.save();
-
-                    try {
-                        await ctx.telegram.sendMessage(
-                            referrerId,
-                            `🎉 **සුභ පැතුම්!**\n\nඔබේ රෙෆරල් ලින්ක් එක හරහා අලුත් යුසර් කෙනෙක් බොට් එකට එකතු විය!\n` +
-                            `🎁 ඔබට අමතරව **වීඩියෝ 5ක** බාගත කිරීමේ වරප්‍රසාදයක් හිමි විය!`,
-                            { parse_mode: 'Markdown' }
-                        );
-                    } catch (e) {}
-                }
-            }
-        } else {
-            await checkAndUpdateLimit(userIdStr);
-        }
+        await UserModel.updateOne(
+            { userId: userIdStr }, 
+            { $setOnInsert: { joinedAt: new Date() }, $set: { userId: userIdStr } }, 
+            { upsert: true }
+        );
     } catch (err) {
-        console.error("User save / Referral error:", err);
+        console.error("User save error:", err);
     }
 
     if (!payload) {
-        const botUsername = ctx.botInfo.username;
-        const myRefLink = `https://t.me/${botUsername}?start=ref_${userIdStr}`;
-        return ctx.reply(
-            `ආයුබෝවන්! මම File Store Bot එකයි. වීඩියෝ ලබා ගැනීමට නිවැරදි ලින්ක් එකක් භාවිතා කරන්න.\n\n` +
-            `🔗 **ඔබේ රෙෆරල් ලින්ක් එක:**\n\`${myRefLink}\``,
-            { parse_mode: 'Markdown' }
-        );
+        return ctx.reply("ආයුබෝවන්! මම File Store Bot එකයි. වීඩියෝ ලබා ගැනීමට නිවැරදි ලින්ක් එකක් භාවිතා කරන්න.");
     }
 
     // චැනල් එකට join වෙලාද බලනවා
@@ -248,25 +182,7 @@ bot.start(async (ctx) => {
     try {
         if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
-            let user = await checkAndUpdateLimit(userIdStr);
-
-            let totalLimit = 20 + (user.extraLimit || 0); // සාමාන්‍ය 20 + රෙෆරල් වලින් ලැබුණු අමතර ලිමිට් එක
-
-            if (user.downloadsToday >= totalLimit) {
-                const botUsername = ctx.botInfo.username;
-                const myRefLink = `https://t.me/${botUsername}?start=ref_${userIdStr}`;
-
-                return ctx.reply(
-                    `⚠️ **අද දින ඔබේ වීඩියෝ බාගත කිරීමේ සීමාව (${totalLimit} ක්) අවසන් වී ඇත!**\n\n` +
-                    `🚀 තවත් වීඩියෝ බාගත කර ගැනීමට අවශ්‍ය නම්, පහත ඔබේ **Referral Link** එක යහළුවන්ට හෝ ගෲප් වලට ශෙයාර් කරන්න.\n` +
-                    `👤 **එක් අයෙක් මෙම ලින්ක් එකෙන් බොට් එකට Join වන විට ඔබට තවත් වීඩියෝ 5ක් බැගින් බාගත හැක!**\n\n` +
-                    `🔗 **Your Referral Link:**\n\`${myRefLink}\`\n\n` +
-                    `📊 මේ දක්වා ඔබ රෙෆර් කළ ගණන: **${user.referralCount}**\n` +
-                    `🎁 ඔබට ලැබී ඇති අමතර සීමාව: **වීඩියෝ ${user.extraLimit} කි**`,
-                    { parse_mode: 'Markdown' }
-                );
-            }
-
+            
             const fileDoc = await FileModel.findOneAndUpdate(
                 { token }, 
                 { $inc: { views: 1 } }, 
@@ -277,19 +193,18 @@ bot.start(async (ctx) => {
                 return ctx.reply("❌ සමාවන්න, මෙම ගොනුව හමුවී නැත හෝ කල් ඉකුත් වී ඇත.");
             }
 
-            user.downloadsToday += 1;
-            await user.save();
-
             // වීඩියෝව යැවීම
             const sentVideo = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
             
+            // විනාඩි 30කින් මැකෙන බවට දැනුම්දෙන පණිවිඩය
             const warningMsg = await ctx.reply(
                 `⚠️ **අවධානයට:**\n` +
                 `මෙම වීඩියෝව **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
-                `📊 අද ඔබ බාගත් ගණන: **${user.downloadsToday} /${totalLimit}**`,
+                `💾 අවශ්‍ය නම් දැන්ම ඉහත වීඩියෝව **Save to Downloads** හෝ **Forward** කර සුරක්ෂිත කරගන්න. නැවත අවශ්‍ය වුවහොත් චැනල් එකේ ලින්ක් එකෙන් පැමිණ ලබාගත හැක.`,
                 { parse_mode: 'Markdown' }
             );
 
+            // විනාඩි 30 කට පසු මැකීමට සෙටප් කිරීම
             setTimeout(async () => {
                 try {
                     await ctx.telegram.deleteMessage(ctx.chat.id, sentVideo.message_id);
@@ -302,25 +217,9 @@ bot.start(async (ctx) => {
             return;
         }
 
-        // සාමාන්‍ය ලින්ක් එකකින් පැමිණි විට (getvideo නොමැතිව)
         const fileDoc = await FileModel.findOne({ token: payload });
         if (!fileDoc) {
             return ctx.reply("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
-        }
-
-        let user = await checkAndUpdateLimit(userIdStr);
-        let totalLimit = 20 + (user.extraLimit || 0);
-
-        if (user.downloadsToday >= totalLimit) {
-            const botUsername = ctx.botInfo.username;
-            const myRefLink = `https://t.me/${botUsername}?start=ref_${userIdStr}`;
-
-            return ctx.reply(
-                `⚠️ **අද දින ඔබේ වීඩියෝ බාගත කිරීමේ සීමාව (${totalLimit} ක්) අවසන් වී ඇත!**\n\n` +
-                `🔗 **Your Referral Link:**\n\`${myRefLink}\`\n\n` +
-                `👤 මෙම ලින්ක් එකෙන් එක් අයෙක් එකතු වන විට ඔබට **වීඩියෝ 5ක්** බැගින් වැඩිවේ.`,
-                { parse_mode: 'Markdown' }
-            );
         }
 
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
@@ -328,8 +227,8 @@ bot.start(async (ctx) => {
 
         await ctx.reply(
             `🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
-            `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්\n` +
-            `📊 අද බාගත කළ වාර: ${user.downloadsToday} /${totalLimit}`,
+            `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්\n\n` +
+            `මෙම බොත්තම එබූ විට විවෘත වන පිටුවෙන් දැන්වීම බලා තත්පර 5ක් රැඳී සිට වීඩියෝව ලබා ගන්න.`,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
@@ -422,14 +321,13 @@ bot.command('broadcast', async (ctx) => {
 
     } catch (error) {
         console.error("Broadcast error:", error);
-        ctx.reply("❌ බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
+        await ctx.reply("❌ බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
 
 // Check Subscription Button Action
 bot.action(/^check_sub_(.+)$/, async (ctx) => {
     const userId = ctx.from.id;
-    const userIdStr = userId.toString();
     const payload = ctx.match[1];
 
     const isSubscribed = await checkUserSubscription(ctx, userId);
@@ -442,22 +340,6 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
     try {
         if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
-            let user = await checkAndUpdateLimit(userIdStr);
-            let totalLimit = 20 + (user.extraLimit || 0);
-
-            if (user.downloadsToday >= totalLimit) {
-                const botUsername = ctx.botInfo.username;
-                const myRefLink = `https://t.me/${botUsername}?start=ref_${userIdStr}`;
-
-                await ctx.deleteMessage();
-                return ctx.reply(
-                    `⚠️ **අද දින ඔබේ වීඩියෝ බාගත කිරීමේ සීමාව (${totalLimit} ක්) අවසන් වී ඇත!**\n\n` +
-                    `🔗 **Your Referral Link:**\n\`${myRefLink}\`\n\n` +
-                    `👤 මෙම ලින්ක් එකෙන් එක් අයෙක් එකතු වන විට ඔබට **වීඩියෝ 5ක්** බැගින් වැඩිවේ.`,
-                    { parse_mode: 'Markdown' }
-                );
-            }
-
             const fileDoc = await FileModel.findOneAndUpdate(
                 { token }, 
                 { $inc: { views: 1 } }, 
@@ -468,16 +350,13 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 return ctx.editMessageText("❌ සමාවන්න, මෙම ගොනුව හමුවී නැත හෝ කල් ඉකුත් වී ඇත.");
             }
 
-            user.downloadsToday += 1;
-            await user.save();
-
             await ctx.deleteMessage();
 
             const sentVideo = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgId);
             const warningMsg = await ctx.reply(
                 `⚠️ **අවධානයට:**\n` +
                 `මෙම වීඩියෝව **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
-                `📊 අද බාගත් ගණන: **${user.downloadsToday} /${totalLimit}**`,
+                `💾 අවශ්‍ය නම් දැන්ම ඉහත වීඩියෝව **Save to Downloads** කර සුරක්ෂිත කරගන්න.`,
                 { parse_mode: 'Markdown' }
             );
 
@@ -498,27 +377,12 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
             return ctx.editMessageText("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
         }
 
-        let user = await checkAndUpdateLimit(userIdStr);
-        let totalLimit = 20 + (user.extraLimit || 0);
-
-        if (user.downloadsToday >= totalLimit) {
-            const botUsername = ctx.botInfo.username;
-            const myRefLink = `https://t.me/${botUsername}?start=ref_${userIdStr}`;
-
-            return ctx.editMessageText(
-                `⚠️ **අද දින ඔබේ වීඩියෝ බාගත කිරීමේ සීමාව (${totalLimit} ක්) අවසන් වී ඇත!**\n\n` +
-                `🔗 **Your Referral Link:**\n\`${myRefLink}\``,
-                { parse_mode: 'Markdown' }
-            );
-        }
-
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
 
         await ctx.editMessageText(
             `🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
-            `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්\n` +
-            `📊 අද බාගත කළ වාර: ${user.downloadsToday} /${totalLimit}`,
+            `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්`,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
@@ -589,6 +453,7 @@ bot.on(['video', 'document'], async (ctx) => {
     const msgId = message.message_id;
     
     try {
+        // වීඩියෝව ඩේටාබේස් චැනල් එකට ෆෝවර්ඩ් කිරීම
         const forwarded = await ctx.telegram.forwardMessage(DB_CHANNEL_ID, ctx.chat.id, msgId);
         const dbMsgId = forwarded.message_id;
         const token = Math.random().toString(36).substring(2, 10);
@@ -602,6 +467,7 @@ bot.on(['video', 'document'], async (ctx) => {
         const botUsername = ctx.botInfo.username;
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
 
+        // 1. ඇඩ්මින්ට චැට් එකේ කන්ෆර්මේෂන් මැසේජ් එක යැවීම
         await ctx.reply(
             `✅ **වීඩියෝව සාර්ථකව ගබඩා විය!**\n\n` +
             `🚀 **ප්‍රධාන චැනල් එකට ස්වයංක්‍රීයව පෝස්ට් එක යවන ලදී!**\n\n` +
@@ -609,6 +475,7 @@ bot.on(['video', 'document'], async (ctx) => {
             { parse_mode: 'Markdown' }
         );
 
+        // 2. ඔබ නියම කර ඇති ප්‍රධාන චැනල් එකට (Main Channel) ස්වයංක්‍රීයව පෝස්ට් එක යැවීම
         await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
             caption: pending.caption,
             parse_mode: 'Markdown',
