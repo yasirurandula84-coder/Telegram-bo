@@ -36,6 +36,33 @@ const userSchema = new mongoose.Schema({
 });
 const UserModel = mongoose.model('User', userSchema);
 
+// --- Translations for Language Selection ---
+const translations = {
+    si: {
+        join_msg: "⚠️ **පළමුව අපගේ චැනල් එකට Join වී සිටින්න!**\n\nඉන්පසු පහත බටන් එක ක්ලික් කර වීඩියෝව ලබා ගන්න.",
+        watch_btn: "▶️ Watch Full Video",
+        watch_col_btn: "▶️ Watch Full Collection",
+        how_btn: "❓ How to Download"
+    },
+    en: {
+        join_msg: "⚠️ **Please join our channel first!**\n\nThen click the button below to get your video.",
+        watch_btn: "▶️ Watch Full Video",
+        watch_col_btn: "▶️ Watch Full Collection",
+        how_btn: "❓ How to Download"
+    },
+    ta: {
+        join_msg: "⚠️ **தயவுசெய்து முதலில் எங்கள் சேனலில் இணையுங்கள்!**\n\nபின்னர் வீடியோவைப் பெற கீழே உள்ள பொத்தானைக் கிளிக் செய்யவும்.",
+        watch_btn: "▶️ Watch Full Video",
+        watch_col_btn: "▶️ Watch Full Collection",
+        how_btn: "❓ How to Download"
+    }
+};
+
+const userLanguages = new Map();
+function getUserLang(userId) {
+    return userLanguages.get(userId) || 'si'; // ඩිෆෝල්ට් එකට සිංහල
+}
+
 // Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -150,14 +177,14 @@ bot.start(async (ctx) => {
     try {
         await UserModel.updateOne(
             { userId: userIdStr }, 
-            { $setOnInsert: { joinedAt: new Date() }, $set: { userId: userIdStr } }, 
+            { $setOnInsert: { joinedAt: new Date() },$set: { userId: userIdStr } }, 
             { upsert: true }
         );
     } catch (err) {
         console.error("User save error:", err);
     }
 
-        if (!payload) {
+    if (!payload) {
         return ctx.reply(
             `👋 **ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.**\n\n` +
             `මම ඔබේ වීඩියෝ සහ චිත්‍රපට ලබා දෙන ස්වයංක්‍රීය බොට් (File Store Bot) එකයි.\n\n` +
@@ -182,16 +209,33 @@ bot.start(async (ctx) => {
     // චැනල් එකට join වෙලාද බලනවා
     const isSubscribed = await checkUserSubscription(ctx, userId);
     if (!isSubscribed) {
+        const lang = getUserLang(userId);
+        const t = translations[lang];
+
+        // ඩේටාබේස් එකෙන් ෆයිල් ඩේටා ලබා ගැනීම (Watch Full Video / Collection බටන් ටෙක්ස්ට් එක නිවැරදිව පෙන්වීමට)
+        let watchButtonText = t.watch_btn;
+        try {
+            const cleanPayload = payload.startsWith("getvideo_") ? payload.replace("getvideo_", "") : payload;
+            const fileCheck = await FileModel.findOne({ token: cleanPayload });
+            if (fileCheck && fileCheck.fileMsgIds && fileCheck.fileMsgIds.length > 1) {
+                watchButtonText = t.watch_col_btn;
+            }
+        } catch (e) {}
+
         return ctx.reply(
-            `⚠️ **ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!**\n\n` +
-            `මෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n` +
-            `👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව **"🔄 Check Subscription"** ඔබන්න.`,
+            t.join_msg,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
                         [{ text: "📢 Join Channel", url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
-                        [{ text: "🔄 Check Subscription", callback_data: `check_sub_${payload}` }]
+                        [{ text: watchButtonText, callback_data: `check_sub_${payload}` }],
+                        [{ text: t.how_btn, callback_data: "how_to_use" }],
+                        [
+                            { text: lang === 'si' ? "✅ 🇱🇰 සිංහල" : "🇱🇰 සිංහල", callback_data: `set_lang_si_${payload}` },
+                            { text: lang === 'en' ? "✅ 🇬🇧 English" : "🇬🇧 English", callback_data: `set_lang_en_${payload}` },
+                            { text: lang === 'ta' ? "✅ 🇮🇳 தமிழ்" : "🇮🇳 தமிழ்", callback_data: `set_lang_ta_${payload}` }
+                        ]
                     ]
                 }
             }
@@ -212,8 +256,7 @@ bot.start(async (ctx) => {
                 return ctx.reply("❌ සමාවන්න, මෙම ගොනුව හමුවී නැත හෝ කල් ඉකුත් වී ඇත.");
             }
 
-            // වීඩියෝව යැවීම
-                                    // කලෙක්ෂන් එකේ ඇති සියලුම වීඩියෝ එකින් එක පිළිවෙළට යැවීම සහ ID එකතු කරගැනීම
+            // කලෙක්ෂන් එකේ ඇති සියලුම වීඩියෝ එකින් එක පිළිවෙළට යැවීම සහ ID එකතු කරගැනීම
             let sentVideoIds = [];
             for (let i = 0; i < fileDoc.fileMsgIds.length; i++) {
                 const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgIds[i]);
@@ -231,11 +274,9 @@ bot.start(async (ctx) => {
             // විනාඩි 30 කට පසු යැවූ සියලුම වීඩියෝ සහ වෝනිං මැසේජ් එක ස්වයංක්‍රීයව මැකී යාම
             setTimeout(async () => {
                 try {
-                    // යැවූ සියලුම වීඩියෝ මැකීම
                     for (let msgId of sentVideoIds) {
                         await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
                     }
-                    // වෝනිං මැසේජ් එක මැකීම
                     await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id).catch(() => {});
                 } catch (err) {
                     console.error("Auto delete error:", err);
@@ -243,8 +284,6 @@ bot.start(async (ctx) => {
             }, 30 * 60 * 1000);
 
             return;
-
-
         }
       
         const fileDoc = await FileModel.findOne({ token: payload });
@@ -324,7 +363,6 @@ bot.command('broadcast', async (ctx) => {
         return ctx.reply("❌ මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.");
     }
 
-    // බැලිය යුතුයි මැසේජ් එකට ෆොටෝ එකක්, වීඩියෝ එකක් හෝ කැප්ෂන් එකක් තියෙනවද කියලා
     const repliedMessage = ctx.message.reply_to_message;
 
     if (!repliedMessage) {
@@ -345,10 +383,9 @@ bot.command('broadcast', async (ctx) => {
 
         for (const user of users) {
             try {
-                // රිප්ளை කළ මැසේජ් එක ෆොටෝ එකක්, වීඩියෝ එකක් හෝ වෙනත් දෙයක්ද කියලා බලලා යුසර්ට කොපි කිරීම
                 await ctx.telegram.copyMessage(user.userId, ctx.chat.id, repliedMessage.message_id);
                 successCount++;
-                await new Promise(resolve => setTimeout(resolve, 50)); // Telegram flood limit එක මඟහරවා ගැනීමට
+                await new Promise(resolve => setTimeout(resolve, 50));
             } catch (err) {
                 failCount++;
             }
@@ -361,6 +398,48 @@ bot.command('broadcast', async (ctx) => {
         await ctx.reply("❌ බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
+
+// Language Change Action Handlers
+['si', 'en', 'ta'].forEach(langCode => {
+    bot.action(new RegExp(`^set_lang_${langCode}_(.+)`), async (ctx) => {
+        try {
+            await ctx.answerCbQuery();
+            const userId = ctx.from.id;
+            const payload = ctx.match[1];
+
+            userLanguages.set(userId, langCode);
+            const t = translations[langCode];
+
+            let watchButtonText = t.watch_btn;
+            try {
+                const cleanPayload = payload.startsWith("getvideo_") ? payload.replace("getvideo_", "") : payload;
+                const fileDoc = await FileModel.findOne({ token: cleanPayload });
+                if (fileDoc && fileDoc.fileMsgIds && fileDoc.fileMsgIds.length > 1) {
+                    watchButtonText = t.watch_col_btn;
+                }
+            } catch (e) {}
+
+            await ctx.editMessageText(t.join_msg, {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: "📢 Join Channel", url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
+                        [{ text: watchButtonText, callback_data: `check_sub_${payload}` }],
+                        [{ text: t.how_btn, callback_data: "how_to_use" }],
+                        [
+                            { text: langCode === 'si' ? "✅ 🇱🇰 සිංහල" : "🇱🇰 සිංහල", callback_data: `set_lang_si_${payload}` },
+                            { text: langCode === 'en' ? "✅ 🇬🇧 English" : "🇬🇧 English", callback_data: `set_lang_en_${payload}` },
+                            { text: langCode === 'ta' ? "✅ 🇮🇳 தமிழ்" : "🇮🇳 தமிழ்", callback_data: `set_lang_ta_${payload}` }
+                        ]
+                    ]
+                }
+            });
+        } catch (error) {
+            console.error("Language change error:", error);
+        }
+    });
+});
+
 // Check Subscription Button Action
 bot.action(/^check_sub_(.+)$/, async (ctx) => {
     const userId = ctx.from.id;
@@ -388,10 +467,10 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
 
             await ctx.deleteMessage();
 
-                        // කලෙක්ෂන් එකේ ඇති සියලුම වීඩියෝ එකින් එක පිළිවෙළට යැවීම
+            let sentVideoIds = [];
             for (let i = 0; i < fileDoc.fileMsgIds.length; i++) {
-                await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgIds[i]);
-                // වීඩියෝ අතර කුඩා පරතරයක් තබා පිළිවෙළට යැවීමට
+                const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgIds[i]);
+                sentVideoIds.push(sentMsg.message_id);
                 await new Promise(resolve => setTimeout(resolve, 400));
             }
             
@@ -402,15 +481,16 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 { parse_mode: 'Markdown' }
             );
 
-            // විනාඩි 30 කට පසු මැකීමට සෙටප් කිරීම (අවශ්‍ය නම් කලෙක්ෂන් එකේ මැසේජ් හැම එකක්ම ඩිලීට් වන ලෙස හෝ වෝනිං මැසේජ් එක ඩිලීට් වන ලෙස තබාගත හැක)
             setTimeout(async () => {
                 try {
-                    await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id);
+                    for (let msgId of sentVideoIds) {
+                        await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
+                    }
+                    await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id).catch(() => {});
                 } catch (err) {}
             }, 30 * 60 * 1000);
 
             return;
-
         }
 
         const fileDoc = await FileModel.findOne({ token: payload });
@@ -456,7 +536,6 @@ bot.action('how_to_use', async (ctx) => {
     }
 });
 
-
 // Support Action
 bot.action('support_info', async (ctx) => {
     try {
@@ -493,7 +572,6 @@ bot.on('photo', async (ctx) => {
     await ctx.reply("📸 Thumbnail එක ලැබුණා! දැන් මේකට අදාළ **වීඩියෝව (හෝ වීඩියෝ කිහිපයක්)** එකින් එක එවන්න. සියල්ල එවා අවසන් වූ පසු **/done** කමාන්ඩ් එක එවන්න.");
 });
 
-// වීඩියෝ එකතු කරගැනීම
 bot.on(['video', 'document'], async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -517,7 +595,6 @@ bot.on(['video', 'document'], async (ctx) => {
     }
 });
 
-// /done කමාන්ඩ් එක මඟින් පෝස්ට් එක ප්‍රධාන චැනල් එකට යැවීම
 bot.command('done', async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -547,7 +624,6 @@ bot.command('done', async (ctx) => {
             { parse_mode: 'Markdown' }
         );
 
-        // වීඩියෝ ගණන 1කට වඩා වැඩියි නම් "Watch Full Collection", නැතහොත් "Watch Full Video" ලෙස බටන් එක හැදීම
         const buttonText = pending.videoMsgIds.length > 1 ? "▶️ Watch Full Collection" : "▶️ Watch Full Video";
 
         await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
@@ -567,7 +643,6 @@ bot.command('done', async (ctx) => {
         ctx.reply("ප්‍රධාන චැනල් එකට පෝස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
-
 
 // Telegram bot launch & Express Server start
 const PORT = process.env.PORT || 3000;
