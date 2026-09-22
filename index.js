@@ -157,8 +157,26 @@ bot.start(async (ctx) => {
         console.error("User save error:", err);
     }
 
-    if (!payload) {
-        return ctx.reply("ආයුබෝවන්! මම File Store Bot එකයි. වීඩියෝ ලබා ගැනීමට නිවැරදි ලින්ක් එකක් භාවිතා කරන්න.");
+        if (!payload) {
+        return ctx.reply(
+            `👋 **ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.**\n\n` +
+            `මම ඔබේ වීඩියෝ සහ චිත්‍රපට ලබා දෙන ස්වයංක්‍රීය බොට් (File Store Bot) එකයි.\n\n` +
+            `👇 වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණෙන්න.`,
+            {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            { text: "📢 Our Channel", url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }
+                        ],
+                        [
+                            { text: "ℹ️ How to Use", callback_data: "how_to_use" },
+                            { text: "📞 Support / Help", callback_data: "support_info" }
+                        ]
+                    ]
+                }
+            }
+        );
     }
 
     // චැනල් එකට join වෙලාද බලනවා
@@ -431,6 +449,21 @@ bot.action('how_to_use', async (ctx) => {
             `2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න.\n` +
             `3️⃣ කාලය අවසන් වූ පසු මතුවන **"🚀 වීඩියෝව ලබා ගන්න"** බොත්තම ඔබන්න.\n` +
             `4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය වීඩියෝව ලැබෙනු ඇත!`,
+            { parse_mode: 'Markdown' }
+        );
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+
+// Support Action
+bot.action('support_info', async (ctx) => {
+    try {
+        await ctx.answerCbQuery();
+        await ctx.reply(
+            `📞 **උදව් සහ සහය (Support)**\n\n` +
+            `කිසියම් වීඩියෝවක් ලබාගැනීමේදී ගැටළුවක් මතු වුවහොත්, කරුණාකර අපගේ ප්‍රධාන චැනල් එක හරහා විමසන්න.`,
             { parse_mode: 'Markdown' }
         );
     } catch (error) {
