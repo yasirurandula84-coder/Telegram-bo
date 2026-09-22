@@ -39,8 +39,7 @@ const UserModel = mongoose.model('User', userSchema);
 // Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
-
-// Mini App HTML Page Endpoint
+// Mini App HTML Page Endpoint (Smart Anti-Bypass System - 5 Seconds Minimum Ad View)
 app.get('/miniapp', (req, res) => {
     const token = req.query.token || '';
     
@@ -54,20 +53,20 @@ app.get('/miniapp', (req, res) => {
             <script src="https://cdn.tailwindcss.com"></script>
             <script src="https://telegram.org/js/telegram-web-app.js"></script>
         </head>
-        <body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-6 text-center">
+        <body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-6 text-center select-none">
             <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl max-w-sm w-full">
                 <h1 class="text-xl font-bold mb-2">🎬 වීඩියෝව සූදානම් වෙමින් පවතී</h1>
-                <p class="text-slate-400 text-xs mb-6">කරුණාකර පහත දැක්වෙන දැන්වීම නරඹා තත්පර 5ක් රැඳී සිටින්න.</p>
+                <p id="instruction-text" class="text-slate-400 text-xs mb-6">කරුණාකර පහත දැක්වෙන දැන්වීම නරඹා තත්පර 5ක් රැඳී සිටින්න.</p>
 
                 <div class="mb-4">
-                    <a href="${AD_LINK}" target="_blank" id="ad-link-btn" onclick="startTimer()" class="inline-block w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg text-sm mb-3">
+                    <a href="${AD_LINK}" target="_blank" id="ad-link-btn" onclick="openAd()" class="inline-block w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg text-sm mb-3">
                         🔗 දැන්වීම විවෘත කරන්න (Click Here)
                     </a>
                 </div>
 
                 <div id="timer-box" class="my-4 hidden">
                     <div id="countdown" class="text-4xl font-extrabold text-sky-400 animate-pulse">5</div>
-                    <p class="text-xs text-slate-500 mt-2">තත්පර කිහිපයක් රැඳී සිටින්න...</p>
+                    <p id="status-text" class="text-xs text-slate-500 mt-2">තත්පර කිහිපයක් රැඳී සිටින්න...</p>
                 </div>
 
                 <div id="success-box" class="hidden">
@@ -79,23 +78,68 @@ app.get('/miniapp', (req, res) => {
             </div>
 
             <script>
+                let adClicked = false;
+                let leaveTime = 0;
                 let timerStarted = false;
 
-                function startTimer() {
+                // 1. යූසර් දැන්වීම ක්ලික් කළ විට
+                function openAd() {
+                    adClicked = true;
+                    leaveTime = Date.now(); // යූසර් ගිය වෙලාව සේව් කරගන්නවා
+                    
+                    const adBtn = document.getElementById('ad-link-btn');
+                    adBtn.innerText = "⏳ දැන්වීම නරඹමින් පවතී...";
+                    adBtn.classList.remove('bg-sky-600', 'hover:bg-sky-500');
+                    adBtn.classList.add('bg-amber-600', 'text-white');
+                }
+
+                // 2. යූසර් වෙනත් ටැබ් එකකට ගොස් ආපහු එන විට (Visibility Change)
+                document.addEventListener('visibilitychange', () => {
+                    if (!adClicked || timerStarted) return;
+
+                    if (document.hidden) {
+                        // යූසර් ඇඩ් එක පැත්තට ගියා
+                        leaveTime = Date.now();
+                    } else {
+                        // යූසර් ආපහු මිනී ඇප් එකට ආවා
+                        const timeSpent = (Date.now() - leaveTime) / 1000; // ගත වූ කාලය තත්පර වලින්
+
+                        const statusText = document.getElementById('status-text');
+                        const timerBox = document.getElementById('timer-box');
+                        const adBtn = document.getElementById('ad-link-btn');
+
+                        // යූසර් තත්පර 5කටත් වඩා අඩු කාලයකින් Back ඇවිත් නම් (ඇඩ් එක හරියට බැලී නැත)
+                        if (timeSpent < 5) {
+                            timerBox.classList.remove('hidden');
+                            statusText.innerText = "⚠️ කරුණාකර දැන්වීම සම්පූර්ණයෙන්ම තත්පර 5ක් නරඹන්න!";
+                            statusText.className = "text-xs text-red-400 mt-2 font-semibold";
+                            
+                            adBtn.innerText = "🔗 නැවත දැන්වීම විවෘත කරන්න";
+                            adBtn.classList.remove('bg-amber-600');
+                            adBtn.classList.add('bg-sky-600');
+                            adClicked = false; // ආපහු ක්ලික් කරන්න වෙනවා
+                        } else {
+                            // නියමිත තත්පර 5 දැන්වීම බලා පැමිණ නම් ටයිමර් එක පටන් ගන්නවා
+                            timerBox.classList.remove('hidden');
+                            adBtn.style.display = 'none'; // ඇඩ් බටන් එක අයින් කරනවා
+                            startCountdown();
+                        }
+                    }
+                });
+
+                // 3. තත්පර 5 කවුන්ට්ඩවුන් එක
+                function startCountdown() {
                     if (timerStarted) return;
                     timerStarted = true;
 
-                    const adBtn = document.getElementById('ad-link-btn');
-                    adBtn.innerText = "✅ දැන්වීම විවෘත විය";
-                    adBtn.classList.remove('bg-sky-600', 'hover:bg-sky-500');
-                    adBtn.classList.add('bg-slate-800', 'text-slate-400');
-
-                    const timerBox = document.getElementById('timer-box');
-                    timerBox.classList.remove('hidden');
-
                     let timeLeft = 5;
                     const countdownEl = document.getElementById('countdown');
+                    const timerBox = document.getElementById('timer-box');
                     const successBox = document.getElementById('success-box');
+                    const statusText = document.getElementById('status-text');
+
+                    statusText.innerText = "තත්පර කිහිපයක් රැඳී සිටින්න...";
+                    statusText.className = "text-xs text-slate-500 mt-2";
 
                     const timer = setInterval(() => {
                         timeLeft--;
@@ -123,6 +167,7 @@ app.get('/miniapp', (req, res) => {
         </html>
     `);
 });
+
 
 // Helper Function: යුසර් චැනල් එකට join වෙලාද කියලා චෙක් කිරීමට
 async function checkUserSubscription(ctx, userId) {
