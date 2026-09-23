@@ -1,4 +1,4 @@
-const { Telegraf } = require('telegraf');
+Const { Telegraf } = require('telegraf');
 const mongoose = require('mongoose');
 const http = require('http');
 const express = require('express');
@@ -6,13 +6,10 @@ require('dotenv').config();
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const DB_CHANNEL_ID = process.env.DB_CHANNEL_ID;
-const MAIN_CHANNEL_ID = process.env.MAIN_CHANNEL_ID || "@wal_lokaya1"; // ස්වයංක්‍රීයව පෝස්ට් වැටෙන ප්‍රධාන චැනල් එක
+const MAIN_CHANNEL_ID = process.env.MAIN_CHANNEL_ID || "@wal_lokaya1"; 
 const MONGO_URI = process.env.MONGO_URI;
 
-// අනිවාර්යයෙන් join වී සිටිය යුතු චැනල් එක
 const REQUIRED_CHANNEL = process.env.REQUIRED_CHANNEL || "@wal_lokaya1"; 
-
-// ඔබේ Adsterra Smart Link එක
 const AD_LINK = process.env.AD_LINK || "https://www.profitableratecpmnetwork.com/g7p33na9?key=d6d0cdc4f9da3f0a448d3a891515c3ac"; 
 
 // MongoDB Connection
@@ -20,17 +17,16 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB Connected Successfully!'))
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-
-// Mongoose Schema for Files (clicks සමඟ)
+// Mongoose Schema for Files
 const fileSchema = new mongoose.Schema({
     token: { type: String, required: true, unique: true },
     fileMsgIds: { type: [Number], required: true },
     views: { type: Number, default: 0 },
-    clicks: { type: Number, default: 0 } // 👈 අලුතින් එකතු කළ කෝඩ් පේළිය
+    clicks: { type: Number, default: 0 } 
 });
 const FileModel = mongoose.model('File', fileSchema);
 
-// Mongoose Schema for Users (joinedAt සමඟ මාසිකව යුසර්ස්ලා ගණන් කිරීමට)
+// Mongoose Schema for Users
 const userSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     joinedAt: { type: Date, default: Date.now }
@@ -40,7 +36,7 @@ const UserModel = mongoose.model('User', userSchema);
 // Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
-// Mini App HTML Page Endpoint (Smart Anti-Bypass System - 5 Seconds Minimum Ad View)
+
 app.get('/miniapp', (req, res) => {
     const token = req.query.token || '';
     
@@ -83,52 +79,42 @@ app.get('/miniapp', (req, res) => {
                 let leaveTime = 0;
                 let timerStarted = false;
 
-                // 1. යූසර් දැන්වීම ක්ලික් කළ විට
                 function openAd() {
                     adClicked = true;
-                    leaveTime = Date.now(); // යූසර් ගිය වෙලාව සේව් කරගන්නවා
-                    
+                    leaveTime = Date.now();
                     const adBtn = document.getElementById('ad-link-btn');
                     adBtn.innerText = "⏳ දැන්වීම නරඹමින් පවතී...";
                     adBtn.classList.remove('bg-sky-600', 'hover:bg-sky-500');
                     adBtn.classList.add('bg-amber-600', 'text-white');
                 }
 
-                // 2. යූසර් වෙනත් ටැබ් එකකට ගොස් ආපහු එන විට (Visibility Change)
                 document.addEventListener('visibilitychange', () => {
                     if (!adClicked || timerStarted) return;
 
                     if (document.hidden) {
-                        // යූසර් ඇඩ් එක පැත්තට ගියා
                         leaveTime = Date.now();
                     } else {
-                        // යූසර් ආපහු මිනී ඇප් එකට ආවා
-                        const timeSpent = (Date.now() - leaveTime) / 1000; // ගත වූ කාලය තත්පර වලින්
-
+                        const timeSpent = (Date.now() - leaveTime) / 1000;
                         const statusText = document.getElementById('status-text');
                         const timerBox = document.getElementById('timer-box');
                         const adBtn = document.getElementById('ad-link-btn');
 
-                        // යූසර් තත්පර 5කටත් වඩා අඩු කාලයකින් Back ඇවිත් නම් (ඇඩ් එක හරියට බැලී නැත)
                         if (timeSpent < 5) {
                             timerBox.classList.remove('hidden');
                             statusText.innerText = "⚠️ කරුණාකර දැන්වීම සම්පූර්ණයෙන්ම තත්පර 5ක් නරඹන්න!";
                             statusText.className = "text-xs text-red-400 mt-2 font-semibold";
-                            
                             adBtn.innerText = "🔗 නැවත දැන්වීම විවෘත කරන්න";
                             adBtn.classList.remove('bg-amber-600');
                             adBtn.classList.add('bg-sky-600');
-                            adClicked = false; // ආපහු ක්ලික් කරන්න වෙනවා
+                            adClicked = false;
                         } else {
-                            // නියමිත තත්පර 5 දැන්වීම බලා පැමිණ නම් ටයිමර් එක පටන් ගන්නවා
                             timerBox.classList.remove('hidden');
-                            adBtn.style.display = 'none'; // ඇඩ් බටන් එක අයින් කරනවා
+                            adBtn.style.display = 'none';
                             startCountdown();
                         }
                     }
                 });
 
-                // 3. තත්පර 5 කවුන්ට්ඩවුන් එක
                 function startCountdown() {
                     if (timerStarted) return;
                     timerStarted = true;
@@ -169,8 +155,6 @@ app.get('/miniapp', (req, res) => {
     `);
 });
 
-
-// Helper Function: යුසර් චැනල් එකට join වෙලාද කියලා චෙක් කිරීමට
 async function checkUserSubscription(ctx, userId) {
     if (!REQUIRED_CHANNEL) return true;
     try {
@@ -186,24 +170,22 @@ async function checkUserSubscription(ctx, userId) {
     }
 }
 
-// /start command & User Saving for Broadcast
 bot.start(async (ctx) => {
     const userId = ctx.from.id;
     const userIdStr = userId.toString();
     const payload = ctx.startPayload;
 
-    // යුසර් බොට් එකට එන සෑම අවස්ථාවකම ඩේටාබේස් එකේ සේව් වීම
     try {
         await UserModel.updateOne(
             { userId: userIdStr }, 
-            { $setOnInsert: { joinedAt: new Date() }, $set: { userId: userIdStr } }, 
+            { $setOnInsert: { joinedAt: new Date() },$set: { userId: userIdStr } }, 
             { upsert: true }
         );
     } catch (err) {
         console.error("User save error:", err);
     }
 
-        if (!payload) {
+    if (!payload) {
         return ctx.reply(
             `👋 **ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.**\n\n` +
             `මම ඔබේ වීඩියෝ සහ චිත්‍රපට ලබා දෙන ස්වයංක්‍රීය බොට් (File Store Bot) එකයි.\n\n` +
@@ -212,20 +194,14 @@ bot.start(async (ctx) => {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
-                        [
-                            { text: "📢 Our Channel", url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }
-                        ],
-                        [
-                            { text: "ℹ️ How to Use", callback_data: "how_to_use" },
-                            { text: "📞 Support / Help", callback_data: "support_info" }
-                        ]
+                        [{ text: "📢 Our Channel", url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
+                        [{ text: "ℹ️ How to Use", callback_data: "how_to_use" }, { text: "📞 Support / Help", callback_data: "support_info" }]
                     ]
                 }
             }
         );
     }
 
-    // චැනල් එකට join වෙලාද බලනවා
     const isSubscribed = await checkUserSubscription(ctx, userId);
     if (!isSubscribed) {
         return ctx.reply(
@@ -248,24 +224,21 @@ bot.start(async (ctx) => {
         if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
             
-                    const fileDoc = await FileModel.findOneAndUpdate(
-            { token: payload }, 
-            { $inc: { clicks: 1 } }, // 👈 ලින්ක් එක ක්ලික් කළ වාර ගණන 1 කින් වැඩි කිරීම
-            { new: true }
-        );
-        if (!fileDoc) {
-            return ctx.reply("❌ සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
-        }
+            // නිවැරදි කළ තැන: 'token' මඟින් ඩේටාබේස් එක සෙවීම සහ views වැඩි කිරීම
+            const fileDoc = await FileModel.findOneAndUpdate(
+                { token: token }, 
+                { $inc: { views: 1 } }, 
+                { new: true }
+            );
 
+            if (!fileDoc) {
+                return ctx.reply("❌ සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
+            }
 
-
-
-            // වීඩියෝව යැවීම
-                                    // කලෙක්ෂන් එකේ ඇති සියලුම වීඩියෝ එකින් එක පිළිවෙළට යැවීම සහ ID එකතු කරගැනීම
             let sentVideoIds = [];
             for (let i = 0; i < fileDoc.fileMsgIds.length; i++) {
                 const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgIds[i]);
-                sentVideoIds.push(sentMsg.message_id); // යැවූ වීඩියෝවේ ID එක සේව් කරගැනීම
+                sentVideoIds.push(sentMsg.message_id);
                 await new Promise(resolve => setTimeout(resolve, 400));
             }
             
@@ -276,26 +249,25 @@ bot.start(async (ctx) => {
                 { parse_mode: 'Markdown' }
             );
 
-            // විනාඩි 30 කට පසු යැවූ සියලුම වීඩියෝ සහ වෝනිං මැසේජ් එක ස්වයංක්‍රීයව මැකී යාම
             setTimeout(async () => {
                 try {
-                    // යැවූ සියලුම වීඩියෝ මැකීම
                     for (let msgId of sentVideoIds) {
                         await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
                     }
-                    // වෝනිං මැසේජ් එක මැකීම
                     await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id).catch(() => {});
-                } catch (err) {
-                    console.error("Auto delete error:", err);
-                }
+                } catch (err) {}
             }, 30 * 60 * 1000);
 
             return;
-
-
         }
       
-        const fileDoc = await FileModel.findOne({ token: payload });
+        // මෙතැනදී යූසර් මුලින්ම ලින්ක් එක ක්ලික් කරන විට Clicks 1 කින් වැඩි වේ
+        const fileDoc = await FileModel.findOneAndUpdate(
+            { token: payload }, 
+            { $inc: { clicks: 1 } }, 
+            { new: true }
+        );
+
         if (!fileDoc) {
             return ctx.reply("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
         }
@@ -324,7 +296,7 @@ bot.start(async (ctx) => {
     }
 });
 
-// --- ADMIN STATS COMMAND (/stats - Updated with Click Tracker) ---
+// Admin Stats Command
 bot.command('stats', async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -344,18 +316,17 @@ bot.command('stats', async (ctx) => {
         const totalFiles = await FileModel.countDocuments({});
         const files = await FileModel.find({});
         let totalViews = 0;
-        let totalClicks = 0; // 👈 ක්ලික්ස් එකතු කරගැනීමට
+        let totalClicks = 0;
 
         files.forEach(file => {
             totalViews += file.views;
             totalClicks += file.clicks || 0;
         });
 
-        // Conversion Rate එක සෙවීම (ක්ලික් කරපු අයගෙන් කීයක් වීඩියෝ එක බැලුවාද ප්‍රතිශතය)
         const conversionRate = totalClicks > 0 ? ((totalViews / totalClicks) * 100).toFixed(1) : 0;
 
         await ctx.reply(
-            `📊 **බොට් හි වැඩිදියුණු කළ සංඛ්‍යාලේඛන (Analytics Dashboard)**\n\n` +
+            `📊 **බොට් හි සංඛ්‍යාලේඛන (Analytics Dashboard)**\n\n` +
             `👥 මුළු යුසර්ස්ලා (Total Users): **${totalUsers}**\n` +
             `📅 මෙම මාසයේ අලුත් යුසර්ස්ලා (This Month): **${monthlyUsers}**\n` +
             `📁 ගබඩා කර ඇති වීඩියෝ කලෙක්ෂන්: **${totalFiles}**\n` +
@@ -371,7 +342,7 @@ bot.command('stats', async (ctx) => {
     }
 });
 
-// --- ADMIN BROADCAST COMMAND (/broadcast) ---
+// Broadcast Command
 bot.command('broadcast', async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -380,16 +351,9 @@ bot.command('broadcast', async (ctx) => {
         return ctx.reply("❌ මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.");
     }
 
-    // බැලිය යුතුයි මැසේජ් එකට ෆොටෝ එකක්, වීඩියෝ එකක් හෝ කැප්ෂන් එකක් තියෙනවද කියලා
     const repliedMessage = ctx.message.reply_to_message;
-
     if (!repliedMessage) {
-        return ctx.reply(
-            "⚠️ **පින්තූරයක් හෝ වීඩියෝවක් බ්‍රෝඩ්කාස්ට් කරන්නේ ಹೇಗೆ?**\n\n" +
-            "1️⃣ මුලින්ම ඔබට යවන්න අවශ්‍ය **Photo එක හෝ Video එක** චැට් එකට එවන්න (කැප්ෂන් එකත් සමඟ).\n" +
-            "2️⃣ ඊටපස්සේ ඒ ෆොටෝ එකට හෝ වීඩියෝවට **Reply** කරලා `/broadcast` කියලා ටයිප් කරලා එවන්න.",
-            { parse_mode: 'Markdown' }
-        );
+        return ctx.reply("⚠️ පින්තූරයකට හෝ වීඩියෝවකට Reply කර `/broadcast` ලෙස ටයිප් කරන්න.", { parse_mode: 'Markdown' });
     }
 
     try {
@@ -397,81 +361,72 @@ bot.command('broadcast', async (ctx) => {
         let successCount = 0;
         let failCount = 0;
 
-        await ctx.reply(`📢 මීਡੀයා බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ විය... (මුළු යුසර්ස්ලා: ${users.length})`);
+        await ctx.reply(`📢 බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ විය... (මුළු යුසර්ස්ලා: ${users.length})`);
 
         for (const user of users) {
             try {
-                // රිප්ளை කළ මැසේජ් එක ෆොටෝ එකක්, වීඩියෝ එකක් හෝ වෙනත් දෙයක්ද කියලා බලලා යුසර්ට කොපි කිරීම
                 await ctx.telegram.copyMessage(user.userId, ctx.chat.id, repliedMessage.message_id);
                 successCount++;
-                await new Promise(resolve => setTimeout(resolve, 50)); // Telegram flood limit එක මඟහරවා ගැනීමට
+                await new Promise(resolve => setTimeout(resolve, 50));
             } catch (err) {
                 failCount++;
             }
         }
 
-        await ctx.reply(`✅ **බ්‍රෝඩ්කාස්ට් අවසන්!**\n\n🎯 සාර්ථකව යැවුණු ගණන: ${successCount}\n❌ අසාර්ථක වූ ගණන: ${failCount}`, { parse_mode: 'Markdown' });
-
+        await ctx.reply(`✅ **බ්‍රෝඩ්කාස්ට් අවසන්!**\n\n🎯 සාර්ථකයි: ${successCount}\n❌ අසාර්ථකයි: ${failCount}`, { parse_mode: 'Markdown' });
     } catch (error) {
         console.error("Broadcast error:", error);
-        await ctx.reply("❌ බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
-// Check Subscription Button Action
+
+// Check Subscription Action
 bot.action(/^check_sub_(.+)$/, async (ctx) => {
     const userId = ctx.from.id;
     const payload = ctx.match[1];
 
     const isSubscribed = await checkUserSubscription(ctx, userId);
     if (!isSubscribed) {
-        return ctx.answerCbQuery("❌ ඔබ තවමත් චැනල් එකට Join වී නැත! කරුණාකර මුලින්ම Join වන්න.", { show_alert: true });
+        return ctx.answerCbQuery("❌ ඔබ තවමත් චැනල් එකට Join වී නැත!", { show_alert: true });
     }
 
-    await ctx.answerCbQuery("✅ ස්තූතියි! දැන් ඔබට වීඩියෝව ලබාගත හැක.");
+    await ctx.answerCbQuery("✅ ස්තූතියි!");
     
     try {
         if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
             const fileDoc = await FileModel.findOneAndUpdate(
-                { token }, 
+                { token: token }, 
                 { $inc: { views: 1 } }, 
                 { new: true }
             );
 
             if (!fileDoc) {
-                return ctx.editMessageText("❌ සමාවන්න, මෙම ගොනුව හමුවී නැත හෝ කල් ඉකුත් වී ඇත.");
+                return ctx.editMessageText("❌ සමාවන්න, මෙම ගොනුව හමුවී නැත.");
             }
 
             await ctx.deleteMessage();
 
-                        // කලෙක්ෂන් එකේ ඇති සියලුම වීඩියෝ එකින් එක පිළිවෙළට යැවීම
             for (let i = 0; i < fileDoc.fileMsgIds.length; i++) {
                 await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgIds[i]);
-                // වීඩියෝ අතර කුඩා පරතරයක් තබා පිළිවෙළට යැවීමට
                 await new Promise(resolve => setTimeout(resolve, 400));
             }
             
             const warningMsg = await ctx.reply(
                 `⚠️ **අවධානයට:**\n` +
-                `මෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
-                `💾 අවශ්‍ය නම් දැන්ම ඉහත වීඩියෝ **Save** කර සුරක්ෂිත කරගන්න.`,
+                `මෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව මැකී යනු ඇත!`,
                 { parse_mode: 'Markdown' }
             );
 
-            // විනාඩි 30 කට පසු මැකීමට සෙටප් කිරීම (අවශ්‍ය නම් කලෙක්ෂන් එකේ මැසේජ් හැම එකක්ම ඩිලීට් වන ලෙස හෝ වෝනිං මැසේජ් එක ඩිලීට් වන ලෙස තබාගත හැක)
             setTimeout(async () => {
-                try {
-                    await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id);
-                } catch (err) {}
+                try { await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id); } catch (err) {}
             }, 30 * 60 * 1000);
 
             return;
-
         }
 
         const fileDoc = await FileModel.findOne({ token: payload });
         if (!fileDoc) {
-            return ctx.editMessageText("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
+            return ctx.editMessageText("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත.");
         }
 
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
@@ -495,45 +450,21 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
     }
 });
 
-// Guide Action
 bot.action('how_to_use', async (ctx) => {
-    try {
-        await ctx.answerCbQuery();
-        await ctx.reply(
-            `📖 **වීඩියෝවක් ලබාගන්නේ කෙසේද? (පියවර)**\n\n` +
-            `1️⃣ මුලින්ම **"▶️ Watch Ad & Get Video"** බොත්තම ඔබන්න.\n` +
-            `2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න.\n` +
-            `3️⃣ කාලය අවසන් වූ පසු මතුවන **"🚀 වීඩියෝව ලබා ගන්න"** බොත්තම ඔබන්න.\n` +
-            `4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය වීඩියෝව ලැබෙනු ඇත!`,
-            { parse_mode: 'Markdown' }
-        );
-    } catch (error) {
-        console.error(error);
-    }
+    await ctx.answerCbQuery();
+    await ctx.reply(`📖 **මාර්ගෝපදේශය:** බොත්තමොබලා දැන්වීම බලා තත්පර 5ක් රැඳී සිට වීඩියෝව ලබා ගන්න.`);
 });
 
-
-// Support Action
 bot.action('support_info', async (ctx) => {
-    try {
-        await ctx.answerCbQuery();
-        await ctx.reply(
-            `📞 **උදව් සහ සහය (Support)**\n\n` +
-            `කිසියම් වීඩියෝවක් ලබාගැනීමේදී ගැටළුවක් මතු වුවහොත්, කරුණාකර අපගේ ප්‍රධාන චැනල් එක හරහා විමසන්න.`,
-            { parse_mode: 'Markdown' }
-        );
-    } catch (error) {
-        console.error(error);
-    }
+    await ctx.answerCbQuery();
+    await ctx.reply(`📞 ගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.`);
 });
 
-// Admin Upload & Auto-Post Section
 const pendingUploads = new Map();
 
 bot.on('photo', async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
-
     if (ADMIN_ID && userId !== ADMIN_ID) return;
 
     const photo = ctx.message.photo;
@@ -546,19 +477,17 @@ bot.on('photo', async (ctx) => {
         videoMsgIds: [] 
     });
 
-    await ctx.reply("📸 Thumbnail එක ලැබුණා! දැන් මේකට අදාළ **වීඩියෝව (හෝ වීඩියෝ කිහිපයක්)** එකින් එක එවන්න. සියල්ල එවා අවසන් වූ පසු **/done** කමාන්ඩ් එක එවන්න.");
+    await ctx.reply("📸 Thumbnail එක ලැබුණා! දැන් වීඩියෝ එක හෝ කිහිපයක් එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.");
 });
 
-// වීඩියෝ එකතු කරගැනීම
 bot.on(['video', 'document'], async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
-
     if (ADMIN_ID && userId !== ADMIN_ID) return;
 
     const pending = pendingUploads.get(userId);
     if (!pending) {
-        return ctx.reply("⚠️ කරුණාකර මුලින්ම Thumbnail එකක් (Photo එකක්) එවන්න.");
+        return ctx.reply("⚠️ මුලින්ම Thumbnail එකක් එවන්න.");
     }
 
     try {
@@ -566,18 +495,15 @@ bot.on(['video', 'document'], async (ctx) => {
         pending.videoMsgIds.push(forwarded.message_id);
         pendingUploads.set(userId, pending);
 
-        await ctx.reply(`✅ වීඩියෝව එකතු විය! (මුළු ගණන: ${pending.videoMsgIds.length}). තවත් ඇත්නම් එවන්න, නැතහොත් **/done** ටයිප් කරන්න.`);
+        await ctx.reply(`✅ වීඩියෝව එකතු විය! (මුළු ගණන: ${pending.videoMsgIds.length}). තවත් ඇත්නම් එවන්න, නැතහොත් `/done` ටයිප් කරන්න.`);
     } catch (error) {
         console.error(error);
-        ctx.reply("වීඩියෝව සේව් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
 
-// /done කමාන්ඩ් එක මඟින් පෝස්ට් එක ප්‍රධාන චැනල් එකට යැවීම
 bot.command('done', async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
-
     if (ADMIN_ID && userId !== ADMIN_ID) return;
 
     const pending = pendingUploads.get(userId);
@@ -588,50 +514,41 @@ bot.command('done', async (ctx) => {
     try {
         const token = Math.random().toString(36).substring(2, 10);
 
+        // නිවැරදි කළ තැන: 'clicks: 0' එකතු කිරීම
         await FileModel.create({
             token: token,
             fileMsgIds: pending.videoMsgIds,
-            views: 0
+            views: 0,
+            clicks: 0
         });
 
         const botUsername = ctx.botInfo.username;
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
 
-        await ctx.reply(
-            `✅ **සාර්ථකව ගබඩා විය!** (වීඩියෝ ගණන: ${pending.videoMsgIds.length})\n\n` +
-            `🚀 **ප්‍රධාන චැනල් එකට පෝස්ට් එක යවන ලදී!**`, 
-            { parse_mode: 'Markdown' }
-        );
+        await ctx.reply(`✅ **සාර්ථකව ගබඩා විය!** (වීඩියෝ ගණන: ${pending.videoMsgIds.length})\n\n🚀 ප්‍රධාන චැනල් එකට පෝස්ට් යවන ලදී!`, { parse_mode: 'Markdown' });
 
-        // වීඩියෝ ගණන 1කට වඩා වැඩියි නම් "Watch Full Collection", නැතහොත් "Watch Full Video" ලෙස බටන් එක හැදීම
         const buttonText = pending.videoMsgIds.length > 1 ? "▶️ Watch Full Collection" : "▶️ Watch Full Video";
 
         await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
             caption: pending.caption,
             parse_mode: 'Markdown',
             reply_markup: {
-                inline_keyboard: [
-                    [{ text: buttonText, url: shareLink }]
-                ]
+                inline_keyboard: [[{ text: buttonText, url: shareLink }]]
             }
         });
 
         pendingUploads.delete(userId);
-
     } catch (error) {
         console.error(error);
         ctx.reply("ප්‍රධාන චැනල් එකට පෝස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
 
-
-// Telegram bot launch & Express Server start
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     bot.launch();
 });
 
-// Graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
