@@ -21,11 +21,12 @@ mongoose.connect(MONGO_URI)
   .catch(err => console.error('MongoDB Connection Error:', err));
 
 
-// Mongoose Schema for Files (Collection සඳහා Array එකක් ලෙස)
+// Mongoose Schema for Files (clicks සමඟ)
 const fileSchema = new mongoose.Schema({
     token: { type: String, required: true, unique: true },
-    fileMsgIds: { type: [Number], required: true }, // වීඩියෝ කිහිපයක ID එකතු කිරීමට
-    views: { type: Number, default: 0 }
+    fileMsgIds: { type: [Number], required: true },
+    views: { type: Number, default: 0 },
+    clicks: { type: Number, default: 0 } // 👈 අලුතින් එකතු කළ කෝඩ් පේළිය
 });
 const FileModel = mongoose.model('File', fileSchema);
 
@@ -247,15 +248,17 @@ bot.start(async (ctx) => {
         if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
             
-            const fileDoc = await FileModel.findOneAndUpdate(
-                { token }, 
-                { $inc: { views: 1 } }, 
-                { new: true }
-            );
+                    const fileDoc = await FileModel.findOneAndUpdate(
+            { token: payload }, 
+            { $inc: { clicks: 1 } }, // 👈 ලින්ක් එක ක්ලික් කළ වාර ගණන 1 කින් වැඩි කිරීම
+            { new: true }
+        );
+        if (!fileDoc) {
+            return ctx.reply("❌ සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
+        }
 
-            if (!fileDoc) {
-                return ctx.reply("❌ සමාවන්න, මෙම ගොනුව හමුවී නැත හෝ කල් ඉකුත් වී ඇත.");
-            }
+
+
 
             // වීඩියෝව යැවීම
                                     // කලෙක්ෂන් එකේ ඇති සියලුම වීඩියෝ එකින් එක පිළිවෙළට යැවීම සහ ID එකතු කරගැනීම
@@ -321,7 +324,7 @@ bot.start(async (ctx) => {
     }
 });
 
-// --- ADMIN STATS COMMAND (/stats) ---
+// --- ADMIN STATS COMMAND (/stats - Updated with Click Tracker) ---
 bot.command('stats', async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -341,16 +344,24 @@ bot.command('stats', async (ctx) => {
         const totalFiles = await FileModel.countDocuments({});
         const files = await FileModel.find({});
         let totalViews = 0;
+        let totalClicks = 0; // 👈 ක්ලික්ස් එකතු කරගැනීමට
+
         files.forEach(file => {
             totalViews += file.views;
+            totalClicks += file.clicks || 0;
         });
 
+        // Conversion Rate එක සෙවීම (ක්ලික් කරපු අයගෙන් කීයක් වීඩියෝ එක බැලුවාද ප්‍රතිශතය)
+        const conversionRate = totalClicks > 0 ? ((totalViews / totalClicks) * 100).toFixed(1) : 0;
+
         await ctx.reply(
-            `📊 **බොට් හි සංඛ්‍යාලේඛන (Bot Statistics)**\n\n` +
+            `📊 **බොට් හි වැඩිදියුණු කළ සංඛ්‍යාලේඛන (Analytics Dashboard)**\n\n` +
             `👥 මුළු යුසර්ස්ලා (Total Users): **${totalUsers}**\n` +
             `📅 මෙම මාසයේ අලුත් යුසර්ස්ලා (This Month): **${monthlyUsers}**\n` +
-            `📁 ගබඩා කර ඇති වීඩියෝ ගණන: **${totalFiles}**\n` +
-            `👁️ මුළු වීඩියෝ නැරඹුම් වාර (Total Views): **${totalViews}**`,
+            `📁 ගබඩා කර ඇති වීඩියෝ කලෙක්ෂන්: **${totalFiles}**\n` +
+            `🔗 මුළු ලින්ක් ක්ලික්ස් (Total Clicks): **${totalClicks}**\n` +
+            `👁️ මුළු වීඩියෝ නැරඹුම් (Total Views): **${totalViews}**\n` +
+            `📈 ඇඩ් සාර්ථකත්ව අනුපාතය (Conversion): **${conversionRate}%**`,
             { parse_mode: 'Markdown' }
         );
 
