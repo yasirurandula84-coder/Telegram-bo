@@ -522,10 +522,9 @@ bot.command('done', async (ctx) => {
         return ctx.reply("⚠️ කරුණාකර මුලින්ම Thumbnail එකක් සහ වීඩියෝවක් හෝ කිහිපයක් එවන්න.");
     }
 
-    try {
+        try {
         const token = Math.random().toString(36).substring(2, 10);
 
-        // නිවැරදි කළ තැන: 'clicks: 0' එකතු කිරීම
         await FileModel.create({
             token: token,
             fileMsgIds: pending.videoMsgIds,
@@ -540,20 +539,33 @@ bot.command('done', async (ctx) => {
 
         const buttonText = pending.videoMsgIds.length > 1 ? "▶️ Watch Full Collection" : "▶️ Watch Full Video";
 
+        // 🎨 පෝස්ට් එකෙන් පෝස්ට් එකට පාට මාරු වන විදිහට හැදීම (Blue -> Green -> Red)
+        // මේ සඳහා අපි වර්ණ ලැයිස්තුවක් සාදා ගනිමු
+        const stylesList = ["primary", "success", "danger"];
+        
+        // ඩේටාබේස් එකේ ඇති මුළු ෆයිල් ගණන (Total Files) පදනම් කරගෙන පාට ස්වයංක්‍රීයව තෝරා ගනී
+        const totalFilesCount = await FileModel.countDocuments({});
+        const assignedStyle = stylesList[(totalFilesCount - 1) % stylesList.length];
+
         await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
             caption: pending.caption,
             parse_mode: 'Markdown',
             reply_markup: {
-                inline_keyboard: [[{ text: buttonText, url: shareLink }]]
+                inline_keyboard: [
+                    [
+                        { 
+                            text: buttonText, 
+                            url: shareLink,
+                            style: assignedStyle // මෙතැනට පිළිවෙළට පාට එකතු වේ
+                        }
+                    ]
+                ]
             }
         });
 
         pendingUploads.delete(userId);
-    } catch (error) {
-        console.error(error);
-        ctx.reply("ප්‍රධාන චැනල් එකට පෝස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
-    }
-});
+    } catch (error) { ... }
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
