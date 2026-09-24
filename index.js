@@ -219,7 +219,7 @@ bot.start(async (ctx) => {
             }
         );
     }
-
+try {
             if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
             
