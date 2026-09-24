@@ -220,7 +220,7 @@ bot.start(async (ctx) => {
         );
     }
 try {
-                    if (payload.startsWith("getvideo_")) {
+                            if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
             
             const fileDoc = await FileModel.findOneAndUpdate(
@@ -272,6 +272,7 @@ try {
 
             return;
         }
+
 
         // මෙතැනදී යූසර් මුලින්ම ලින්ක් එක ක්ලික් කරන විට Clicks 1 කින් වැඩි වේ
         const fileDoc = await FileModel.findOneAndUpdate(
