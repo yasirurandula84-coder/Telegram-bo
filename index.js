@@ -389,7 +389,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
         return ctx.answerCbQuery("❌ ඔබ තවමත් චැනල් එකට Join වී නැත!", { show_alert: true });
     }
 
-    await ctx.answerCbQuery("✅ ස්තූතියි!");
+    await ctx.answerCbQuery("✅ ස්තූතියි! දැන් ඔබට වීඩියෝව ලබාගත හැක.");
     
     try {
         if (payload.startsWith("getvideo_")) {
@@ -451,8 +451,19 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
 });
 
 bot.action('how_to_use', async (ctx) => {
-    await ctx.answerCbQuery();
-    await ctx.reply(`📖 **මාර්ගෝපදේශය:** බොත්තමොබලා දැන්වීම බලා තත්පර 5ක් රැඳී සිට වීඩියෝව ලබා ගන්න.`);
+    try {
+        await ctx.answerCbQuery();
+        await ctx.reply(
+            `📖 **වීඩියෝවක් ලබාගන්නේ කෙසේද? (පියවර)**\n\n` +
+            `1️⃣ මුලින්ම **"▶️ Watch Ad & Get Video"** බොත්තම ඔබන්න.\n` +
+            `2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න.\n` +
+            `3️⃣ කාලය අවසන් වූ පසු මතුවන **"🚀 වීඩියෝව ලබා ගන්න"** බොත්තම ඔබන්න.\n` +
+            `4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය වීඩියෝව ලැබෙනු ඇත!`,
+            { parse_mode: 'Markdown' }
+        );
+    } catch (error) {
+        console.error(error);
+    }
 });
 
 bot.action('support_info', async (ctx) => {
