@@ -564,7 +564,11 @@ bot.command('done', async (ctx) => {
         });
 
         pendingUploads.delete(userId);
-    } catch (error) { ... }
+     } catch (error) {
+        console.error(error);
+        ctx.reply("ප්‍රධාන චැනල් එකට පෝස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
+    }
+});
 
 
 const PORT = process.env.PORT || 3000;
