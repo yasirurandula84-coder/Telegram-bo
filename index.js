@@ -17,10 +17,11 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB Connected Successfully!'))
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// Mongoose Schema for Files
+// Mongoose Schema for Files (පරණ සහ අලුත් දෙකම සපෝට් කරයි)
 const fileSchema = new mongoose.Schema({
     token: { type: String, required: true, unique: true },
-    fileMsgIds: { type: [Number], required: true },
+    fileMsgId: { type: Number },      // පරණ වීඩියෝ සඳහා
+    fileMsgIds: { type: [Number] },   // අලුත් වීඩියෝ සඳහා
     views: { type: Number, default: 0 },
     clicks: { type: Number, default: 0 } 
 });
