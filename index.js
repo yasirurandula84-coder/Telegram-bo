@@ -220,7 +220,7 @@ bot.start(async (ctx) => {
         );
     }
 try {
-            if (payload.startsWith("getvideo_")) {
+                    if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
             
             const fileDoc = await FileModel.findOneAndUpdate(
@@ -234,14 +234,23 @@ try {
             }
 
             let sentVideoIds = [];
-            for (let i = 0; i < fileDoc.fileMsgIds.length; i++) {
+            
+            // පරණ සහ අලුත් දෙவර්ගයම හැන්ඩ්ල් කිරීමට (Backward Compatible)
+            let msgIdsArray = [];
+            if (fileDoc.fileMsgIds && Array.isArray(fileDoc.fileMsgIds)) {
+                msgIdsArray = fileDoc.fileMsgIds;
+            } else if (fileDoc.fileMsgId) {
+                msgIdsArray = [fileDoc.fileMsgId];
+            }
+
+            for (let i = 0; i < msgIdsArray.length; i++) {
                 try {
-                    const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgIds[i]);
+                    const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, msgIdsArray[i]);
                     sentVideoIds.push(sentMsg.message_id);
                     await new Promise(resolve => setTimeout(resolve, 400));
                 } catch (copyErr) {
-                    console.error(`Copy Message Error for ID ${fileDoc.fileMsgIds[i]}:`, copyErr.message);
-                    return ctx.reply("⚠️ සමාවන්න, මෙම වීඩියෝව ලබාගැනීමේදී දෝෂයක් ඇත (Message not found).");
+                    console.error(`Copy Message Error for ID ${msgIdsArray[i]}:`, copyErr.message);
+                    return ctx.reply("⚠️ සමාවන්න, මෙම වීඩියෝව ලබාගැනීමේදී දෝෂයක් ඇත.");
                 }
             }
             
