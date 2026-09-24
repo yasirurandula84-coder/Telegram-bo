@@ -405,7 +405,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
     await ctx.answerCbQuery("✅ ස්තූතියි! දැන් ඔබට වීඩියෝව ලබාගත හැක.");
     
     try {
-        if (payload.startsWith("getvideo_")) {
+                if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
             const fileDoc = await FileModel.findOneAndUpdate(
                 { token: token }, 
@@ -419,9 +419,24 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
 
             await ctx.deleteMessage();
 
-            for (let i = 0; i < fileDoc.fileMsgIds.length; i++) {
-                await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgIds[i]);
-                await new Promise(resolve => setTimeout(resolve, 400));
+            let sentVideoIds = [];
+            
+            // පරණ සහ අලුත් දෙවර්ගයම මෙතනත් හැන්ඩ්ල් කරයි
+            let msgIdsArray = [];
+            if (fileDoc.fileMsgIds && Array.isArray(fileDoc.fileMsgIds)) {
+                msgIdsArray = fileDoc.fileMsgIds;
+            } else if (fileDoc.fileMsgId) {
+                msgIdsArray = [fileDoc.fileMsgId];
+            }
+
+            for (let i = 0; i < msgIdsArray.length; i++) {
+                try {
+                    const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, msgIdsArray[i]);
+                    sentVideoIds.push(sentMsg.message_id);
+                    await new Promise(resolve => setTimeout(resolve, 400));
+                } catch (copyErr) {
+                    console.error(`Copy Message Error for ID ${msgIdsArray[i]}:`, copyErr.message);
+                }
             }
             
             const warningMsg = await ctx.reply(
@@ -431,11 +446,17 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
             );
 
             setTimeout(async () => {
-                try { await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id); } catch (err) {}
+                try {
+                    for (let msgId of sentVideoIds) {
+                        await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
+                    }
+                    await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id).catch(() => {});
+                } catch (err) {}
             }, 30 * 60 * 1000);
 
             return;
         }
+
 
         const fileDoc = await FileModel.findOne({ token: payload });
         if (!fileDoc) {
