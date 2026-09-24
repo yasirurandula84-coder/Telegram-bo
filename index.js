@@ -234,14 +234,14 @@ try {
                 return ctx.reply("❌ සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
             }
 
-            let sentVideoIds = [];
+                                    let sentVideoIds = [];
             
-            // පරණ සහ අලුත් දෙவර්ගයම හැන්ඩ්ල් කිරීමට (Backward Compatible)
+            // පරණ සහ අලුත් දෙවර්ගයම නිවැරදිව අල්ලා ගැනීමට (පළමුව fileMsgId පරීක්ෂා කරයි)
             let msgIdsArray = [];
-            if (fileDoc.fileMsgIds && Array.isArray(fileDoc.fileMsgIds)) {
-                msgIdsArray = fileDoc.fileMsgIds;
-            } else if (fileDoc.fileMsgId) {
+            if (fileDoc.fileMsgId) {
                 msgIdsArray = [fileDoc.fileMsgId];
+            } else if (fileDoc.fileMsgIds && Array.isArray(fileDoc.fileMsgIds)) {
+                msgIdsArray = fileDoc.fileMsgIds;
             }
 
             for (let i = 0; i < msgIdsArray.length; i++) {
@@ -251,10 +251,11 @@ try {
                     await new Promise(resolve => setTimeout(resolve, 400));
                 } catch (copyErr) {
                     console.error(`Copy Message Error for ID ${msgIdsArray[i]}:`, copyErr.message);
-                    return ctx.reply("⚠️ සමාවන්න, මෙම වීඩියෝව ලබාගැනීමේදී දෝෂයක් ඇත.");
+                    return ctx.reply(`⚠️ සමාවන්න, මෙම වීඩියෝව ලබාගැනීමේදී දෝෂයක් ඇත: ${copyErr.message}`);
                 }
             }
-            
+
+
             const warningMsg = await ctx.reply(
                 `⚠️ **අවධානයට:**\n` +
                 `මෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
@@ -420,14 +421,14 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
 
             await ctx.deleteMessage();
 
-            let sentVideoIds = [];
+                        let sentVideoIds = [];
             
-            // පරණ සහ අලුත් දෙවර්ගයම මෙතනත් හැන්ඩ්ල් කරයි
+            // පරණ සහ අලුත් දෙවර්ගයම මෙතනත් නිවැරදිව හැන්ඩ්ල් කරයි
             let msgIdsArray = [];
-            if (fileDoc.fileMsgIds && Array.isArray(fileDoc.fileMsgIds)) {
-                msgIdsArray = fileDoc.fileMsgIds;
-            } else if (fileDoc.fileMsgId) {
+            if (fileDoc.fileMsgId) {
                 msgIdsArray = [fileDoc.fileMsgId];
+            } else if (fileDoc.fileMsgIds && Array.isArray(fileDoc.fileMsgIds)) {
+                msgIdsArray = fileDoc.fileMsgIds;
             }
 
             for (let i = 0; i < msgIdsArray.length; i++) {
@@ -439,6 +440,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                     console.error(`Copy Message Error for ID ${msgIdsArray[i]}:`, copyErr.message);
                 }
             }
+
             
             const warningMsg = await ctx.reply(
                 `⚠️ **අවධානයට:**\n` +
