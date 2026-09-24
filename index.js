@@ -220,11 +220,9 @@ bot.start(async (ctx) => {
         );
     }
 
-    try {
-        if (payload.startsWith("getvideo_")) {
+            if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
             
-            // නිවැරදි කළ තැන: 'token' මඟින් ඩේටාබේස් එක සෙවීම සහ views වැඩි කිරීම
             const fileDoc = await FileModel.findOneAndUpdate(
                 { token: token }, 
                 { $inc: { views: 1 } }, 
@@ -237,9 +235,14 @@ bot.start(async (ctx) => {
 
             let sentVideoIds = [];
             for (let i = 0; i < fileDoc.fileMsgIds.length; i++) {
-                const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgIds[i]);
-                sentVideoIds.push(sentMsg.message_id);
-                await new Promise(resolve => setTimeout(resolve, 400));
+                try {
+                    const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, fileDoc.fileMsgIds[i]);
+                    sentVideoIds.push(sentMsg.message_id);
+                    await new Promise(resolve => setTimeout(resolve, 400));
+                } catch (copyErr) {
+                    console.error(`Copy Message Error for ID ${fileDoc.fileMsgIds[i]}:`, copyErr.message);
+                    return ctx.reply("⚠️ සමාවන්න, මෙම වීඩියෝව ලබාගැනීමේදී දෝෂයක් ඇත (Message not found).");
+                }
             }
             
             const warningMsg = await ctx.reply(
@@ -260,7 +263,7 @@ bot.start(async (ctx) => {
 
             return;
         }
-      
+
         // මෙතැනදී යූසර් මුලින්ම ලින්ක් එක ක්ලික් කරන විට Clicks 1 කින් වැඩි වේ
         const fileDoc = await FileModel.findOneAndUpdate(
             { token: payload }, 
