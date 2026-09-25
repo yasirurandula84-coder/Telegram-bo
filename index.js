@@ -653,6 +653,25 @@ bot.command('done', async (ctx) => {
                             text: buttonText, 
                             url: shareLink
                         }
+                    ],
+                    [
+                        { 
+                            text: "📢 Join Backup Channel", 
+                            url: "https://t.me/+bCed3QPGYqQ3MWY9" 
+                        }
+                    ]
+                ]
+            }
+        });
+
+        pendingUploads.delete(userId);
+    } catch (error) {
+        console.error(error);
+        ctx.reply("ප්‍රධාන චැනල් එකට පෝස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
+    }
+});
+
+                        }
                     ]
                 ]
             }
