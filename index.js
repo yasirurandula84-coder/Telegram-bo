@@ -576,8 +576,16 @@ bot.command('done', async (ctx) => {
 
         const buttonText = pending.videoMsgIds.length > 1 ? "▶️ Watch Full Collection" : "▶️ Watch Full Video";
 
+        // වීඩියෝ ගණන අනුව කැප්ෂන් එක වෙනස් වන කොටස
+        const headerText = pending.videoMsgIds.length > 1 
+            ? "🔥 **නවම නිකුත් වූ විශේෂ වීඩියෝ කලෙක්ෂන් එක!** 🔥" 
+            : "🔥 **නවම නිකුත් වූ විශේෂ වීඩියෝ එක!** 🔥";
+
         await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
-            caption: pending.caption,
+            caption: `${headerText}\n\n` +
+                     `${pending.caption}\n\n` +
+                     `📁 **අන්තර්ගතය:** වීඩියෝ ${pending.videoMsgIds.length} ක් ඇතුළත් වේ.\n\n` +
+                     `✨ **නරඹන්න පහත බොත්තම ක්ලික් කරන්න 👇**`,
             parse_mode: 'Markdown',
             reply_markup: {
                 inline_keyboard: [
@@ -585,7 +593,6 @@ bot.command('done', async (ctx) => {
                         { 
                             text: buttonText, 
                             url: shareLink
-                            // මෙහි තිබූ style කියන property එක ඉවත් කරන ලදී (Telegram මඟින් URL බටන් වල පාට වෙනස් කිරීමට ඉඩ නොදෙන බැවින්)
                         }
                     ]
                 ]
@@ -598,6 +605,9 @@ bot.command('done', async (ctx) => {
         ctx.reply("ප්‍රධාන චැනල් එකට පෝස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
+
+
+
 
 
 const PORT = process.env.PORT || 3000;
