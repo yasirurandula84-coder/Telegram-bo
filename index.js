@@ -34,6 +34,13 @@ const userSchema = new mongoose.Schema({
 });
 const UserModel = mongoose.model('User', userSchema);
 
+// Mongoose Schema for Settings (Maintenance Mode සඳහා)
+const settingSchema = new mongoose.Schema({
+    key: { type: String, required: true, unique: true },
+    value: { type: Boolean, default: false }
+});
+const SettingModel = mongoose.model('Setting', settingSchema);
+
 // Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -170,6 +177,58 @@ async function checkUserSubscription(ctx, userId) {
         return true;
     }
 }
+
+bot.use(async (ctx, next) => {
+    try {
+        const setting = await SettingModel.findOne({ key: 'maintenance_mode' });
+        if (setting && setting.value === true) {
+            const userId = ctx.from ? ctx.from.id.toString() : '';
+            const ADMIN_ID = process.env.ADMIN_ID;
+            
+            // ඇඩ්මින්ට නම් Maintenance එකේදීත් බොට් වැඩ කරයි
+            if (ADMIN_ID && userId === ADMIN_ID) {
+                return next();
+            }
+
+            // සාමාන්‍ය යූසර්ස්ලාට පෙන්වන පණිවිඩය
+            const msg = "🛠️ **বොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!**\n\nකරුණාකර சிறிது වේලාවකින් නැවත උත්සාහ කරන්න. අපගේ असහනයට සමාව අයදිමු!";
+            if (ctx.callbackQuery) {
+                return ctx.answerCbQuery("🛠️ බොට් නඩත්තු කටයුතු කරමින් පවතී!", { show_alert: true });
+            }
+            return ctx.reply(msg, { parse_mode: 'Markdown' });
+        }
+    } catch (err) {
+        console.error("Maintenance check error:", err);
+    }
+    return next();
+});
+
+// Admin Maintenance Mode Toggle Command
+bot.command('maintenance', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const ADMIN_ID = process.env.ADMIN_ID;
+
+    if (ADMIN_ID && userId !== ADMIN_ID) {
+        return ctx.reply("❌ මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.");
+    }
+
+    try {
+        let setting = await SettingModel.findOne({ key: 'maintenance_mode' });
+        if (!setting) {
+            setting = await SettingModel.create({ key: 'maintenance_mode', value: true });
+        } else {
+            setting.value = !setting.value;
+            await setting.save();
+        }
+
+        const statusText = setting.value ? "🔴 සක්‍රීය කරන ලදී (Enabled - Bot Locked)" : "🟢 අක්‍රීය කරන ලදී (Disabled - Bot Normal)";
+        await ctx.reply(`🛠️ **Maintenance Mode Status:**\n\n${statusText}`, { parse_mode: 'Markdown' });
+    } catch (error) {
+        console.error("Maintenance toggle error:", error);
+        await ctx.reply("❌ දෝෂයක් ඇති විය.");
+    }
+});
+
 
 bot.start(async (ctx) => {
     const userId = ctx.from.id;
