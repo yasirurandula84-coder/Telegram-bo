@@ -185,12 +185,10 @@ bot.use(async (ctx, next) => {
             const userId = ctx.from ? ctx.from.id.toString() : '';
             const ADMIN_ID = process.env.ADMIN_ID;
             
-            // ඇඩ්මින්ට නම් Maintenance එකේදීත් බොට් වැඩ කරයි
             if (ADMIN_ID && userId === ADMIN_ID) {
                 return next();
             }
 
-            // සාමාන්‍ය යූසර්ස්ලාට පෙන්වන පණිවිඩය
             const msg = "🛠️ **বොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!**\n\nකරුණාකර சிறிது වේලාවකින් නැවත උත්සාහ කරන්න. අපගේ असහනයට සමාව අයදිමු!";
             if (ctx.callbackQuery) {
                 return ctx.answerCbQuery("🛠️ බොට් නඩත්තු කටයුතු කරමින් පවතී!", { show_alert: true });
@@ -228,7 +226,6 @@ bot.command('maintenance', async (ctx) => {
         await ctx.reply("❌ දෝෂයක් ඇති විය.");
     }
 });
-
 
 bot.start(async (ctx) => {
     const userId = ctx.from.id;
@@ -279,8 +276,9 @@ bot.start(async (ctx) => {
             }
         );
     }
-try {
-                            if (payload.startsWith("getvideo_")) {
+
+    try {
+        if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
             
             const fileDoc = await FileModel.findOneAndUpdate(
@@ -293,9 +291,7 @@ try {
                 return ctx.reply("❌ සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
             }
 
-                                    let sentVideoIds = [];
-            
-            // පරණ සහ අලුත් දෙවර්ගයම නිවැරදිව අල්ලා ගැනීමට (පළමුව fileMsgId පරීක්ෂා කරයි)
+            let sentVideoIds = [];
             let msgIdsArray = [];
             if (fileDoc.fileMsgId) {
                 msgIdsArray = [fileDoc.fileMsgId];
@@ -313,7 +309,6 @@ try {
                     return ctx.reply(`⚠️ සමාවන්න, මෙම වීඩියෝව ලබාගැනීමේදී දෝෂයක් ඇත: ${copyErr.message}`);
                 }
             }
-
 
             const warningMsg = await ctx.reply(
                 `⚠️ **අවධානයට:**\n` +
@@ -334,8 +329,6 @@ try {
             return;
         }
 
-
-        // මෙතැනදී යූසර් මුලින්ම ලින්ක් එක ක්ලික් කරන විට Clicks 1 කින් වැඩි වේ
         const fileDoc = await FileModel.findOneAndUpdate(
             { token: payload }, 
             { $inc: { clicks: 1 } }, 
@@ -466,7 +459,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
     await ctx.answerCbQuery("✅ ස්තූතියි! දැන් ඔබට වීඩියෝව ලබාගත හැක.");
     
     try {
-                if (payload.startsWith("getvideo_")) {
+        if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
             const fileDoc = await FileModel.findOneAndUpdate(
                 { token: token }, 
@@ -480,9 +473,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
 
             await ctx.deleteMessage();
 
-                        let sentVideoIds = [];
-            
-            // පරණ සහ අලුත් දෙවර්ගයම මෙතනත් නිවැරදිව හැන්ඩ්ල් කරයි
+            let sentVideoIds = [];
             let msgIdsArray = [];
             if (fileDoc.fileMsgId) {
                 msgIdsArray = [fileDoc.fileMsgId];
@@ -500,7 +491,6 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 }
             }
 
-            
             const warningMsg = await ctx.reply(
                 `⚠️ **අවධානයට:**\n` +
                 `මෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව මැකී යනු ඇත!`,
@@ -518,7 +508,6 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
 
             return;
         }
-
 
         const fileDoc = await FileModel.findOne({ token: payload });
         if (!fileDoc) {
@@ -635,7 +624,6 @@ bot.command('done', async (ctx) => {
 
         const buttonText = pending.videoMsgIds.length > 1 ? "▶️ Watch Full Collection" : "▶️ Watch Full Video";
 
-        // වීඩියෝ ගණන අනුව කැප්ෂන් එක වෙනස් වන කොටස
         const headerText = pending.videoMsgIds.length > 1 
             ? "🔥 **දැන් නිකුත් වූ විශේෂ වීඩියෝ කලෙක්ෂන් එක!** 🔥" 
             : "🔥 **දැන් නිකුත් වූ විශේෂ වීඩියෝ එක!** 🔥";
@@ -670,21 +658,6 @@ bot.command('done', async (ctx) => {
         ctx.reply("ප්‍රධාන චැනල් එකට පෝස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
-
-                        }
-                    ]
-                ]
-            }
-        });
-
-        pendingUploads.delete(userId);
-    } catch (error) {
-        console.error(error);
-        ctx.reply("ප්‍රධාන චැනල් එකට පෝස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
-    }
-});
-
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
