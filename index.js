@@ -628,12 +628,13 @@ bot.command('done', async (ctx) => {
             ? "🔥 **දැන් නිකුත් වූ විශේෂ වීඩියෝ කලෙක්ෂන් එක!** 🔥" 
             : "🔥 **දැන් නිකුත් වූ විශේෂ වීඩියෝ එක!** 🔥";
 
-        await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
+                await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
             caption: `${headerText}\n\n` +
                      `✨ *${pending.caption}*\n\n` +
                      `📁 **අන්තර්ගතය:** වීඩියෝ ${pending.videoMsgIds.length} ක් ඇතුළත් වේ.\n\n` +
                      `👇 **නරඹන්න පහත බොත්තම ක්ලික් කරන්න:**`,
             parse_mode: 'Markdown',
+            has_spoiler: true, // මෙන්න මෙතැනින් ෆොටෝ එක ඔටෝ බ්ලර් (Spoiler) වෙනවා
             reply_markup: {
                 inline_keyboard: [
                     [
