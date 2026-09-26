@@ -556,6 +556,29 @@ bot.action('support_info', async (ctx) => {
     await ctx.reply(`📞 ගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.`);
 });
 
+bot.action('toggle_spoiler_yes', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const pending = pendingUploads.get(userId);
+    if (pending) {
+        pending.hasSpoiler = true;
+        pendingUploads.set(userId, pending);
+    }
+    await ctx.answerCbQuery("🔒 Thumbnail එක Blur කිරීමට සකසන ලදී.");
+    await ctx.editMessageText("🔒 **Blur Mode: ON**\n\nදැන් අදාළ වීඩියෝ එක හෝ කිහිපයක් එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.", { parse_mode: 'Markdown' });
+});
+
+bot.action('toggle_spoiler_no', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const pending = pendingUploads.get(userId);
+    if (pending) {
+        pending.hasSpoiler = false;
+        pendingUploads.set(userId, pending);
+    }
+    await ctx.answerCbQuery("🔓 Thumbnail එක Blur නොකිරීමට සකසන ලදී.");
+    await ctx.editMessageText("🔓 **Blur Mode: OFF**\n\nදැන් අදාළ වීඩියෝ එක හෝ කිහිපයක් එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.", { parse_mode: 'Markdown' });
+});
+
+
 const pendingUploads = new Map();
 
 bot.on('photo', async (ctx) => {
@@ -565,15 +588,30 @@ bot.on('photo', async (ctx) => {
 
     const photo = ctx.message.photo;
     const largestPhoto = photo[photo.length - 1].file_id;
-    const caption = ctx.message.caption || "🔥 නව වීඩියෝවක් නරඹන්න!";
 
+    // තාවකාලිකව pending සේව් කරමු (මුලින් ඩිෆෝල්ට් එක Blur = true කරමු)
     pendingUploads.set(userId, {
         photoFileId: largestPhoto,
-        caption: caption,
-        videoMsgIds: [] 
+        caption: "🔥 නව වීඩියෝවක් නරඹන්න!",
+        videoMsgIds: [],
+        hasSpoiler: true 
     });
 
-    await ctx.reply("📸 Thumbnail එක ලැබුණා! දැන් වීඩියෝ එක හෝ කිහිපයක් එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.");
+    await ctx.reply(
+        "📸 Thumbnail එක ලැබුණා!\n\n" +
+        "දැන් තෝරන්න මේක **Blur (Spoiler)** කරන්න ඕනේද නැද්ද කියලා:",
+        {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        { text: "🔒 Blur කරන්න (Yes)", callback_data: "toggle_spoiler_yes" },
+                        { text: "🔓 Blur කරන්න එපා (No)", callback_data: "toggle_spoiler_no" }
+                    ]
+                ]
+            }
+        }
+    );
 });
 
 bot.on(['video', 'document'], async (ctx) => {
@@ -629,29 +667,30 @@ bot.command('done', async (ctx) => {
             : "🔥 **දැන් නිකුත් වූ විශේෂ වීඩියෝ එක!** 🔥";
 
                 await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
-            caption: `${headerText}\n\n` +
-                     `✨ *${pending.caption}*\n\n` +
-                     `📁 **අන්තර්ගතය:** වීඩියෝ ${pending.videoMsgIds.length} ක් ඇතුළත් වේ.\n\n` +
-                     `👇 **නරඹන්න පහත බොත්තම ක්ලික් කරන්න:**`,
-            parse_mode: 'Markdown',
-            has_spoiler: true, // මෙන්න මෙතැනින් ෆොටෝ එක ඔටෝ බ්ලර් (Spoiler) වෙනවා
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        { 
-                            text: buttonText, 
-                            url: shareLink
-                        }
-                    ],
-                    [
-                        { 
-                            text: "📢 Join Backup Channel", 
-                            url: "https://t.me/+bCed3QPGYqQ3MWY9" 
-                        }
-                    ]
-                ]
-            }
-        });
+    caption: `${headerText}\n\n` +
+             `✨ *${pending.caption}*\n\n` +
+             `📁 **අන්තර්ගතය:** වීඩියෝ ${pending.videoMsgIds.length} ක් ඇතුළත් වේ.\n\n` +
+             `👇 **නරඹන්න පහත බොත්තම ක්ලික් කරන්න:**`,
+    parse_mode: 'Markdown',
+    has_spoiler: pending.hasSpoiler, // Admin තෝරපු විදිහට මෙතැන බ්ලර් වෙනවා හෝ වෙන එකක් නෑ!
+    reply_markup: {
+        inline_keyboard: [
+            [
+                { 
+                    text: buttonText, 
+                    url: shareLink
+                }
+            ],
+            [
+                { 
+                    text: "📢 Join Backup Channel", 
+                    url: "https://t.me/+bCed3QPGYqQ3MWY9" 
+                }
+            ]
+        ]
+    }
+});
+
 
         pendingUploads.delete(userId);
     } catch (error) {
