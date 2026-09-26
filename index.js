@@ -592,7 +592,7 @@ bot.on('photo', async (ctx) => {
     // තාවකාලිකව pending සේව් කරමු (මුලින් ඩිෆෝල්ට් එක Blur = true කරමු)
     pendingUploads.set(userId, {
         photoFileId: largestPhoto,
-        caption: "🔥 නව වීඩියෝවක් නරඹන්න!",
+        caption: "",
         videoMsgIds: [],
         hasSpoiler: true 
     });
