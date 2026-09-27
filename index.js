@@ -17,24 +17,25 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB Connected Successfully!'))
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// Mongoose Schema for Files (පරණ සහ අලුත් දෙකම සපෝට් කරයි)
+// Mongoose Schema for Files
 const fileSchema = new mongoose.Schema({
     token: { type: String, required: true, unique: true },
-    fileMsgId: { type: Number },      // පරණ වීඩියෝ සඳහා
-    fileMsgIds: { type: [Number] },   // අලුත් වීඩියෝ සඳහා
+    fileMsgId: { type: Number },      
+    fileMsgIds: { type: [Number] },   
     views: { type: Number, default: 0 },
     clicks: { type: Number, default: 0 } 
 });
 const FileModel = mongoose.model('File', fileSchema);
 
-// Mongoose Schema for Users
+// Mongoose Schema for Users (status එකත් එක්ක updated)
 const userSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
-    joinedAt: { type: Date, default: Date.now }
+    joinedAt: { type: Date, default: Date.now },
+    status: { type: String, default: 'active' } // 'active' හෝ 'blocked'
 });
 const UserModel = mongoose.model('User', userSchema);
 
-// Mongoose Schema for Settings (Maintenance Mode සඳහා)
+// Mongoose Schema for Settings
 const settingSchema = new mongoose.Schema({
     key: { type: String, required: true, unique: true },
     value: { type: Boolean, default: false }
@@ -189,11 +190,10 @@ bot.use(async (ctx, next) => {
                 return next();
             }
 
-            const msg = "🛠️ **বොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!**\n\nකරුණාකර சிறிது වේලාවකින් නැවත උත්සාහ කරන්න. අපගේ असහනයට සමාව අයදිමු!";
             if (ctx.callbackQuery) {
                 return ctx.answerCbQuery("🛠️ බොට් නඩත්තු කටයුතු කරමින් පවතී!", { show_alert: true });
             }
-            return ctx.reply(msg, { parse_mode: 'Markdown' });
+            return ctx.reply("🛠️ **বොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!**\n\nකරුණාකර சிறிது වේලාවකින් නැවත උත්සාහ කරන්න.", { parse_mode: 'Markdown' });
         }
     } catch (err) {
         console.error("Maintenance check error:", err);
@@ -201,7 +201,6 @@ bot.use(async (ctx, next) => {
     return next();
 });
 
-// Admin Maintenance Mode Toggle Command
 bot.command('maintenance', async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -219,7 +218,7 @@ bot.command('maintenance', async (ctx) => {
             await setting.save();
         }
 
-        const statusText = setting.value ? "🔴 සක්‍රීය කරන ලදී (Enabled - Bot Locked)" : "🟢 අක්‍රීය කරන ලදී (Disabled - Bot Normal)";
+        const statusText = setting.value ? "🔴 සක්‍රීය කරන ලදී (Enabled)" : "🟢 අක්‍රීය කරන ලදී (Disabled)";
         await ctx.reply(`🛠️ **Maintenance Mode Status:**\n\n${statusText}`, { parse_mode: 'Markdown' });
     } catch (error) {
         console.error("Maintenance toggle error:", error);
@@ -235,7 +234,7 @@ bot.start(async (ctx) => {
     try {
         await UserModel.updateOne(
             { userId: userIdStr }, 
-            { $setOnInsert: { joinedAt: new Date() },$set: { userId: userIdStr } }, 
+            { $setOnInsert: { joinedAt: new Date() },$set: { status: 'active' } }, 
             { upsert: true }
         );
     } catch (err) {
@@ -245,14 +244,14 @@ bot.start(async (ctx) => {
     if (!payload) {
         return ctx.reply(
             `👋 **ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.**\n\n` +
-            `මම ඔබේ වීඩියෝ සහ චිත්‍රපට ලබා දෙන ස්වයංක්‍රීය බොට් (File Store Bot) එකයි.\n\n` +
+            `මම ඔබේ වීඩියෝ සහ චිත්‍රපට ලබා දෙන ස්වයංක්‍රීය බොට් එකයි.\n\n` +
             `👇 වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණෙන්න.`,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
                         [{ text: "📢 Our Channel", url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
-                        [{ text: "ℹ️ How to Use", callback_data: "how_to_use" }, { text: "📞 Support / Help", callback_data: "support_info" }]
+                        [{ text: "ℹ️ How to Use", callback_data: "how_to_use" }, { text: "📞 Support", callback_data: "support_info" }]
                     ]
                 }
             }
@@ -306,7 +305,7 @@ bot.start(async (ctx) => {
                     await new Promise(resolve => setTimeout(resolve, 400));
                 } catch (copyErr) {
                     console.error(`Copy Message Error for ID ${msgIdsArray[i]}:`, copyErr.message);
-                    return ctx.reply(`⚠️ සමාවන්න, මෙම වීඩියෝව ලබාගැනීමේදී දෝෂයක් ඇත: ${copyErr.message}`);
+                    return ctx.reply(`⚠️ දෝෂයක් ඇත: ${copyErr.message}`);
                 }
             }
 
@@ -359,11 +358,11 @@ bot.start(async (ctx) => {
 
     } catch (error) {
         console.error(error);
-        ctx.reply("පද්ධතියේ දෝෂයක් සිදු විය. කරුණාකර පසුව උත්සාහ කරන්න.");
+        ctx.reply("පද්ධතියේ දෝෂයක් සිදු විය.");
     }
 });
 
-// Admin Stats Command
+// Admin Stats Command (Updated with Active & Blocked Counts)
 bot.command('stats', async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -374,6 +373,9 @@ bot.command('stats', async (ctx) => {
 
     try {
         const totalUsers = await UserModel.countDocuments({});
+        const activeUsers = await UserModel.countDocuments({ status: 'active' });
+        const blockedUsers = await UserModel.countDocuments({ status: 'blocked' });
+
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const monthlyUsers = await UserModel.countDocuments({
@@ -395,7 +397,9 @@ bot.command('stats', async (ctx) => {
         await ctx.reply(
             `📊 **බොට් හි සංඛ්‍යාලේඛන (Analytics Dashboard)**\n\n` +
             `👥 මුළු යුසර්ස්ලා (Total Users): **${totalUsers}**\n` +
-            `📅 මෙම මාසයේ අලුත් යුසර්ස්ලා (This Month): **${monthlyUsers}**\n` +
+            `🟢 සක්‍රීය පරිශීලකයන් (Active): **${activeUsers}**\n` +
+            `🔴 බ්ලොක් කළ අය (Blocked): **${blockedUsers}**\n` +
+            `📅 මෙම මාසයේ අලුත් යුසර්ස්ලා: **${monthlyUsers}**\n` +
             `📁 ගබඩා කර ඇති වීඩියෝ කලෙක්ෂන්: **${totalFiles}**\n` +
             `🔗 මුළු ලින්ක් ක්ලික්ස් (Total Clicks): **${totalClicks}**\n` +
             `👁️ මුළු වීඩියෝ නැරඹුම් (Total Views): **${totalViews}**\n` +
@@ -409,63 +413,50 @@ bot.command('stats', async (ctx) => {
     }
 });
 
-// ඇඩ්මින් බ්‍රෝඩ්කාස්ට් කමාන්ඩ් එක (උදාහරණයක් ලෙස /broadcast)
+// Admin Broadcast Command (Supports Copying Posts/Media & Auto Status Update)
 bot.command('broadcast', async (ctx) => {
     const ADMIN_ID = process.env.ADMIN_ID;
     if (ctx.from.id.toString() !== ADMIN_ID) return;
 
-    // බ්‍රෝඩ්කාස්ට් එකට යවන්න ඕන මැසේජ් එක
-    const messageText = ctx.message.text.replace('/broadcast', '').trim();
-    if (!messageText) {
-        return ctx.reply("❌ කරුණාකර යැවිය යුතු පණිවිඩය ඇතුළත් කරන්න.");
+    const repliedMessage = ctx.message.reply_to_message;
+    if (!repliedMessage) {
+        return ctx.reply("❌ කරුණාකර ඔබ බ්‍රෝඩ්කාස්ට් කිරීමට අවශ්‍ය පෝස්ට් එකට **Reply** කර `/broadcast` ලෙස යවන්න.");
     }
 
-    await ctx.reply("🚀 බ්‍රෝඩ්කාස්ට් එක යැවීම ආරම්භ කරන ලදී...");
+    await ctx.reply("🚀 පෝස්ට් බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ කරන ලදී...");
 
-    // ඩේටාබේස් එකෙන් තවමත් 'blocked' ලෙස මාර්ක් නොකළ සියලුම යූසර්ලා ලබා ගැනීම
-    const users = await User.find({ status: { $ne: 'blocked' } });
-
+    const users = await UserModel.find({ status: { $ne: 'blocked' } });
     let successCount = 0;
     let blockedCount = 0;
     let failedCount = 0;
 
     for (const user of users) {
         try {
-            // ටෙලිග්‍රාම් හරහා මැසේජ් එක යැවීම
-            await bot.telegram.sendMessage(user.userId, messageText);
-            
+            await ctx.telegram.copyMessage(user.userId, ctx.chat.id, repliedMessage.message_id);
             successCount++;
 
-            // මැසේජ් එක සාර්ථකව ගියා නම්, පරණ කෙනෙක් වුණත් දැන් ඌ 'active' ලෙස අප්ඩේට් කරන්න
             if (user.status !== 'active') {
-                await User.updateOne({ userId: user.userId }, { status: 'active' });
+                await UserModel.updateOne({ userId: user.userId }, { status: 'active' });
             }
-
         } catch (error) {
-            // ටෙලිග්‍රාම් API එකෙන් 403 එරෝ එකක් එනවා නම්, ඒ කියන්නේ යුසර් බොට්ව බ්ලොක් කරලා
             if (error.response && error.response.error_code === 403) {
                 blockedCount++;
-                // ඩේටාබේස් එකේ ස්ටේටස් එක 'blocked' ලෙස වෙනස් කිරීම
-                await User.updateOne({ userId: user.userId }, { status: 'blocked' });
+                await UserModel.updateOne({ userId: user.userId }, { status: 'blocked' });
             } else {
-                // වෙනත් තාක්ෂණික දෝෂයක් නම් (Network error වගේ)
                 failedCount++;
             }
         }
-
-        // Telegram API Rate Limits (FloodWait) වලින් බේරෙන්න පොඩි ඩෙස්ක්ටොප් ඩේලියක් (Delay) තැබීම වැදගත්
-        await new Promise(resolve => setTimeout(resolve, 50)); 
+        await new Promise(resolve => setTimeout(resolve, 50));
     }
 
-    // අවසාන වාර්තාව ඇඩ්මින්ට ලබා දීම
     await ctx.reply(
-        `📊 **බ්‍රෝඩ්කාස්ට් වාර්තාව:**\n\n` +
-        `✅ සාර්ථකව යැවුණු ගණන (Active): ${successCount}\n` +
-        `🔴 බොට්ව බ්ලොක් කර ඇති අය (Blocked): ${blockedCount}\n` +
-        `⚠️ අනෙකුත් දෝෂ: ${failedCount}`
+        `📊 **පෝස්ට් බ්‍රෝඩ්කාස්ට් වාර්තාව:**\n\n` +
+        `✅ සාර්ථකයි (Active): ${successCount}\n` +
+        `🔴 බ්ලොක් කර ඇත (Blocked): ${blockedCount}\n` +
+        `⚠️ අනෙකුත් දෝෂ: ${failedCount}`,
+        { parse_mode: 'Markdown' }
     );
 });
-
 
 // Check Subscription Action
 bot.action(/^check_sub_(.+)$/, async (ctx) => {
@@ -599,7 +590,6 @@ bot.action('toggle_spoiler_no', async (ctx) => {
     await ctx.editMessageText("🔓 **Blur Mode: OFF**\n\nදැන් අදාළ වීඩියෝ එක හෝ කිහිපයක් එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.", { parse_mode: 'Markdown' });
 });
 
-
 const pendingUploads = new Map();
 
 bot.on('photo', async (ctx) => {
@@ -610,7 +600,6 @@ bot.on('photo', async (ctx) => {
     const photo = ctx.message.photo;
     const largestPhoto = photo[photo.length - 1].file_id;
 
-    // තාවකාලිකව pending සේව් කරමු (මුලින් ඩිෆෝල්ට් එක Blur = true කරමු)
     pendingUploads.set(userId, {
         photoFileId: largestPhoto,
         caption: "",
@@ -682,36 +671,24 @@ bot.command('done', async (ctx) => {
         await ctx.reply(`✅ **සාර්ථකව ගබඩා විය!** (වීඩියෝ ගණන: ${pending.videoMsgIds.length})\n\n🚀 ප්‍රධාන චැනල් එකට පෝස්ට් යවන ලදී!`, { parse_mode: 'Markdown' });
 
         const buttonText = pending.videoMsgIds.length > 1 ? "▶️ Watch Full Collection" : "▶️ Watch Full Video";
-
         const headerText = pending.videoMsgIds.length > 1 
             ? "🔥 **දැන් නිකුත් වූ විශේෂ වීඩියෝ කලෙක්ෂන් එක!** 🔥" 
             : "🔥 **දැන් නිකුත් වූ විශේෂ වීඩියෝ එක!** 🔥";
 
-                await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
-    caption: `${headerText}\n\n` +
-             `✨ *${pending.caption}*\n\n` +
-             `📁 **අන්තර්ගතය:** වීඩියෝ ${pending.videoMsgIds.length} ක් ඇතුළත් වේ.\n\n` +
-             `👇 **නරඹන්න පහත බොත්තම ක්ලික් කරන්න:**`,
-    parse_mode: 'Markdown',
-    has_spoiler: pending.hasSpoiler, // Admin තෝරපු විදිහට මෙතැන බ්ලර් වෙනවා හෝ වෙන එකක් නෑ!
-    reply_markup: {
-        inline_keyboard: [
-            [
-                { 
-                    text: buttonText, 
-                    url: shareLink
-                }
-            ],
-            [
-                { 
-                    text: "📢 Join Backup Channel", 
-                    url: "https://t.me/+bCed3QPGYqQ3MWY9" 
-                }
-            ]
-        ]
-    }
-});
-
+        await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
+            caption: `${headerText}\n\n` +
+                     `✨ *${pending.caption}*\n\n` +
+                     `📁 **අන්තර්ගතය:** වීඩියෝ ${pending.videoMsgIds.length} ක් ඇතුළත් වේ.\n\n` +
+                     `👇 **නරඹන්න පහත බොත්තම ක්ලික් කරන්න:**`,
+            parse_mode: 'Markdown',
+            has_spoiler: pending.hasSpoiler,
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: buttonText, url: shareLink }],
+                    [{ text: "📢 Join Backup Channel", url: "https://t.me/+bCed3QPGYqQ3MWY9" }]
+                ]
+            }
+        });
 
         pendingUploads.delete(userId);
     } catch (error) {
