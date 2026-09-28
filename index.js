@@ -304,8 +304,8 @@ bot.start(async (ctx) => {
                 msgIdsArray = fileDoc.fileMsgIds;
             }
 
-            // Protect Content සෙටින්ග් එක අනුව යැවීම (Download / Forward වැළැක්වීම)
-            const isProtected = fileDoc.protectContent !== false;
+                        // Protect Content සෙටින්ග් එක අනුව යැවීම
+            const isProtected = fileDoc.protectContent === true;
 
             for (let i = 0; i < msgIdsArray.length; i++) {
                 try {
@@ -320,12 +320,14 @@ bot.start(async (ctx) => {
                 }
             }
 
-            const warningMsg = await ctx.reply(
-                `⚠️ **අවධානයට:**\n` +
-                `මෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
-                `🔒 *(මෙම වීඩියෝ ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*`,
-                { parse_mode: 'Markdown' }
-            );
+            // 👇 මෙන්න මෙතන වෙනස් කරන්න (Protect කර ඇති විට පමණක් විශේෂ වෝනිං පණිවිඩය පෙන්වීම)
+            let warningText = `⚠️ **අවධානයට:**\nමෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!`;
+            
+            if (isProtected) {
+                warningText += `\n\n🔒 *(මෙම වීඩියෝ ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*`;
+            }
+
+            const warningMsg = await ctx.reply(warningText, { parse_mode: 'Markdown' });
 
             setTimeout(async () => {
                 try {
@@ -337,7 +339,7 @@ bot.start(async (ctx) => {
             }, 30 * 60 * 1000);
 
             return;
-        }
+
 
         const fileDoc = await FileModel.findOneAndUpdate(
             { token: payload }, 
