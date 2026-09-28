@@ -758,7 +758,7 @@ bot.command('done', async (ctx) => {
             reply_markup: {
                 inline_keyboard: [
                     [{ text: buttonText, url: shareLink }],
-                    [{ text: "📢 Join Backup Channel", url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }]
+                    [{ text: "📢 Join Backup Channel", url: `https://t.me/+bCed3QPGYqQ3MWY9` }]
                 ]
             }
         });
