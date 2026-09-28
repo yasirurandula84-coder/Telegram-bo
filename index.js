@@ -28,8 +28,9 @@ const fileSchema = new mongoose.Schema({
     fileMsgIds: { type: [Number] },   
     views: { type: Number, default: 0 },
     clicks: { type: Number, default: 0 },
-    protectContent: { type: Boolean, default: true } // 👈 ඩවුන්ලෝඩ්/ෆෝවර්ඩ් වැළැක්වීමේ තත්ත්වය
+    protectContent: { type: Boolean, default: false } // 👈 ඩිෆ්ල්ට් එකෙන් false (බ්ලොක් වෙන්නේ නැත)
 });
+
 const FileModel = mongoose.model('File', fileSchema);
 
 // Mongoose Schema for Users
@@ -673,7 +674,7 @@ bot.on('photo', async (ctx) => {
         caption: "",
         videoMsgIds: [],
         hasSpoiler: true,
-        protectContent: true // ඩීෆ්ල්ට් එකෙන්ම බ්ලොක් වෙන්න දාලා තියෙනවා
+        protectContent: false // 👈 මුලින්ම බ්ලොක් නොවන ලෙස (false) තබා ගනී
     });
 
     await ctx.reply(
@@ -692,6 +693,7 @@ bot.on('photo', async (ctx) => {
         }
     );
 });
+
 
 bot.on(['video', 'document'], async (ctx) => {
     const userId = ctx.from.id.toString();
