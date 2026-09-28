@@ -304,7 +304,6 @@ bot.start(async (ctx) => {
                 msgIdsArray = fileDoc.fileMsgIds;
             }
 
-                        // Protect Content සෙටින්ග් එක අනුව යැවීම
             const isProtected = fileDoc.protectContent === true;
 
             for (let i = 0; i < msgIdsArray.length; i++) {
@@ -320,7 +319,6 @@ bot.start(async (ctx) => {
                 }
             }
 
-            // 👇 මෙන්න මෙතන වෙනස් කරන්න (Protect කර ඇති විට පමණක් විශේෂ වෝනිං පණිවිඩය පෙන්වීම)
             let warningText = `⚠️ **අවධානයට:**\nමෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!`;
             
             if (isProtected) {
@@ -339,7 +337,7 @@ bot.start(async (ctx) => {
             }, 30 * 60 * 1000);
 
             return;
-
+        }
 
         const fileDoc = await FileModel.findOneAndUpdate(
             { token: payload }, 
@@ -506,7 +504,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 msgIdsArray = fileDoc.fileMsgIds;
             }
 
-            const isProtected = fileDoc.protectContent !== false;
+            const isProtected = fileDoc.protectContent === true;
 
             for (let i = 0; i < msgIdsArray.length; i++) {
                 try {
@@ -520,11 +518,13 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 }
             }
 
-            const warningMsg = await ctx.reply(
-                `⚠️ **අවධානයට:**\n` +
-                `මෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව මැකී යනු ඇත!`,
-                { parse_mode: 'Markdown' }
-            );
+            let warningText = `⚠️ **අවධානයට:**\nමෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව මැකී යනු ඇත!`;
+            
+            if (isProtected) {
+                warningText += `\n\n🔒 *(මෙම වීඩියෝ ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*`;
+            }
+
+            const warningMsg = await ctx.reply(warningText, { parse_mode: 'Markdown' });
 
             setTimeout(async () => {
                 try {
@@ -676,7 +676,7 @@ bot.on('photo', async (ctx) => {
         caption: "",
         videoMsgIds: [],
         hasSpoiler: true,
-        protectContent: false // 👈 මුලින්ම බ්ලොක් නොවන ලෙස (false) තබා ගනී
+        protectContent: false
     });
 
     await ctx.reply(
@@ -695,7 +695,6 @@ bot.on('photo', async (ctx) => {
         }
     );
 });
-
 
 bot.on(['video', 'document'], async (ctx) => {
     const userId = ctx.from.id.toString();
@@ -736,7 +735,7 @@ bot.command('done', async (ctx) => {
             fileMsgIds: pending.videoMsgIds,
             views: 0,
             clicks: 0,
-            protectContent: pending.protectContent // 👈 සෙටින්ග් එක ඩේටාබේස් එකේ සේව් වීම
+            protectContent: pending.protectContent
         });
 
         const botUsername = ctx.botInfo.username;
