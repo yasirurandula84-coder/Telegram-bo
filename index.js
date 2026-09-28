@@ -14,24 +14,29 @@ const AD_LINK = process.env.AD_LINK || "https://www.profitableratecpmnetwork.com
 
 // MongoDB Connection
 mongoose.connect(MONGO_URI)
-  .then(() => console.log('MongoDB Connected Successfully!'))
+  .then(() => {
+      console.log('MongoDB Connected Successfully!');
+      // Migration: පරණ යූසර්ස්ලාට active status එක ලබාදීම
+      UserModel.updateMany({ status: { $exists: false } }, {$set: { status: 'active' } }).catch(() => {});
+  })
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// Mongoose Schema for Files
+// Mongoose Schema for Files (protectContent ෆීල්ඩ් එක සමඟ)
 const fileSchema = new mongoose.Schema({
     token: { type: String, required: true, unique: true },
     fileMsgId: { type: Number },      
     fileMsgIds: { type: [Number] },   
     views: { type: Number, default: 0 },
-    clicks: { type: Number, default: 0 } 
+    clicks: { type: Number, default: 0 },
+    protectContent: { type: Boolean, default: true } // 👈 ඩවුන්ලෝඩ්/ෆෝවර්ඩ් වැළැක්වීමේ තත්ත්වය
 });
 const FileModel = mongoose.model('File', fileSchema);
 
-// Mongoose Schema for Users (status එකත් එක්ක updated)
+// Mongoose Schema for Users
 const userSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     joinedAt: { type: Date, default: Date.now },
-    status: { type: String, default: 'active' } // 'active' හෝ 'blocked'
+    status: { type: String, default: 'active' }
 });
 const UserModel = mongoose.model('User', userSchema);
 
@@ -193,7 +198,7 @@ bot.use(async (ctx, next) => {
             if (ctx.callbackQuery) {
                 return ctx.answerCbQuery("🛠️ බොට් නඩත්තු කටයුතු කරමින් පවතී!", { show_alert: true });
             }
-            return ctx.reply("🛠️ **বොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!**\n\nකරුණාකර சிறிது වේලාවකින් නැවත උත්සාහ කරන්න.", { parse_mode: 'Markdown' });
+            return ctx.reply("🛠️ **ਬොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!**\n\nකරුණාකර சிறிது වේලාවකින් නැවත උත්සාහ කරන්න.", { parse_mode: 'Markdown' });
         }
     } catch (err) {
         console.error("Maintenance check error:", err);
@@ -298,9 +303,14 @@ bot.start(async (ctx) => {
                 msgIdsArray = fileDoc.fileMsgIds;
             }
 
+            // Protect Content සෙටින්ග් එක අනුව යැවීම (Download / Forward වැළැක්වීම)
+            const isProtected = fileDoc.protectContent !== false;
+
             for (let i = 0; i < msgIdsArray.length; i++) {
                 try {
-                    const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, msgIdsArray[i]);
+                    const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, msgIdsArray[i], {
+                        protect_content: isProtected
+                    });
                     sentVideoIds.push(sentMsg.message_id);
                     await new Promise(resolve => setTimeout(resolve, 400));
                 } catch (copyErr) {
@@ -312,7 +322,7 @@ bot.start(async (ctx) => {
             const warningMsg = await ctx.reply(
                 `⚠️ **අවධානයට:**\n` +
                 `මෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!\n\n` +
-                `💾 අවශ්‍ය නම් දැන්ම ඉහත වීඩියෝ **Save** කර සුරක්ෂිත කරගන්න.`,
+                `🔒 *(මෙම වීඩියෝ ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*`,
                 { parse_mode: 'Markdown' }
             );
 
@@ -362,7 +372,7 @@ bot.start(async (ctx) => {
     }
 });
 
-// Admin Stats Command (Updated with Active & Blocked Counts)
+// Admin Stats Command
 bot.command('stats', async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -413,7 +423,7 @@ bot.command('stats', async (ctx) => {
     }
 });
 
-// Admin Broadcast Command (Supports Copying Posts/Media & Auto Status Update)
+// Admin Broadcast Command
 bot.command('broadcast', async (ctx) => {
     const ADMIN_ID = process.env.ADMIN_ID;
     if (ctx.from.id.toString() !== ADMIN_ID) return;
@@ -493,9 +503,13 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 msgIdsArray = fileDoc.fileMsgIds;
             }
 
+            const isProtected = fileDoc.protectContent !== false;
+
             for (let i = 0; i < msgIdsArray.length; i++) {
                 try {
-                    const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, msgIdsArray[i]);
+                    const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, msgIdsArray[i], {
+                        protect_content: isProtected
+                    });
                     sentVideoIds.push(sentMsg.message_id);
                     await new Promise(resolve => setTimeout(resolve, 400));
                 } catch (copyErr) {
@@ -568,6 +582,8 @@ bot.action('support_info', async (ctx) => {
     await ctx.reply(`📞 ගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.`);
 });
 
+// --- Upload Workflow Actions (Spoiler & Protect Content settings) ---
+
 bot.action('toggle_spoiler_yes', async (ctx) => {
     const userId = ctx.from.id.toString();
     const pending = pendingUploads.get(userId);
@@ -576,7 +592,7 @@ bot.action('toggle_spoiler_yes', async (ctx) => {
         pendingUploads.set(userId, pending);
     }
     await ctx.answerCbQuery("🔒 Thumbnail එක Blur කිරීමට සකසන ලදී.");
-    await ctx.editMessageText("🔒 **Blur Mode: ON**\n\nදැන් අදාළ වීඩියෝ එක හෝ කිහිපයක් එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.", { parse_mode: 'Markdown' });
+    await promptProtectContent(ctx);
 });
 
 bot.action('toggle_spoiler_no', async (ctx) => {
@@ -587,7 +603,59 @@ bot.action('toggle_spoiler_no', async (ctx) => {
         pendingUploads.set(userId, pending);
     }
     await ctx.answerCbQuery("🔓 Thumbnail එක Blur නොකිරීමට සකසන ලදී.");
-    await ctx.editMessageText("🔓 **Blur Mode: OFF**\n\nදැන් අදාළ වීඩියෝ එක හෝ කිහිපයක් එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.", { parse_mode: 'Markdown' });
+    await promptProtectContent(ctx);
+});
+
+async function promptProtectContent(ctx) {
+    await ctx.editMessageText(
+        "🛡️ **Protect Content (Download / Forward Restriction):**\n\n" +
+        "මෙම වීඩියෝස් යූසර්ස්ලාට **Forward සහ Download කිරීමට නොහැකි වන සේ** ආරක්ෂා (Block) කරන්න ඕනේද?",
+        {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        { text: "🔒 ඔව්, Block කරන්න (Yes)", callback_data: "toggle_protect_yes" },
+                        { text: "🔓 නැහැ, ඉඩ දෙන්න (No)", callback_data: "toggle_protect_no" }
+                    ]
+                ]
+            }
+        }
+    );
+}
+
+bot.action('toggle_protect_yes', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const pending = pendingUploads.get(userId);
+    if (pending) {
+        pending.protectContent = true;
+        pendingUploads.set(userId, pending);
+    }
+    await ctx.answerCbQuery("🔒 Forward & Download බ්ලොක් කිරීමට සකසන ලදී.");
+    await ctx.editMessageText(
+        "✅ **සැකසීම් සාර්ථකයි!**\n\n" +
+        "🔒 Blur Mode: **ON**\n" +
+        "🛡️ Protect Content: **ON (Block)**\n\n" +
+        "දැන් අදාළ වීඩියෝ එක හෝ කිහිපයක් එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.",
+        { parse_mode: 'Markdown' }
+    );
+});
+
+bot.action('toggle_protect_no', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const pending = pendingUploads.get(userId);
+    if (pending) {
+        pending.protectContent = false;
+        pendingUploads.set(userId, pending);
+    }
+    await ctx.answerCbQuery("🔓 Forward & Download කිරීමට ඉඩ හරින ලදී.");
+    await ctx.editMessageText(
+        "✅ **සැකසීම් සාර්ථකයි!**\n\n" +
+        "🔒 Blur Mode: **ස්ථාපිතයි**\n" +
+        "🛡️ Protect Content: **OFF (Allow)**\n\n" +
+        "දැන් අදාළ වීඩියෝ එක හෝ කිහිපයක් එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.",
+        { parse_mode: 'Markdown' }
+    );
 });
 
 const pendingUploads = new Map();
@@ -604,12 +672,13 @@ bot.on('photo', async (ctx) => {
         photoFileId: largestPhoto,
         caption: "",
         videoMsgIds: [],
-        hasSpoiler: true 
+        hasSpoiler: true,
+        protectContent: true // ඩීෆ්ල්ට් එකෙන්ම බ්ලොක් වෙන්න දාලා තියෙනවා
     });
 
     await ctx.reply(
         "📸 Thumbnail එක ලැබුණා!\n\n" +
-        "දැන් තෝරන්න මේක **Blur (Spoiler)** කරන්න ඕනේද නැද්ද කියලා:",
+        "දැන් තෝරන්න මේකේ Thumbnail එක **Blur (Spoiler)** කරන්න ඕනේද නැද්ද කියලා:",
         {
             parse_mode: 'Markdown',
             reply_markup: {
@@ -662,7 +731,8 @@ bot.command('done', async (ctx) => {
             token: token,
             fileMsgIds: pending.videoMsgIds,
             views: 0,
-            clicks: 0
+            clicks: 0,
+            protectContent: pending.protectContent // 👈 සෙටින්ග් එක ඩේටාබේස් එකේ සේව් වීම
         });
 
         const botUsername = ctx.botInfo.username;
@@ -685,7 +755,7 @@ bot.command('done', async (ctx) => {
             reply_markup: {
                 inline_keyboard: [
                     [{ text: buttonText, url: shareLink }],
-                    [{ text: "📢 Join Backup Channel", url: "https://t.me/+bCed3QPGYqQ3MWY9" }]
+                    [{ text: "📢 Join Backup Channel", url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }]
                 ]
             }
         });
