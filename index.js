@@ -51,7 +51,6 @@ const SettingModel = mongoose.model('Setting', settingSchema);
 // Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
-
 app.get('/miniapp', (req, res) => {
     const token = req.query.token || '';
     
@@ -64,26 +63,60 @@ app.get('/miniapp', (req, res) => {
             <title>Video Unlocker</title>
             <script src="https://cdn.tailwindcss.com"></script>
             <script src="https://telegram.org/js/telegram-web-app.js"></script>
+            <style>
+                @keyframes pulse-glow {
+                    0%, 100% { box-shadow: 0 0 15px rgba(14, 165, 233, 0.3); }
+                    50% { box-shadow: 0 0 30px rgba(14, 165, 233, 0.6); }
+                }
+                .glow-effect { animation: pulse-glow 2s infinite; }
+            </style>
         </head>
-        <body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-6 text-center select-none">
-            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl max-w-sm w-full">
-                <h1 class="text-xl font-bold mb-2">🎬 වීඩියෝව සූදානම් වෙමින් පවතී</h1>
-                <p id="instruction-text" class="text-slate-400 text-xs mb-6">කරුණාකර පහත දැක්වෙන දැන්වීම නරඹා තත්පර 5ක් රැඳී සිටින්න.</p>
+        <body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-5 select-none font-sans">
+            
+            <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 p-7 rounded-3xl shadow-2xl max-w-sm w-full text-center relative overflow-hidden">
+                
+                <!-- Top Decorative Glow -->
+                <div class="absolute -top-12 -left-12 w-32 h-32 bg-sky-500/20 rounded-full blur-2xl"></div>
+                <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl"></div>
 
-                <div class="mb-4">
-                    <a href="${AD_LINK}" target="_blank" id="ad-link-btn" onclick="openAd()" class="inline-block w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg text-sm mb-3">
-                        🔗 දැන්වීම විවෘත කරන්න (Click Here)
+                <!-- Icon / Header -->
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-sky-500/10 border border-sky-500/20 rounded-2xl text-3xl mb-4 shadow-inner">
+                    🎬
+                </div>
+                
+                <h1 class="text-xl font-extrabold tracking-tight mb-2 text-slate-100">වීඩියෝව සූදානම් වෙමින් පවතී</h1>
+                <p id="instruction-text" class="text-slate-400 text-xs mb-6 leading-relaxed">
+                    පහත බොත්තම ඔබා දැන්වීම නරඹා, තත්පර <span class="text-sky-400 font-semibold">5ක්</span> රැඳී සිටින්න.
+                </p>
+
+                <!-- Ad Button -->
+                <div class="mb-5">
+                    <a href="${AD_LINK}" target="_blank" id="ad-link-btn" onclick="openAd()" class="glow-effect flex items-center justify-center w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm gap-2">
+                        <span>🔗 දැන්වීම විවෘත කරන්න</span>
                     </a>
                 </div>
 
-                <div id="timer-box" class="my-4 hidden">
-                    <div id="countdown" class="text-4xl font-extrabold text-sky-400 animate-pulse">5</div>
-                    <p id="status-text" class="text-xs text-slate-500 mt-2">තත්පර කිහිපයක් රැඳී සිටින්න...</p>
+                <!-- Timer Box with Progress Bar -->
+                <div id="timer-box" class="my-5 hidden">
+                    <div class="relative w-20 h-20 mx-auto flex items-center justify-center bg-slate-800/80 border border-sky-500/30 rounded-full mb-3 shadow-inner">
+                        <div id="countdown" class="text-3xl font-black text-sky-400">5</div>
+                    </div>
+                    <p id="status-text" class="text-xs text-slate-400 font-medium">දැන්වීම නරඹමින් පවතී...</p>
+                    
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-slate-800 h-2 rounded-full mt-4 overflow-hidden">
+                        <div id="progress-bar" class="bg-sky-500 h-full w-full transition-all duration-1000"></div>
+                    </div>
                 </div>
 
-                <div id="success-box" class="hidden">
-                    <p class="text-green-400 font-semibold mb-4 text-sm">✔ දැන්වීම නැරඹීම සාර්ථකයි!</p>
-                    <button onclick="getVideo()" id="unlock-btn" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg text-sm">
+                <!-- Success Box -->
+                <div id="success-box" class="hidden animate-fade-in">
+                    <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-4">
+                        <p class="text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5">
+                            ✔ නැරඹීම සාර්ථකයි! දැන් වීඩියෝව ලබාගත හැක.
+                        </p>
+                    </div>
+                    <button onclick="getVideo()" id="unlock-btn" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg shadow-emerald-900/30 text-sm">
                         🚀 වීඩියෝව ලබා ගන්න
                     </button>
                 </div>
@@ -98,9 +131,8 @@ app.get('/miniapp', (req, res) => {
                     adClicked = true;
                     leaveTime = Date.now();
                     const adBtn = document.getElementById('ad-link-btn');
-                    adBtn.innerText = "⏳ දැන්වීම නරඹමින් පවතී...";
-                    adBtn.classList.remove('bg-sky-600', 'hover:bg-sky-500');
-                    adBtn.classList.add('bg-amber-600', 'text-white');
+                    adBtn.innerHTML = "⏳ දැන්වීම නරඹමින් පවතී...";
+                    adBtn.className = "flex items-center justify-center w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-sm";
                 }
 
                 document.addEventListener('visibilitychange', () => {
@@ -117,10 +149,9 @@ app.get('/miniapp', (req, res) => {
                         if (timeSpent < 5) {
                             timerBox.classList.remove('hidden');
                             statusText.innerText = "⚠️ කරුණාකර දැන්වීම සම්පූර්ණයෙන්ම තත්පර 5ක් නරඹන්න!";
-                            statusText.className = "text-xs text-red-400 mt-2 font-semibold";
-                            adBtn.innerText = "🔗 නැවත දැන්වීම විවෘත කරන්න";
-                            adBtn.classList.remove('bg-amber-600');
-                            adBtn.classList.add('bg-sky-600');
+                            statusText.className = "text-xs text-rose-400 mt-2 font-semibold";
+                            adBtn.innerHTML = "🔗 නැවත දැන්වීම විවෘත කරන්න";
+                            adBtn.className = "flex items-center justify-center w-full bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-sm";
                             adClicked = false;
                         } else {
                             timerBox.classList.remove('hidden');
@@ -139,13 +170,15 @@ app.get('/miniapp', (req, res) => {
                     const timerBox = document.getElementById('timer-box');
                     const successBox = document.getElementById('success-box');
                     const statusText = document.getElementById('status-text');
+                    const progressBar = document.getElementById('progress-bar');
 
                     statusText.innerText = "තත්පර කිහිපයක් රැඳී සිටින්න...";
-                    statusText.className = "text-xs text-slate-500 mt-2";
 
                     const timer = setInterval(() => {
                         timeLeft--;
                         countdownEl.innerText = timeLeft;
+                        progressBar.style.width = (timeLeft / 5) * 100 + "%";
+
                         if (timeLeft <= 0) {
                             clearInterval(timer);
                             timerBox.classList.add('hidden');
@@ -169,6 +202,7 @@ app.get('/miniapp', (req, res) => {
         </html>
     `);
 });
+                                    
 
 async function checkUserSubscription(ctx, userId) {
     if (!REQUIRED_CHANNEL) return true;
