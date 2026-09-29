@@ -1,4 +1,4 @@
-Const { Telegraf } = require('telegraf');
+const { Telegraf } = require('telegraf');
 const mongoose = require('mongoose');
 const http = require('http');
 const express = require('express');
