@@ -1,4 +1,4 @@
-const { Telegraf } = require('telegraf');
+Const { Telegraf } = require('telegraf');
 const mongoose = require('mongoose');
 const http = require('http');
 const express = require('express');
@@ -353,10 +353,10 @@ bot.start(async (ctx) => {
                 }
             }
 
-            let warningText = `⚠️ **අවධානයට:**\nමෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!`;
+            let warningText = `⚠️ **අවධානයට:**\nමෙම අන්තර්ගතය **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!`;
             
             if (isProtected) {
-                warningText += `\n\n🔒 *(මෙම වීඩියෝ ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*`;
+                warningText += `\n\n🔒 *(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*`;
             }
 
             const warningMsg = await ctx.reply(warningText, { parse_mode: 'Markdown' });
@@ -387,14 +387,14 @@ bot.start(async (ctx) => {
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
 
         await ctx.reply(
-            `🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
+            `🔓 **අන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
             `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්\n\n` +
-            `මෙම බොත්තම එබූ විට විවෘත වන පිටුවෙන් දැන්වීම බලා තත්පර 5ක් රැඳී සිට වීඩියෝව ලබා ගන්න.`,
+            `මෙම බොත්තම එබූ විට විවෘත වන පිටුවෙන් දැන්වීම බලා තත්පර 5ක් රැඳී සිට අන්තර්ගතය ලබා ගන්න.`,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: "▶️ Watch Ad & Get Video", web_app: { url: miniAppUrl } }],
+                        [{ text: "▶️ Watch Ad & Get Content", web_app: { url: miniAppUrl } }],
                         [{ text: "❓ වීඩියෝව ලබා ගන්නේ කෙසේද? (Guide)", callback_data: "how_to_use" }]
                     ]
                 }
@@ -445,9 +445,9 @@ bot.command('stats', async (ctx) => {
             `🟢 සක්‍රීය පරිශීලකයන් (Active): **${activeUsers}**\n` +
             `🔴 බ්ලොක් කළ අය (Blocked): **${blockedUsers}**\n` +
             `📅 මෙම මාසයේ අලුත් යුසර්ස්ලා: **${monthlyUsers}**\n` +
-            `📁 ගබඩා කර ඇති වීඩියෝ කලෙක්ෂන්: **${totalFiles}**\n` +
+            `📁 ගබඩා කර ඇති අන්තර්ගතයන්: **${totalFiles}**\n` +
             `🔗 මුළු ලින්ක් ක්ලික්ස් (Total Clicks): **${totalClicks}**\n` +
-            `👁️ මුළු වීඩියෝ නැරඹුම් (Total Views): **${totalViews}**\n` +
+            `👁️ මුළු නැරඹුම් (Total Views): **${totalViews}**\n` +
             `📈 ඇඩ් සාර්ථකත්ව අනුපාතය (Conversion): **${conversionRate}%**`,
             { parse_mode: 'Markdown' }
         );
@@ -513,7 +513,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
         return ctx.answerCbQuery("❌ ඔබ තවමත් චැනල් එකට Join වී නැත!", { show_alert: true });
     }
 
-    await ctx.answerCbQuery("✅ ස්තූතියි! දැන් ඔබට වීඩියෝව ලබාගත හැක.");
+    await ctx.answerCbQuery("✅ ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.");
     
     try {
         if (payload.startsWith("getvideo_")) {
@@ -552,10 +552,10 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 }
             }
 
-            let warningText = `⚠️ **අවධානයට:**\nමෙම වීඩියෝ කලෙක්ෂන් එක **විනාඩි 30 කින්** ස්වයංක්‍රීයව මැකී යනු ඇත!`;
+            let warningText = `⚠️ **අවධානයට:**\nමෙම අන්තර්ගතය **විනාඩි 30 කින්** ස්වයංක්‍රීයව මැකී යනු ඇත!`;
             
             if (isProtected) {
-                warningText += `\n\n🔒 *(මෙම වීඩියෝ ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*`;
+                warningText += `\n\n🔒 *(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*`;
             }
 
             const warningMsg = await ctx.reply(warningText, { parse_mode: 'Markdown' });
@@ -581,13 +581,13 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
 
         await ctx.editMessageText(
-            `🔓 **වීඩියෝව ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
+            `🔓 **අන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
             `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්`,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: "▶️ Watch Ad & Get Video", web_app: { url: miniAppUrl } }],
+                        [{ text: "▶️ Watch Ad & Get Content", web_app: { url: miniAppUrl } }],
                         [{ text: "❓ වීඩියෝව ලබා ගන්නේ කෙසේද? (Guide)", callback_data: "how_to_use" }]
                     ]
                 }
@@ -602,11 +602,11 @@ bot.action('how_to_use', async (ctx) => {
     try {
         await ctx.answerCbQuery();
         await ctx.reply(
-            `📖 **වීඩියෝවක් ලබාගන්නේ කෙසේද? (පියවර)**\n\n` +
-            `1️⃣ මුලින්ම **"▶️ Watch Ad & Get Video"** බොත්තම ඔබන්න.\n` +
+            `📖 **අන්තර්ගතයක් ලබාගන්නේ කෙසේද? (පියවර)**\n\n` +
+            `1️⃣ මුලින්ම **"▶️ Watch Ad & Get Content"** බොත්තම ඔබන්න.\n` +
             `2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න.\n` +
             `3️⃣ කාලය අවසන් වූ පසු මතුවන **"🚀 වීඩියෝව ලබා ගන්න"** බොත්තම ඔබන්න.\n` +
-            `4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය වීඩියෝව ලැබෙනු ඇත!`,
+            `4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත!`,
             { parse_mode: 'Markdown' }
         );
     } catch (error) {
@@ -646,7 +646,7 @@ bot.action('toggle_spoiler_no', async (ctx) => {
 async function promptProtectContent(ctx) {
     await ctx.editMessageText(
         "🛡️ **Protect Content (Download / Forward Restriction):**\n\n" +
-        "මෙම වීඩියෝස් යූසර්ස්ලාට **Forward සහ Download කිරීමට නොහැකි වන සේ** ආරක්ෂා (Block) කරන්න ඕනේද?",
+        "මෙම අන්තර්ගතය යූසර්ස්ලාට **Forward සහ Download කිරීමට නොහැකි වන සේ** ආරක්ෂා (Block) කරන්න ඕනේද?",
         {
             parse_mode: 'Markdown',
             reply_markup: {
@@ -673,7 +673,7 @@ bot.action('toggle_protect_yes', async (ctx) => {
         "✅ **සැකසීම් සාර්ථකයි!**\n\n" +
         "🔒 Blur Mode: **ON**\n" +
         "🛡️ Protect Content: **ON (Block)**\n\n" +
-        "දැන් අදාළ වීඩියෝ එක හෝ කිහිපයක් එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.",
+        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.",
         { parse_mode: 'Markdown' }
     );
 });
@@ -690,7 +690,7 @@ bot.action('toggle_protect_no', async (ctx) => {
         "✅ **සැකසීම් සාර්ථකයි!**\n\n" +
         "🔒 Blur Mode: **ස්ථාපිතයි**\n" +
         "🛡️ Protect Content: **OFF (Allow)**\n\n" +
-        "දැන් අදාළ වීඩියෝ එක හෝ කිහිපයක් එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.",
+        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.",
         { parse_mode: 'Markdown' }
     );
 });
@@ -701,6 +701,21 @@ bot.on('photo', async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
     if (ADMIN_ID && userId !== ADMIN_ID) return;
+
+    // Check if this photo is meant to be part of content collection after thumbnail was already set
+    const pending = pendingUploads.get(userId);
+    if (pending && pending.photoFileId && pending.hasSpoiler !== undefined) {
+        try {
+            const forwarded = await ctx.telegram.forwardMessage(DB_CHANNEL_ID, ctx.chat.id, ctx.message.message_id);
+            pending.videoMsgIds.push(forwarded.message_id);
+            pendingUploads.set(userId, pending);
+
+            await ctx.reply(`✅ ඡායාරූපය එකතු විය! (මුළු ගණන: ${pending.videoMsgIds.length}). තවත් ඇත්නම් එවන්න, නැතහොත් /done ටයිප් කරන්න.`);
+        } catch (error) {
+            console.error(error);
+        }
+        return;
+    }
 
     const photo = ctx.message.photo;
     const largestPhoto = photo[photo.length - 1].file_id;
@@ -745,7 +760,7 @@ bot.on(['video', 'document'], async (ctx) => {
         pending.videoMsgIds.push(forwarded.message_id);
         pendingUploads.set(userId, pending);
 
-        await ctx.reply(`✅ වීඩියෝව එකතු විය! (මුළු ගණන: ${pending.videoMsgIds.length}). තවත් ඇත්නම් එවන්න, නැතහොත් `/done` ටයිප් කරන්න.`);
+        await ctx.reply(`✅ අන්තර්ගතය එකතු විය! (මුළු ගණන: ${pending.videoMsgIds.length}). තවත් ඇත්නම් එවන්න, නැතහොත් `/done` ටයිප් කරන්න.`);
     } catch (error) {
         console.error(error);
     }
@@ -758,7 +773,7 @@ bot.command('done', async (ctx) => {
 
     const pending = pendingUploads.get(userId);
     if (!pending || pending.videoMsgIds.length === 0) {
-        return ctx.reply("⚠️ කරුණාකර මුලින්ම Thumbnail එකක් සහ වීඩියෝවක් හෝ කිහිපයක් එවන්න.");
+        return ctx.reply("⚠️ කරුණාකර මුලින්ම Thumbnail එකක් සහ අන්තර්ගතයක් (වීඩියෝ/ፎටෝ) එකක් හෝ කිහිපයක් එවන්න.");
     }
 
     try {
@@ -775,17 +790,17 @@ bot.command('done', async (ctx) => {
         const botUsername = ctx.botInfo.username;
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
 
-        await ctx.reply(`✅ **සාර්ථකව ගබඩා විය!** (වීඩියෝ ගණන: ${pending.videoMsgIds.length})\n\n🚀 ප්‍රධාන චැනල් එකට පෝස්ට් යවන ලදී!`, { parse_mode: 'Markdown' });
+        await ctx.reply(`✅ **සාර්ථකව ගබඩා විය!** (ගොනු ගණන: ${pending.videoMsgIds.length})\n\n🚀 ප්‍රධාන චැනල් එකට පෝස්ට් යවන ලදී!`, { parse_mode: 'Markdown' });
 
-        const buttonText = pending.videoMsgIds.length > 1 ? "▶️ Watch Full Collection" : "▶️ Watch Full Video";
+        const buttonText = pending.videoMsgIds.length > 1 ? "▶️ View Full Collection" : "▶️ View Content";
         const headerText = pending.videoMsgIds.length > 1 
-            ? "🔥 **දැන් නිකුත් වූ විශේෂ වීඩියෝ කලෙක්ෂන් එක!** 🔥" 
-            : "🔥 **දැන් නිකුත් වූ විශේෂ වීඩියෝ එක!** 🔥";
+            ? "🔥 **දැන් නිකුත් වූ විශේෂ කලෙක්ෂන් එක!** 🔥" 
+            : "🔥 **දැන් නිකුත් වූ විශේෂ අන්තර්ගතය!** 🔥";
 
         await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
             caption: `${headerText}\n\n` +
                      `✨ *${pending.caption}*\n\n` +
-                     `📁 **අන්තර්ගතය:** වීඩියෝ ${pending.videoMsgIds.length} ක් ඇතුළත් වේ.\n\n` +
+                     `📁 **අන්තර්ගතය:** ගොනු ${pending.videoMsgIds.length} ක් ඇතුළත් වේ.\n\n` +
                      `👇 **නරඹන්න පහත බොත්තම ක්ලික් කරන්න:**`,
             parse_mode: 'Markdown',
             has_spoiler: pending.hasSpoiler,
