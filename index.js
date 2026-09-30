@@ -63,8 +63,6 @@ app.get('/miniapp', (req, res) => {
     <title>Video Unlocker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- 1. Confetti Library එකතු කිරීම -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         @keyframes pulse-glow {
             0%, 100% { box-shadow: 0 0 15px rgba(14, 165, 233, 0.3); }
@@ -72,23 +70,28 @@ app.get('/miniapp', (req, res) => {
         }
         .glow-effect { animation: pulse-glow 2s infinite; }
         
-        /* 4. Rotating Spinner Animation එක */
         @keyframes spin-slow {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
         .spinner-ring { animation: spin-slow 1.5s linear infinite; }
+
+        @keyframes success-glow {
+            0%, 100% { border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); }
+            50% { border-color: rgba(16, 185, 129, 0.8); box-shadow: 0 0 40px rgba(16, 185, 129, 0.5); }
+        }
+        .success-card { animation: success-glow 2s infinite; }
     </style>
 </head>
 <body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-5 select-none font-sans">
     
-    <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 p-7 rounded-3xl shadow-2xl max-w-sm w-full text-center relative overflow-hidden">
+    <div id="main-card" class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 p-7 rounded-3xl shadow-2xl max-w-sm w-full text-center relative overflow-hidden transition-all duration-500">
         
         <!-- Top Decorative Glow -->
         <div class="absolute -top-12 -left-12 w-32 h-32 bg-sky-500/20 rounded-full blur-2xl"></div>
         <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl"></div>
 
-        <!-- 3. Step Indicator (පියවර දර්ශකය) -->
+        <!-- Step Indicator -->
         <div class="flex items-center justify-center gap-2 mb-5">
             <div id="step-1-dot" class="flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-500/30">1</div>
             <div class="w-6 h-0.5 bg-slate-700"></div>
@@ -97,7 +100,7 @@ app.get('/miniapp', (req, res) => {
             <div id="step-3-dot" class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800 text-slate-400 text-xs font-bold border border-slate-700">3</div>
         </div>
 
-        <!-- 4. Icon with Rotating Spinner Ring -->
+        <!-- Icon with Rotating Spinner Ring -->
         <div class="inline-flex items-center justify-center w-16 h-16 bg-sky-500/10 border border-sky-500/20 rounded-2xl text-3xl mb-4 shadow-inner relative">
             🎬
             <div class="absolute inset-0 border-2 border-sky-400/40 rounded-2xl spinner-ring pointer-events-none"></div>
@@ -129,7 +132,7 @@ app.get('/miniapp', (req, res) => {
         </div>
 
         <!-- Success Box -->
-        <div id="success-box" class="hidden animate-fade-in">
+        <div id="success-box" class="hidden">
             <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-4">
                 <p class="text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5">
                     ✔ නැරඹීම සාර්ථකයි! දැන් වීඩියෝව ලබාගත හැක.
@@ -150,7 +153,6 @@ app.get('/miniapp', (req, res) => {
             adClicked = true;
             leaveTime = Date.now();
             
-            // 3. Step 2 වෙත මාරු වීම (Step Indicator Update)
             document.getElementById('step-1-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold";
             document.getElementById('step-2-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-500/30";
 
@@ -195,6 +197,7 @@ app.get('/miniapp', (req, res) => {
             const successBox = document.getElementById('success-box');
             const statusText = document.getElementById('status-text');
             const progressBar = document.getElementById('progress-bar');
+            const mainCard = document.getElementById('main-card');
 
             statusText.innerText = "තත්පර කිහිපයක් රැඳී සිටින්න...";
 
@@ -206,21 +209,14 @@ app.get('/miniapp', (req, res) => {
                 if (timeLeft <= 0) {
                     clearInterval(timer);
                     
-                    // 3. Step 3 වෙත මාරු වීම (Success Step)
                     document.getElementById('step-2-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold";
                     document.getElementById('step-3-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-500/30";
 
                     timerBox.classList.add('hidden');
                     successBox.classList.remove('hidden');
 
-                    // 1. Confetti Animation එක ක්‍රියාත්මක වීම
-                    if (typeof confetti === 'function') {
-                        confetti({
-                            particleCount: 100,
-                            spread: 70,
-                            origin: { y: 0.6 }
-                        });
-                    }
+                    // Card එකට ලස්සන කොළ පාට හැඩයක් දීම (Screen එක සුදු වීම සම්පූර්ණයෙන්ම වළක්වයි)
+                    mainCard.classList.add('success-card');
                 }
             }, 1000);
         }
