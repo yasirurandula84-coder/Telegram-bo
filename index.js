@@ -20,7 +20,7 @@ const langs = {
         howToUseBtn: "ℹ️ How to Use",
         supportBtn: "📞 Support",
         langBtn: "🌐 Language / භාෂාව",
-        subRequired: "⚠️️ **ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!**\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව **\"🔄 Check Subscription\"** ඔබන්න.",
+        subRequired: "⚠️ **ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!**\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව **\"🔄 Check Subscription\"** ඔබන්න.",
         joinChannel: "📢 Join Channel",
         checkSub: "🔄 Check Subscription",
         linkExpired: "❌ සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.",
@@ -28,7 +28,7 @@ const langs = {
         protectedNote: "\n\n🔒 *(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*",
         clickBtnText: "🔓 **අන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න:**",
         viewsCount: "📊 මෙතෙක් නැරඹුම් වාර:",
-        watchAdText: "▶️️ Watch Ad & Get Content",
+        watchAdText: "▶️ Watch Ad & Get Content",
         guideText: "❓ වීඩියෝව ලබා ගන්නේ කෙසේද? (Guide)",
         systemError: "පද්ධතියේ දෝෂයක් සිදු විය.",
         notSubbedAlert: "❌ ඔබ තවමත් චැනල් එකට Join වී නැත!",
@@ -67,7 +67,7 @@ const langs = {
         systemError: "A system error occurred.",
         notSubbedAlert: "❌ You have not joined the channel yet!",
         subSuccess: "✅ Thank you! You can now access the content.",
-        guideContent: "📖 **How to get content? (Steps)**\n\n1️⃣ First click the **\"▶️ Watch Ad & Get Content\"** button.\n2️⃣ Click on the ad on the opened page and wait for 5 seconds.\n3️⃣ Once time is up, click the **\"🚀 Get Video\"** button that appears.\n4️⃣ Then you will automatically be redirected to the bot to receive your content!",
+        guideContent: "📖 **How to get content? (Steps)**\n\n1️⃣ First click the **\"▶️️ Watch Ad & Get Content\"** button.\n2️⃣ Click on the ad on the opened page and wait for 5 seconds.\n3️⃣ Once time is up, click the **\"🚀 Get Video\"** button that appears.\n4️⃣ Then you will automatically be redirected to the bot to receive your content!",
         supportMsg: "📞 For inquiries, please contact our main channel.",
         langSelect: "🌐 **Please select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න:**",
         // Mini App Dictionary (EN)
@@ -84,11 +84,12 @@ const langs = {
     }
 };
 
-// Helper to get user language
+// Helper to get user language safely
 async function getUserLang(userId) {
+    if (!userId) return 'si';
     try {
         const user = await UserModel.findOne({ userId: userId.toString() });
-        return (user && user.language) ? user.language : 'si'; // Default Sinhala
+        return (user && user.language) ? user.language : 'si';
     } catch (e) {
         return 'si';
     }
@@ -134,19 +135,18 @@ const SettingModel = mongoose.model('Setting', settingSchema);
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/miniapp', async (req, res) => {
+// Fixed Express MiniApp Route with Fallback to prevent Bad Gateway
+app.get('/miniapp', (req, res) => {
     const token = req.query.token || '';
     const userId = req.query.uid || '';
     
-    // Fetch user language for Mini App
-    let lang = 'si';
-    if (userId) {
-        lang = await getUserLang(userId);
-    }
-    const t = langs[lang];
-    
-    res.send(`
-       <!DOCTYPE html>
+    // Use synchronous fallback or safe promise handling to avoid 502 Bad Gateway timeout
+    UserModel.findOne({ userId: userId.toString() }).then(user => {
+        const lang = (user && user.language) ? user.language : 'si';
+        const t = langs[lang] || langs.si;
+        
+        res.send(`
+           <!DOCTYPE html>
 <html lang="${lang}">
 <head>
     <meta charset="UTF-8">
@@ -317,7 +317,13 @@ app.get('/miniapp', async (req, res) => {
     </script>
 </body>
 </html>
-    `);
+        `);
+    }).catch(err => {
+        console.error("MiniApp Error:", err);
+        // Fallback to Sinhala if DB query fails so it never gives 502 Bad Gateway
+        const t = langs.si;
+        res.send(`<!DOCTYPE html><html><body style="background:#09090b;color:white;text-align:center;padding-top:50px;"><h2>System Error. Please try again.</h2></body></html>`);
+    });
 });
 
 async function checkUserSubscription(ctx, userId) {
@@ -498,7 +504,7 @@ bot.start(async (ctx) => {
                     await new Promise(resolve => setTimeout(resolve, 400));
                 } catch (copyErr) {
                     console.error(`Copy Message Error for ID ${msgIdsArray[i]}:`, copyErr.message);
-                    return ctx.reply(`⚠️ Error: ${copyErr.message}`);
+                    return ctx.reply(`⚠️️ Error: ${copyErr.message}`);
                 }
             }
 
