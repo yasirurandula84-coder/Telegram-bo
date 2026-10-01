@@ -12,32 +12,92 @@ const MONGO_URI = process.env.MONGO_URI;
 const REQUIRED_CHANNEL = process.env.REQUIRED_CHANNEL || "@wal_lokaya1"; 
 const AD_LINK = process.env.AD_LINK || "https://www.profitableratecpmnetwork.com/g7p33na9?key=d6d0cdc4f9da3f0a448d3a891515c3ac"; 
 
+// --- Language Dictionary (ဘာသာစကား පරිවර්තන එකතුව) ---
+const langs = {
+    si: {
+        welcome: "👋 **ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.**\n\nමම ඔබේ වීඩියෝ සහ චිත්‍රපට ලබා දෙන ස්වයංක්‍රීය බොට් එකයි.\n\n👇 වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණེන්න.",
+        channelBtn: "📢 Our Channel",
+        howToUseBtn: "ℹ️ How to Use",
+        supportBtn: "📞 Support",
+        langBtn: "🌐 Language / භාෂාව",
+        subRequired: "⚠️ **ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!**\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව **\"🔄 Check Subscription\"** ඔබන්න.",
+        joinChannel: "📢 Join Channel",
+        checkSub: "🔄 Check Subscription",
+        linkExpired: "❌ සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.",
+        warningText: "⚠️ **අවධානයට:**\nමෙම අන්තර්ගතය **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!",
+        protectedNote: "\n\n🔒 *(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*",
+        clickBtnText: "🔓 **අන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න:**",
+        viewsCount: "📊 මෙතෙක් නැරඹුම් වාර:",
+        watchAdText: "▶️ Watch Ad & Get Content",
+        guideText: "❓ වීඩියෝව ලබා ගන්නේ කෙසේද? (Guide)",
+        systemError: "පද්ධතියේ දෝෂයක් සිදු විය.",
+        notSubbedAlert: "❌ ඔබ තවමත් චැනල් එකට Join වී නැත!",
+        subSuccess: "✅ ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.",
+        guideContent: "📖 **අන්තර්ගතයක් ලබාගන්නේ කෙසේද? (පියවර)**\n\n1️⃣ මුලින්ම **\"▶️ Watch Ad & Get Content\"** බොත්තම ඔබන්න.\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න.\n3️⃣ කාලය අවසන් වූ පසු මතුවන **\"🚀 වීඩියෝව ලබා ගන්න\"** බොත්තම ඔබන්න.\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත!",
+        supportMsg: "📞 ගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
+        langSelect: "🌐 **ਕරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language:**"
+    },
+    en: {
+        welcome: "👋 **Hello! Welcome.**\n\nI am your automated bot that provides videos and movies.\n\n👇 Please use a link from our main channel to access content through the bot.",
+        channelBtn: "📢 Our Channel",
+        howToUseBtn: "ℹ️ How to Use",
+        supportBtn: "📞 Support",
+        langBtn: "🌐 Language",
+        subRequired: "⚠️ **You haven't joined our main channel yet!**\n\nYou must join our channel first to get this video.\n\n👇 Click the button below to join the channel, then click **\"🔄 Check Subscription\"**.",
+        joinChannel: "📢 Join Channel",
+        checkSub: "🔄 Check Subscription",
+        linkExpired: "❌ Sorry, this link has expired or is invalid.",
+        warningText: "⚠️ **Attention:**\nThis content will automatically disappear from your chat in **30 minutes**!",
+        protectedNote: "\n\n🔒 *(This content is protected against forwarding or downloading)*",
+        clickBtnText: "🔓 **Click the button below to get the content:**",
+        viewsCount: "📊 Total Views so far:",
+        watchAdText: "▶️ Watch Ad & Get Content",
+        guideText: "❓ How to get video? (Guide)",
+        systemError: "A system error occurred.",
+        notSubbedAlert: "❌ You have not joined the channel yet!",
+        subSuccess: "✅ Thank you! You can now access the content.",
+        guideContent: "📖 **How to get content? (Steps)**\n\n1️⃣ First click the **\"▶️ Watch Ad & Get Content\"** button.\n2️⃣ Click on the ad on the opened page and wait for 5 seconds.\n3️⃣ Once time is up, click the **\"🚀 Get Video\"** button that appears.\n4️⃣ Then you will automatically be redirected to the bot to receive your content!",
+        supportMsg: "📞 For inquiries, please contact our main channel.",
+        langSelect: "🌐 **Please select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න:**"
+    }
+};
+
+// Helper to get user language
+async function getUserLang(userId) {
+    try {
+        const user = await UserModel.findOne({ userId: userId.toString() });
+        return (user && user.language) ? user.language : 'si'; // Default Sinhala
+    } catch (e) {
+        return 'si';
+    }
+}
+
 // MongoDB Connection
 mongoose.connect(MONGO_URI)
   .then(() => {
       console.log('MongoDB Connected Successfully!');
-      // Migration: පරණ යූසර්ස්ලාට active status එක ලබාදීම
       UserModel.updateMany({ status: { $exists: false } }, {$set: { status: 'active' } }).catch(() => {});
   })
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// Mongoose Schema for Files (protectContent ෆීල්ඩ් එක සමඟ)
+// Mongoose Schema for Files
 const fileSchema = new mongoose.Schema({
     token: { type: String, required: true, unique: true },
     fileMsgId: { type: Number },      
     fileMsgIds: { type: [Number] },   
     views: { type: Number, default: 0 },
     clicks: { type: Number, default: 0 },
-    protectContent: { type: Boolean, default: false } // 👈 ඩිෆ්ල්ට් එකෙන් false (බ්ලොක් වෙන්නේ නැත)
+    protectContent: { type: Boolean, default: false }
 });
 
 const FileModel = mongoose.model('File', fileSchema);
 
-// Mongoose Schema for Users
+// Mongoose Schema for Users (Added language field)
 const userSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     joinedAt: { type: Date, default: Date.now },
-    status: { type: String, default: 'active' }
+    status: { type: String, default: 'active' },
+    language: { type: String, default: 'si' }
 });
 const UserModel = mongoose.model('User', userSchema);
 
@@ -87,11 +147,9 @@ app.get('/miniapp', (req, res) => {
     
     <div id="main-card" class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 p-7 rounded-3xl shadow-2xl max-w-sm w-full text-center relative overflow-hidden transition-all duration-500">
         
-        <!-- Top Decorative Glow -->
         <div class="absolute -top-12 -left-12 w-32 h-32 bg-sky-500/20 rounded-full blur-2xl"></div>
         <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl"></div>
 
-        <!-- Step Indicator -->
         <div class="flex items-center justify-center gap-2 mb-5">
             <div id="step-1-dot" class="flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-500/30">1</div>
             <div class="w-6 h-0.5 bg-slate-700"></div>
@@ -100,7 +158,6 @@ app.get('/miniapp', (req, res) => {
             <div id="step-3-dot" class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800 text-slate-400 text-xs font-bold border border-slate-700">3</div>
         </div>
 
-        <!-- Icon with Rotating Spinner Ring -->
         <div class="inline-flex items-center justify-center w-16 h-16 bg-sky-500/10 border border-sky-500/20 rounded-2xl text-3xl mb-4 shadow-inner relative">
             🎬
             <div class="absolute inset-0 border-2 border-sky-400/40 rounded-2xl spinner-ring pointer-events-none"></div>
@@ -111,27 +168,23 @@ app.get('/miniapp', (req, res) => {
             පහත බොත්තම ඔබා දැන්වීම නරඹා, තත්පර <span class="text-sky-400 font-semibold">5ක්</span> රැඳී සිටින්න.
         </p>
 
-        <!-- Ad Button -->
         <div class="mb-5">
             <a href="${AD_LINK}" target="_blank" id="ad-link-btn" onclick="openAd()" class="glow-effect flex items-center justify-center w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm gap-2">
                 <span>🔗 දැන්වීම විවෘත කරන්න</span>
             </a>
         </div>
 
-        <!-- Timer Box with Progress Bar -->
         <div id="timer-box" class="my-5 hidden">
             <div class="relative w-20 h-20 mx-auto flex items-center justify-center bg-slate-800/80 border border-sky-500/30 rounded-full mb-3 shadow-inner">
                 <div id="countdown" class="text-3xl font-black text-sky-400">5</div>
             </div>
             <p id="status-text" class="text-xs text-slate-400 font-medium">දැන්වීම නරඹමින් පවතී...</p>
             
-            <!-- Progress Bar -->
             <div class="w-full bg-slate-800 h-2 rounded-full mt-4 overflow-hidden">
                 <div id="progress-bar" class="bg-sky-500 h-full w-full transition-all duration-1000"></div>
             </div>
         </div>
 
-        <!-- Success Box -->
         <div id="success-box" class="hidden">
             <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-4">
                 <p class="text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5">
@@ -215,7 +268,6 @@ app.get('/miniapp', (req, res) => {
                     timerBox.classList.add('hidden');
                     successBox.classList.remove('hidden');
 
-                    // Card එකට ලස්සන කොළ පාට හැඩයක් දීම (Screen එක සුදු වීම සම්පූර්ණයෙන්ම වළක්වයි)
                     mainCard.classList.add('success-card');
                 }
             }, 1000);
@@ -234,10 +286,8 @@ app.get('/miniapp', (req, res) => {
     </script>
 </body>
 </html>
-
     `);
 });
-                                    
 
 async function checkUserSubscription(ctx, userId) {
     if (!REQUIRED_CHANNEL) return true;
@@ -266,9 +316,9 @@ bot.use(async (ctx, next) => {
             }
 
             if (ctx.callbackQuery) {
-                return ctx.answerCbQuery("🛠️ බොට් නඩත්තු කටයුතු කරමින් පවතී!", { show_alert: true });
+                return ctx.answerCbQuery("🛠️ Bot is under maintenance!", { show_alert: true });
             }
-            return ctx.reply("🛠️ **ਬොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!**\n\nකරුණාකර சிறிது වේලාවකින් නැවත උත්සාහ කරන්න.", { parse_mode: 'Markdown' });
+            return ctx.reply("🛠️ **ਬੋට් නඩත්තු කටයුතු සිදු කරමින් පවතී!**\n\nකරුණාකර சிறிது වේලාවකින් නැවත උත්සාහ කරන්න.", { parse_mode: 'Markdown' });
         }
     } catch (err) {
         console.error("Maintenance check error:", err);
@@ -294,11 +344,44 @@ bot.command('maintenance', async (ctx) => {
         }
 
         const statusText = setting.value ? "🔴 සක්‍රීය කරන ලදී (Enabled)" : "🟢 අක්‍රීය කරන ලදී (Disabled)";
-        await ctx.reply(`🛠️ **Maintenance Mode Status:**\n\n${statusText}`, { parse_mode: 'Markdown' });
+        await ctx.reply(`🛠️️ **Maintenance Mode Status:**\n\n${statusText}`, { parse_mode: 'Markdown' });
     } catch (error) {
         console.error("Maintenance toggle error:", error);
         await ctx.reply("❌ දෝෂයක් ඇති විය.");
     }
+});
+
+// Language Command
+bot.command('language', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const lang = await getUserLang(userId);
+    const t = langs[lang];
+
+    await ctx.reply(t.langSelect, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    { text: "සිංහල 🇱🇰", callback_data: "set_lang_si" },
+                    { text: "English 🇬🇧", callback_data: "set_lang_en" }
+                ]
+            ]
+        }
+    });
+});
+
+bot.action('set_lang_si', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    await UserModel.updateOne({ userId }, { $set: { language: 'si' } }, { upsert: true });
+    await ctx.answerCbQuery("සිංහල භාෂාව තෝරන ලදී.");
+    await ctx.editMessageText("✅ **භාෂාව සිංහල ලෙස වෙනස් කරන ලදී.**\n\nමූලික මෙනුව වෙත යාමට /start ටයිප් කරන්න.", { parse_mode: 'Markdown' });
+});
+
+bot.action('set_lang_en', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    await UserModel.updateOne({ userId }, { $set: { language: 'en' } }, { upsert: true });
+    await ctx.answerCbQuery("Language set to English.");
+    await ctx.editMessageText("✅ **Language changed to English.**\n\nType /start to go to the main menu.", { parse_mode: 'Markdown' });
 });
 
 bot.start(async (ctx) => {
@@ -316,17 +399,19 @@ bot.start(async (ctx) => {
         console.error("User save error:", err);
     }
 
+    const lang = await getUserLang(userId);
+    const t = langs[lang];
+
     if (!payload) {
         return ctx.reply(
-            `👋 **ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.**\n\n` +
-            `මම ඔබේ වීඩියෝ සහ චිත්‍රපට ලබා දෙන ස්වයංක්‍රීය බොට් එකයි.\n\n` +
-            `👇 වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණෙන්න.`,
+            t.welcome,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: "📢 Our Channel", url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
-                        [{ text: "ℹ️ How to Use", callback_data: "how_to_use" }, { text: "📞 Support", callback_data: "support_info" }]
+                        [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
+                        [{ text: t.howToUseBtn, callback_data: "how_to_use" }, { text: t.supportBtn, callback_data: "support_info" }],
+                        [{ text: t.langBtn, callback_data: "change_language" }]
                     ]
                 }
             }
@@ -336,15 +421,13 @@ bot.start(async (ctx) => {
     const isSubscribed = await checkUserSubscription(ctx, userId);
     if (!isSubscribed) {
         return ctx.reply(
-            `⚠️ **ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!**\n\n` +
-            `මෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n` +
-            `👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව **"🔄 Check Subscription"** ඔබන්න.`,
+            t.subRequired,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: "📢 Join Channel", url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
-                        [{ text: "🔄 Check Subscription", callback_data: `check_sub_${payload}` }]
+                        [{ text: t.joinChannel, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
+                        [{ text: t.checkSub, callback_data: `check_sub_${payload}` }]
                     ]
                 }
             }
@@ -362,7 +445,7 @@ bot.start(async (ctx) => {
             );
 
             if (!fileDoc) {
-                return ctx.reply("❌ සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
+                return ctx.reply(t.linkExpired);
             }
 
             let sentVideoIds = [];
@@ -384,14 +467,13 @@ bot.start(async (ctx) => {
                     await new Promise(resolve => setTimeout(resolve, 400));
                 } catch (copyErr) {
                     console.error(`Copy Message Error for ID ${msgIdsArray[i]}:`, copyErr.message);
-                    return ctx.reply(`⚠️ දෝෂයක් ඇත: ${copyErr.message}`);
+                    return ctx.reply(`⚠️ Error: ${copyErr.message}`);
                 }
             }
 
-            let warningText = `⚠️ **අවධානයට:**\nමෙම අන්තර්ගතය **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!`;
-            
+            let warningText = t.warningText;
             if (isProtected) {
-                warningText += `\n\n🔒 *(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*`;
+                warningText += t.protectedNote;
             }
 
             const warningMsg = await ctx.reply(warningText, { parse_mode: 'Markdown' });
@@ -415,22 +497,22 @@ bot.start(async (ctx) => {
         );
 
         if (!fileDoc) {
-            return ctx.reply("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.");
+            return ctx.reply(t.linkExpired);
         }
 
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
 
         await ctx.reply(
-            `🔓 **අන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
-            `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්\n\n` +
-            `මෙම බොත්තම එබූ විට විවෘත වන පිටුවෙන් දැන්වීම බලා තත්පර 5ක් රැඳී සිට අන්තර්ගතය ලබා ගන්න.`,
+            `${t.clickBtnText}\n\n` +
+            `${t.viewsCount} ${fileDoc.views}\n\n` +
+            (lang === 'si' ? "මෙම බොත්තම එබූ විට විවෘත වන පිටුවෙන් දැන්වීම බලා තත්පර 5ක් රැඳී සිට අන්තර්ගතය ලබා ගන්න." : "Click the button below, view the ad on the page, wait 5 seconds, and get your content."),
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: "▶️ Watch Ad & Get Content", web_app: { url: miniAppUrl } }],
-                        [{ text: "❓ වීඩියෝව ලබා ගන්නේ කෙසේද? (Guide)", callback_data: "how_to_use" }]
+                        [{ text: t.watchAdText, web_app: { url: miniAppUrl } }],
+                        [{ text: t.guideText, callback_data: "how_to_use" }]
                     ]
                 }
             }
@@ -438,7 +520,7 @@ bot.start(async (ctx) => {
 
     } catch (error) {
         console.error(error);
-        ctx.reply("පද්ධතියේ දෝෂයක් සිදු විය.");
+        ctx.reply(t.systemError);
     }
 });
 
@@ -542,13 +624,15 @@ bot.command('broadcast', async (ctx) => {
 bot.action(/^check_sub_(.+)$/, async (ctx) => {
     const userId = ctx.from.id;
     const payload = ctx.match[1];
+    const lang = await getUserLang(userId);
+    const t = langs[lang];
 
     const isSubscribed = await checkUserSubscription(ctx, userId);
     if (!isSubscribed) {
-        return ctx.answerCbQuery("❌ ඔබ තවමත් චැනල් එකට Join වී නැත!", { show_alert: true });
+        return ctx.answerCbQuery(t.notSubbedAlert, { show_alert: true });
     }
 
-    await ctx.answerCbQuery("✅ ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.");
+    await ctx.answerCbQuery(t.subSuccess);
     
     try {
         if (payload.startsWith("getvideo_")) {
@@ -560,7 +644,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
             );
 
             if (!fileDoc) {
-                return ctx.editMessageText("❌ සමාවන්න, මෙම ගොනුව හමුවී නැත.");
+                return ctx.editMessageText(t.linkExpired);
             }
 
             await ctx.deleteMessage();
@@ -587,10 +671,9 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 }
             }
 
-            let warningText = `⚠️ **අවධානයට:**\nමෙම අන්තර්ගතය **විනාඩි 30 කින්** ස්වයංක්‍රීයව මැකී යනු ඇත!`;
-            
+            let warningText = t.warningText;
             if (isProtected) {
-                warningText += `\n\n🔒 *(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*`;
+                warningText += t.protectedNote;
             }
 
             const warningMsg = await ctx.reply(warningText, { parse_mode: 'Markdown' });
@@ -609,21 +692,20 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
 
         const fileDoc = await FileModel.findOne({ token: payload });
         if (!fileDoc) {
-            return ctx.editMessageText("සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත.");
+            return ctx.editMessageText(t.linkExpired);
         }
 
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
 
         await ctx.editMessageText(
-            `🔓 **අන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න:**\n\n` +
-            `📊 මෙතෙක් නැරඹුම් වාර: ${fileDoc.views} ක්`,
+            `${t.clickBtnText}\n\n${t.viewsCount} ${fileDoc.views}`,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: "▶️ Watch Ad & Get Content", web_app: { url: miniAppUrl } }],
-                        [{ text: "❓ වීඩියෝව ලබා ගන්නේ කෙසේද? (Guide)", callback_data: "how_to_use" }]
+                        [{ text: t.watchAdText, web_app: { url: miniAppUrl } }],
+                        [{ text: t.guideText, callback_data: "how_to_use" }]
                     ]
                 }
             }
@@ -633,28 +715,47 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
     }
 });
 
+bot.action('change_language', async (ctx) => {
+    await ctx.answerCbQuery();
+    const userId = ctx.from.id.toString();
+    const lang = await getUserLang(userId);
+    const t = langs[lang];
+
+    await ctx.reply(t.langSelect, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    { text: "සිංහල 🇱🇰", callback_data: "set_lang_si" },
+                    { text: "English 🇬🇧", callback_data: "set_lang_en" }
+                ]
+            ]
+        }
+    });
+});
+
 bot.action('how_to_use', async (ctx) => {
     try {
         await ctx.answerCbQuery();
-        await ctx.reply(
-            `📖 **අන්තර්ගතයක් ලබාගන්නේ කෙසේද? (පියවර)**\n\n` +
-            `1️⃣ මුලින්ම **"▶️ Watch Ad & Get Content"** බොත්තම ඔබන්න.\n` +
-            `2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න.\n` +
-            `3️⃣ කාලය අවසන් වූ පසු මතුවන **"🚀 වීඩියෝව ලබා ගන්න"** බොත්තම ඔබන්න.\n` +
-            `4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත!`,
-            { parse_mode: 'Markdown' }
-        );
+        const userId = ctx.from.id.toString();
+        const lang = await getUserLang(userId);
+        const t = langs[lang];
+
+        await ctx.reply(t.guideContent, { parse_mode: 'Markdown' });
     } catch (error) {
         console.error(error);
     }
 });
 
 bot.action('support_info', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const lang = await getUserLang(userId);
+    const t = langs[lang];
     await ctx.answerCbQuery();
-    await ctx.reply(`📞 ගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.`);
+    await ctx.reply(t.supportMsg);
 });
 
-// --- Upload Workflow Actions (Spoiler & Protect Content settings) ---
+// --- Upload Workflow Actions ---
 
 bot.action('toggle_spoiler_yes', async (ctx) => {
     const userId = ctx.from.id.toString();
@@ -737,7 +838,6 @@ bot.on('photo', async (ctx) => {
     const ADMIN_ID = process.env.ADMIN_ID;
     if (ADMIN_ID && userId !== ADMIN_ID) return;
 
-    // Check if this photo is meant to be part of content collection after thumbnail was already set
     const pending = pendingUploads.get(userId);
     if (pending && pending.photoFileId && pending.hasSpoiler !== undefined) {
         try {
