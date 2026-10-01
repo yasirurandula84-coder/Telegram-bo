@@ -12,7 +12,7 @@ const MONGO_URI = process.env.MONGO_URI;
 const REQUIRED_CHANNEL = process.env.REQUIRED_CHANNEL || "@wal_lokaya1"; 
 const AD_LINK = process.env.AD_LINK || "https://www.profitableratecpmnetwork.com/g7p33na9?key=d6d0cdc4f9da3f0a448d3a891515c3ac"; 
 
-// --- Language Dictionary (ဘာသာစကား පරිවර්තන එකතුව) ---
+// --- Language Dictionary (භාෂා පරිවර්තන එකතුව) ---
 const langs = {
     si: {
         welcome: "👋 **ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.**\n\nමම ඔබේ වීඩියෝ සහ චිත්‍රපට ලබා දෙන ස්වයංක්‍රීය බොට් එකයි.\n\n👇 වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණེන්න.",
@@ -20,7 +20,7 @@ const langs = {
         howToUseBtn: "ℹ️ How to Use",
         supportBtn: "📞 Support",
         langBtn: "🌐 Language / භාෂාව",
-        subRequired: "⚠️ **ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!**\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව **\"🔄 Check Subscription\"** ඔබන්න.",
+        subRequired: "⚠️️ **ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!**\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව **\"🔄 Check Subscription\"** ඔබන්න.",
         joinChannel: "📢 Join Channel",
         checkSub: "🔄 Check Subscription",
         linkExpired: "❌ සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.",
@@ -28,14 +28,25 @@ const langs = {
         protectedNote: "\n\n🔒 *(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*",
         clickBtnText: "🔓 **අන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න:**",
         viewsCount: "📊 මෙතෙක් නැරඹුම් වාර:",
-        watchAdText: "▶️ Watch Ad & Get Content",
+        watchAdText: "▶️️ Watch Ad & Get Content",
         guideText: "❓ වීඩියෝව ලබා ගන්නේ කෙසේද? (Guide)",
         systemError: "පද්ධතියේ දෝෂයක් සිදු විය.",
         notSubbedAlert: "❌ ඔබ තවමත් චැනල් එකට Join වී නැත!",
         subSuccess: "✅ ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.",
         guideContent: "📖 **අන්තර්ගතයක් ලබාගන්නේ කෙසේද? (පියවර)**\n\n1️⃣ මුලින්ම **\"▶️ Watch Ad & Get Content\"** බොත්තම ඔබන්න.\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න.\n3️⃣ කාලය අවසන් වූ පසු මතුවන **\"🚀 වීඩියෝව ලබා ගන්න\"** බොත්තම ඔබන්න.\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත!",
         supportMsg: "📞 ගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
-        langSelect: "🌐 **ਕරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language:**"
+        langSelect: "🌐 **ਕරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language:**",
+        // Mini App Dictionary (SI)
+        appTitle: "වීඩියෝව සූදානම් වෙමින් පවතී",
+        appInstruction: "පහත බොත්තම ඔබා දැන්වීම නරඹා, තත්පර <span class=\"text-sky-400 font-semibold\">5ක්</span> රැඳී සිටින්න.",
+        appAdBtn: "🔗 දැන්වීම විවෘත කරන්න",
+        appAdBtnWatching: "⏳ දැන්වීම නරඹමින් පවතී...",
+        appAdBtnAgain: "🔗 නැවත දැන්වීම විවෘත කරන්න",
+        appStatusWatching: "දැන්වීම නරඹමින් පවතී...",
+        appStatusWarning: "⚠️ කරුණාකර දැන්වීම සම්පූර්ණයෙන්ම තත්පර 5ක් නරඹන්න!",
+        appStatusWait: "තත්පර කිහිපයක් රැඳී සිටින්න...",
+        appSuccessMsg: "✔ නැරඹීම සාර්ථකයි! දැන් වීඩියෝව ලබාගත හැක.",
+        appGetVideoBtn: "🚀 වීඩියෝව ලබා ගන්න"
     },
     en: {
         welcome: "👋 **Hello! Welcome.**\n\nI am your automated bot that provides videos and movies.\n\n👇 Please use a link from our main channel to access content through the bot.",
@@ -58,7 +69,18 @@ const langs = {
         subSuccess: "✅ Thank you! You can now access the content.",
         guideContent: "📖 **How to get content? (Steps)**\n\n1️⃣ First click the **\"▶️ Watch Ad & Get Content\"** button.\n2️⃣ Click on the ad on the opened page and wait for 5 seconds.\n3️⃣ Once time is up, click the **\"🚀 Get Video\"** button that appears.\n4️⃣ Then you will automatically be redirected to the bot to receive your content!",
         supportMsg: "📞 For inquiries, please contact our main channel.",
-        langSelect: "🌐 **Please select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න:**"
+        langSelect: "🌐 **Please select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න:**",
+        // Mini App Dictionary (EN)
+        appTitle: "Video is getting ready",
+        appInstruction: "Click the button below, view the ad, and wait for <span class=\"text-sky-400 font-semibold\">5 seconds</span>.",
+        appAdBtn: "🔗 Open Ad",
+        appAdBtnWatching: "⏳ Watching Ad...",
+        appAdBtnAgain: "🔗 Open Ad Again",
+        appStatusWatching: "Watching ad...",
+        appStatusWarning: "⚠️ Please watch the ad completely for 5 seconds!",
+        appStatusWait: "Please wait a few seconds...",
+        appSuccessMsg: "✔ Watching successful! You can now get the video.",
+        appGetVideoBtn: "🚀 Get Video"
     }
 };
 
@@ -92,7 +114,7 @@ const fileSchema = new mongoose.Schema({
 
 const FileModel = mongoose.model('File', fileSchema);
 
-// Mongoose Schema for Users (Added language field)
+// Mongoose Schema for Users
 const userSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     joinedAt: { type: Date, default: Date.now },
@@ -111,12 +133,21 @@ const SettingModel = mongoose.model('Setting', settingSchema);
 // Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
-app.get('/miniapp', (req, res) => {
+
+app.get('/miniapp', async (req, res) => {
     const token = req.query.token || '';
+    const userId = req.query.uid || '';
+    
+    // Fetch user language for Mini App
+    let lang = 'si';
+    if (userId) {
+        lang = await getUserLang(userId);
+    }
+    const t = langs[lang];
     
     res.send(`
        <!DOCTYPE html>
-<html lang="si">
+<html lang="${lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -163,14 +194,14 @@ app.get('/miniapp', (req, res) => {
             <div class="absolute inset-0 border-2 border-sky-400/40 rounded-2xl spinner-ring pointer-events-none"></div>
         </div>
         
-        <h1 class="text-xl font-extrabold tracking-tight mb-2 text-slate-100">වීඩියෝව සූදානම් වෙමින් පවතී</h1>
+        <h1 class="text-xl font-extrabold tracking-tight mb-2 text-slate-100">${t.appTitle}</h1>
         <p id="instruction-text" class="text-slate-400 text-xs mb-6 leading-relaxed">
-            පහත බොත්තම ඔබා දැන්වීම නරඹා, තත්පර <span class="text-sky-400 font-semibold">5ක්</span> රැඳී සිටින්න.
+            ${t.appInstruction}
         </p>
 
         <div class="mb-5">
             <a href="${AD_LINK}" target="_blank" id="ad-link-btn" onclick="openAd()" class="glow-effect flex items-center justify-center w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm gap-2">
-                <span>🔗 දැන්වීම විවෘත කරන්න</span>
+                <span>${t.appAdBtn}</span>
             </a>
         </div>
 
@@ -178,7 +209,7 @@ app.get('/miniapp', (req, res) => {
             <div class="relative w-20 h-20 mx-auto flex items-center justify-center bg-slate-800/80 border border-sky-500/30 rounded-full mb-3 shadow-inner">
                 <div id="countdown" class="text-3xl font-black text-sky-400">5</div>
             </div>
-            <p id="status-text" class="text-xs text-slate-400 font-medium">දැන්වීම නරඹමින් පවතී...</p>
+            <p id="status-text" class="text-xs text-slate-400 font-medium">${t.appStatusWatching}</p>
             
             <div class="w-full bg-slate-800 h-2 rounded-full mt-4 overflow-hidden">
                 <div id="progress-bar" class="bg-sky-500 h-full w-full transition-all duration-1000"></div>
@@ -188,11 +219,11 @@ app.get('/miniapp', (req, res) => {
         <div id="success-box" class="hidden">
             <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-4">
                 <p class="text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5">
-                    ✔ නැරඹීම සාර්ථකයි! දැන් වීඩියෝව ලබාගත හැක.
+                    ${t.appSuccessMsg}
                 </p>
             </div>
             <button onclick="getVideo()" id="unlock-btn" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg shadow-emerald-900/30 text-sm">
-                🚀 වීඩියෝව ලබා ගන්න
+                ${t.appGetVideoBtn}
             </button>
         </div>
     </div>
@@ -210,7 +241,7 @@ app.get('/miniapp', (req, res) => {
             document.getElementById('step-2-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-500/30";
 
             const adBtn = document.getElementById('ad-link-btn');
-            adBtn.innerHTML = "⏳ දැන්වීම නරඹමින් පවතී...";
+            adBtn.innerHTML = "${t.appAdBtnWatching}";
             adBtn.className = "flex items-center justify-center w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-sm";
         }
 
@@ -227,9 +258,9 @@ app.get('/miniapp', (req, res) => {
 
                 if (timeSpent < 5) {
                     timerBox.classList.remove('hidden');
-                    statusText.innerText = "⚠️ කරුණාකර දැන්වීම සම්පූර්ණයෙන්ම තත්පර 5ක් නරඹන්න!";
+                    statusText.innerText = "${t.appStatusWarning}";
                     statusText.className = "text-xs text-rose-400 mt-2 font-semibold";
-                    adBtn.innerHTML = "🔗 නැවත දැන්වීම විවෘත කරන්න";
+                    adBtn.innerHTML = "${t.appAdBtnAgain}";
                     adBtn.className = "flex items-center justify-center w-full bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-sm";
                     adClicked = false;
                 } else {
@@ -252,7 +283,7 @@ app.get('/miniapp', (req, res) => {
             const progressBar = document.getElementById('progress-bar');
             const mainCard = document.getElementById('main-card');
 
-            statusText.innerText = "තත්පර කිහිපයක් රැඳී සිටින්න...";
+            statusText.innerText = "${t.appStatusWait}";
 
             const timer = setInterval(() => {
                 timeLeft--;
@@ -344,7 +375,7 @@ bot.command('maintenance', async (ctx) => {
         }
 
         const statusText = setting.value ? "🔴 සක්‍රීය කරන ලදී (Enabled)" : "🟢 අක්‍රීය කරන ලදී (Disabled)";
-        await ctx.reply(`🛠️️ **Maintenance Mode Status:**\n\n${statusText}`, { parse_mode: 'Markdown' });
+        await ctx.reply(`🛠 **Maintenance Mode Status:**\n\n${statusText}`, { parse_mode: 'Markdown' });
     } catch (error) {
         console.error("Maintenance toggle error:", error);
         await ctx.reply("❌ දෝෂයක් ඇති විය.");
@@ -501,7 +532,7 @@ bot.start(async (ctx) => {
         }
 
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
-        const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
+        const miniAppUrl = `${renderUrl}/miniapp?token=${payload}&uid=${userId}`;
 
         await ctx.reply(
             `${t.clickBtnText}\n\n` +
@@ -696,7 +727,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
         }
 
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
-        const miniAppUrl = `${renderUrl}/miniapp?token=${payload}`;
+        const miniAppUrl = `${renderUrl}/miniapp?token=${payload}&uid=${userId}`;
 
         await ctx.editMessageText(
             `${t.clickBtnText}\n\n${t.viewsCount} ${fileDoc.views}`,
