@@ -20,7 +20,7 @@ const langs = {
         howToUseBtn: "ℹ️ How to Use",
         supportBtn: "📞 Support",
         langBtn: "🌐 Language / භාෂාව",
-        subRequired: "⚠️ **ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!**\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව **\"🔄 Check Subscription\"** ඔබන්න.",
+        subRequired: "⚠️️ **ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!**\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව **\"🔄 Check Subscription\"** ඔබන්න.",
         joinChannel: "📢 Join Channel",
         checkSub: "🔄 Check Subscription",
         linkExpired: "❌ සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.",
@@ -46,7 +46,12 @@ const langs = {
         appStatusWarning: "⚠️ කරුණාකර දැන්වීම සම්පූර්ණයෙන්ම තත්පර 5ක් නරඹන්න!",
         appStatusWait: "තත්පර කිහිපයක් රැඳී සිටින්න...",
         appSuccessMsg: "✔ නැරඹීම සාර්ථකයි! දැන් වීඩියෝව ලබාගත හැක.",
-        appGetVideoBtn: "🚀 වීඩියෝව ලබා ගන්න"
+        appGetVideoBtn: "🚀 වීඩියෝව ලබා ගන්න",
+        // Age Verification SI
+        ageTitle: "වයස තහවුරු කිරීම අවශ්‍යයි",
+        ageDesc: "මෙම Mini App එක තුළ වැඩිහිටි අන්තර්ගතයන් අඩංගු වේ. ඇතුළු වීමට ඔබේ වයස අවුරුදු 18 හෝ அதற்கு වැඩි විය යුතුය.",
+        ageUnderBtn: "මගේ වයස 18ට අඩුයි",
+        ageOverBtn: "මගේ වයස 18ට වැඩි හෝ සමානයි"
     },
     en: {
         welcome: "👋 **Hello! Welcome.**\n\nI am your automated bot that provides videos and movies.\n\n👇 Please use a link from our main channel to access content through the bot.",
@@ -67,7 +72,7 @@ const langs = {
         systemError: "A system error occurred.",
         notSubbedAlert: "❌ You have not joined the channel yet!",
         subSuccess: "✅ Thank you! You can now access the content.",
-        guideContent: "📖 **How to get content? (Steps)**\n\n1️⃣ First click the **\"▶️️ Watch Ad & Get Content\"** button.\n2️⃣ Click on the ad on the opened page and wait for 5 seconds.\n3️⃣ Once time is up, click the **\"🚀 Get Video\"** button that appears.\n4️⃣ Then you will automatically be redirected to the bot to receive your content!",
+        guideContent: "📖 **How to get content? (Steps)**\n\n1️⃣ First click the **\"▶ Watch Ad & Get Content\"** button.\n2️⃣ Click on the ad on the opened page and wait for 5 seconds.\n3️⃣ Once time is up, click the **\"🚀 Get Video\"** button that appears.\n4️⃣ Then you will automatically be redirected to the bot to receive your content!",
         supportMsg: "📞 For inquiries, please contact our main channel.",
         langSelect: "🌐 **Please select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න:**",
         // Mini App Dictionary (EN)
@@ -80,7 +85,12 @@ const langs = {
         appStatusWarning: "⚠️ Please watch the ad completely for 5 seconds!",
         appStatusWait: "Please wait a few seconds...",
         appSuccessMsg: "✔ Watching successful! You can now get the video.",
-        appGetVideoBtn: "🚀 Get Video"
+        appGetVideoBtn: "🚀 Get Video",
+        // Age Verification EN
+        ageTitle: "Age Verification Required",
+        ageDesc: "This mini app contains adult content. You must be at least 18 years old to enter.",
+        ageUnderBtn: "I am under 18",
+        ageOverBtn: "I am 18 or older"
     }
 };
 
@@ -135,12 +145,11 @@ const SettingModel = mongoose.model('Setting', settingSchema);
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
-// Fixed Express MiniApp Route with Fallback to prevent Bad Gateway
+// Fixed Express MiniApp Route with Age Verification Gate
 app.get('/miniapp', (req, res) => {
     const token = req.query.token || '';
     const userId = req.query.uid || '';
     
-    // Use synchronous fallback or safe promise handling to avoid 502 Bad Gateway timeout
     UserModel.findOne({ userId: userId.toString() }).then(user => {
         const lang = (user && user.language) ? user.language : 'si';
         const t = langs[lang] || langs.si;
@@ -176,6 +185,34 @@ app.get('/miniapp', (req, res) => {
 </head>
 <body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-5 select-none font-sans">
     
+    <!-- Age Verification Modal / Gateway -->
+    <div id="age-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-md hidden">
+        <div class="w-full max-w-sm rounded-3xl bg-slate-900 border border-slate-800 p-7 text-center shadow-2xl relative overflow-hidden">
+            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-2xl font-black shadow-inner">
+                18+
+            </div>
+            <h2 class="text-xl font-extrabold text-slate-100 mb-2">${t.ageTitle}</h2>
+            <p class="text-slate-400 text-xs mb-6 leading-relaxed">
+                ${t.ageDesc}
+            </p>
+            <div class="flex flex-col gap-3">
+                <button
+                    onclick="handleAgeVerify(true)"
+                    class="w-full bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg shadow-rose-900/30 text-sm"
+                >
+                    ${t.ageOverBtn}
+                </button>
+                <button
+                    onclick="handleAgeVerify(false)"
+                    class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3 px-4 rounded-2xl transition-all text-sm"
+                >
+                    ${t.ageUnderBtn}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content App Card -->
     <div id="main-card" class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 p-7 rounded-3xl shadow-2xl max-w-sm w-full text-center relative overflow-hidden transition-all duration-500">
         
         <div class="absolute -top-12 -left-12 w-32 h-32 bg-sky-500/20 rounded-full blur-2xl"></div>
@@ -229,6 +266,28 @@ app.get('/miniapp', (req, res) => {
     </div>
 
     <script>
+        // Check age verification on initial page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const isVerified = localStorage.getItem('age_verified');
+            if (isVerified !== 'true') {
+                document.getElementById('age-modal').classList.remove('hidden');
+            }
+        });
+
+        function handleAgeVerify(allowed) {
+            if (allowed) {
+                localStorage.setItem('age_verified', 'true');
+                document.getElementById('age-modal').classList.add('hidden');
+            } else {
+                alert('You must be 18 or older to access this content.');
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.close();
+                } else {
+                    window.location.href = 'https://t.me';
+                }
+            }
+        }
+
         let adClicked = false;
         let leaveTime = 0;
         let timerStarted = false;
@@ -320,7 +379,6 @@ app.get('/miniapp', (req, res) => {
         `);
     }).catch(err => {
         console.error("MiniApp Error:", err);
-        // Fallback to Sinhala if DB query fails so it never gives 502 Bad Gateway
         const t = langs.si;
         res.send(`<!DOCTYPE html><html><body style="background:#09090b;color:white;text-align:center;padding-top:50px;"><h2>System Error. Please try again.</h2></body></html>`);
     });
@@ -504,7 +562,7 @@ bot.start(async (ctx) => {
                     await new Promise(resolve => setTimeout(resolve, 400));
                 } catch (copyErr) {
                     console.error(`Copy Message Error for ID ${msgIdsArray[i]}:`, copyErr.message);
-                    return ctx.reply(`⚠️️ Error: ${copyErr.message}`);
+                    return ctx.reply(`⚠ Error: ${copyErr.message}`);
                 }
             }
 
