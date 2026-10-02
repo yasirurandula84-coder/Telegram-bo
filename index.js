@@ -144,18 +144,28 @@ const SettingModel = mongoose.model('Setting', settingSchema);
 // Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
-
-// Fixed Express MiniApp Route with Age Verification Gate
-app.get('/miniapp', (req, res) => {
+// Fixed Express MiniApp Route with Stats (Views & Users) and Age Verification Gate
+app.get('/miniapp', async (req, res) => {
     const token = req.query.token || '';
     const userId = req.query.uid || '';
     
-    UserModel.findOne({ userId: userId.toString() }).then(user => {
+    try {
+        const user = await UserModel.findOne({ userId: userId.toString() });
         const lang = (user && user.language) ? user.language : 'si';
         const t = langs[lang] || langs.si;
-        
+
+        // 1. Get Total Bot Users
+        const totalUsers = await UserModel.countDocuments({});
+
+        // 2. Get Total File Views (සමස්ත වීඩියෝ නැරඹුම් එකතුව)
+        const allFiles = await FileModel.find({});
+        let totalViews = 0;
+        allFiles.forEach(file => {
+            totalViews += file.views || 0;
+        });
+
         res.send(`
-           <!DOCTYPE html>
+            <!DOCTYPE html>
 <html lang="${lang}">
 <head>
     <meta charset="UTF-8">
@@ -263,6 +273,20 @@ app.get('/miniapp', (req, res) => {
                 ${t.appGetVideoBtn}
             </button>
         </div>
+
+        <!-- Live Stats Dashboard Inside Mini App -->
+        <div class="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-around text-center">
+            <div>
+                <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Total Users</p>
+                <p class="text-sm font-extrabold text-sky-400 mt-0.5">👥 ${totalUsers.toLocaleString()}</p>
+            </div>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+                <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Total Views</p>
+                <p class="text-sm font-extrabold text-emerald-400 mt-0.5">👁️ ${totalViews.toLocaleString()}</p>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -377,12 +401,12 @@ app.get('/miniapp', (req, res) => {
 </body>
 </html>
         `);
-    }).catch(err => {
+    } catch (err) {
         console.error("MiniApp Error:", err);
-        const t = langs.si;
         res.send(`<!DOCTYPE html><html><body style="background:#09090b;color:white;text-align:center;padding-top:50px;"><h2>System Error. Please try again.</h2></body></html>`);
-    });
+    }
 });
+        
 
 async function checkUserSubscription(ctx, userId) {
     if (!REQUIRED_CHANNEL) return true;
