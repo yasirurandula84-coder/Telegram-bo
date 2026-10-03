@@ -10,7 +10,6 @@ const MAIN_CHANNEL_ID = process.env.MAIN_CHANNEL_ID || "@wal_lokaya1";
 const MONGO_URI = process.env.MONGO_URI;
 
 const REQUIRED_CHANNEL = process.env.REQUIRED_CHANNEL || "@wal_lokaya1"; 
-const AD_LINK = process.env.AD_LINK || "https://www.profitableratecpmnetwork.com/g7p33na9?key=d6d0cdc4f9da3f0a448d3a891515c3ac"; 
 
 // --- Language Dictionary (භාෂා පරිවර්තන එකතුව) ---
 const langs = {
@@ -20,7 +19,7 @@ const langs = {
         howToUseBtn: "ℹ️ How to Use",
         supportBtn: "📞 Support",
         langBtn: "🌐 Language / භාෂාව",
-        subRequired: "⚠️️ **ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!**\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව **\"🔄 Check Subscription\"** ඔබන්න.",
+        subRequired: "⚠️ **ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!**\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව **\"🔄 Check Subscription\"** ඔබන්න.",
         joinChannel: "📢 Join Channel",
         checkSub: "🔄 Check Subscription",
         linkExpired: "❌ සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.",
@@ -141,10 +140,169 @@ const settingSchema = new mongoose.Schema({
 });
 const SettingModel = mongoose.model('Setting', settingSchema);
 
+async function checkUserSubscription(ctx, userId) {
+    if (!REQUIRED_CHANNEL) return true;
+    try {
+        const chatMember = await ctx.telegram.getChatMember(REQUIRED_CHANNEL, userId);
+        const status = chatMember.status;
+        if (status === 'creator' || status === 'administrator' || status === 'member') {
+            return true;
+        }
+        return false;
+    } catch (error) {
+        return true;
+    }
+}
+
+// Bot Start & Handlers
+bot.start(async (ctx) => {
+    const userId = ctx.from.id;
+    const userIdStr = userId.toString();
+    const payload = ctx.startPayload;
+
+    try {
+        await UserModel.updateOne(
+            { userId: userIdStr }, 
+            { $setOnInsert: { joinedAt: new Date() },$set: { status: 'active' } }, 
+            { upsert: true }
+        );
+    } catch (err) {}
+
+    const lang = await getUserLang(userId);
+    const t = langs[lang];
+
+    if (!payload) {
+        return ctx.reply(t.welcome, {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
+                    [{ text: t.howToUseBtn, callback_data: "how_to_use" }, { text: t.supportBtn, callback_data: "support_info" }],
+                    [{ text: t.langBtn, callback_data: "change_language" }]
+                ]
+            }
+        });
+    }
+
+    const isSubscribed = await checkUserSubscription(ctx, userId);
+    if (!isSubscribed) {
+        return ctx.reply(t.subRequired, {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: t.joinChannel, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
+                    [{ text: t.checkSub, callback_data: `check_sub_${payload}` }]
+                ]
+            }
+        });
+    }
+
+    try {
+        if (payload.startsWith("getvideo_")) {
+            const token = payload.replace("getvideo_", "");
+            const fileDoc = await FileModel.findOneAndUpdate({ token }, { $inc: { views: 1 } }, { new: true });
+            
+            if (!fileDoc) {
+                return ctx.reply(t.linkExpired);
+            }
+
+            let msgIdsArray = fileDoc.fileMsgId ? [fileDoc.fileMsgId] : (fileDoc.fileMsgIds || []);
+            const isProtected = fileDoc.protectContent === true;
+            let sentVideoIds = [];
+
+            for (let id of msgIdsArray) {
+                try {
+                    const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, id, { protect_content: isProtected });
+                    sentVideoIds.push(sentMsg.message_id);
+                    await new Promise(r => setTimeout(r, 400));
+                } catch (e) {
+                    console.error("Error copying message:", e.message);
+                }
+            }
+
+            if (sentVideoIds.length === 0) {
+                return ctx.reply("❌ සමාවන්න, මෙම වීඩියෝව Database Channel එකෙන් මකා දමා ඇත හෝ ලබා ගත නොහැක.");
+            }
+
+            let warningText = t.warningText + (isProtected ? t.protectedNote : "");
+            const warningMsg = await ctx.reply(warningText, { parse_mode: 'Markdown' });
+
+            setTimeout(async () => {
+                try {
+                    for (let msgId of sentVideoIds) await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
+                    await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id).catch(() => {});
+                } catch (e) {}
+            }, 30 * 60 * 1000);
+            return;
+        }
+
+        const fileDoc = await FileModel.findOneAndUpdate({ token: payload }, { $inc: { clicks: 1 } }, { new: true });
+        if (!fileDoc) return ctx.reply(t.linkExpired);
+
+        const hostUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
+        const miniAppUrl = `${hostUrl}/miniapp?token=${payload}&uid=${userId}`;
+
+        await ctx.reply(
+            `${t.clickBtnText}\n\n${t.viewsCount} ${fileDoc.views}`,
+            {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: t.watchAdText, web_app: { url: miniAppUrl } }],
+                        [{ text: t.guideText, callback_data: "how_to_use" }]
+                    ]
+                }
+            }
+        );
+    } catch (error) {
+        console.error("Start command error:", error);
+        ctx.reply(t.systemError);
+    }
+});
+
+bot.action('how_to_use', async (ctx) => {
+    await ctx.answerCbQuery();
+    const userId = ctx.from.id.toString();
+    const lang = await getUserLang(userId);
+    await ctx.reply(langs[lang].guideContent, { parse_mode: 'Markdown' });
+});
+
+bot.action('support_info', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const lang = await getUserLang(userId);
+    await ctx.answerCbQuery();
+    await ctx.reply(langs[lang].supportMsg);
+});
+
+bot.action('change_language', async (ctx) => {
+    await ctx.answerCbQuery();
+    const userId = ctx.from.id.toString();
+    const lang = await getUserLang(userId);
+    await ctx.reply(langs[lang].langSelect, {
+        parse_mode: 'Markdown',
+        reply_markup: { inline_keyboard: [[{ text: "සිංහල 🇱🇰", callback_data: "set_lang_si" }, { text: "English 🇬🇧", callback_data: "set_lang_en" }]] }
+    });
+});
+
+bot.action('set_lang_si', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    await UserModel.updateOne({ userId }, { $set: { language: 'si' } }, { upsert: true });
+    await ctx.answerCbQuery("සිංහල භාෂාව තෝරන ලදී.");
+    await ctx.editMessageText("✅ **භාෂාව සිංහල ලෙස වෙනස් කරන ලදී.** /start ටයිප් කරන්න.", { parse_mode: 'Markdown' });
+});
+
+bot.action('set_lang_en', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    await UserModel.updateOne({ userId }, { $set: { language: 'en' } }, { upsert: true });
+    await ctx.answerCbQuery("Language set to English.");
+    await ctx.editMessageText("✅ **Language changed to English.** Type /start.", { parse_mode: 'Markdown' });
+});
+
 // Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
-// Fixed Express MiniApp Route with Stats (Views & Users) and Age Verification Gate
+
+// Fixed Express MiniApp Route with Stats, Age Verification and 8-Hour Ad Rotation
 app.get('/miniapp', async (req, res) => {
     const token = req.query.token || '';
     const userId = req.query.uid || '';
@@ -157,12 +315,33 @@ app.get('/miniapp', async (req, res) => {
         // 1. Get Total Bot Users
         const totalUsers = await UserModel.countDocuments({});
 
-        // 2. Get Total File Views (සමස්ත වීඩියෝ නැරඹුම් එකතුව)
+        // 2. Get Total File Views
         const allFiles = await FileModel.find({});
         let totalViews = 0;
         allFiles.forEach(file => {
             totalViews += file.views || 0;
         });
+
+        // --- පැය 8කට සැරයක් ඇඩ් ලින්ක් 3 මාරු වීමේ ලොජික් එක (ශ්‍රී ලංකා වෙලාව GMT+5:30) ---
+        const now = new Date();
+        const sriLankaOffset = 5.5 * 60 * 60 * 1000;
+        const slTime = new Date(now.getTime() + now.getTimezoneOffset() * 60000 + sriLankaOffset);
+        const currentHour = slTime.getHours();
+
+        const AD_LINK_1 = process.env.AD_LINK_1 || "https://www.profitableratecpmnetwork.com/default1"; 
+        const AD_LINK_2 = process.env.AD_LINK_2 || "https://www.profitableratecpmnetwork.com/default2"; 
+        const AD_LINK_3 = process.env.AD_LINK_3 || "https://www.profitableratecpmnetwork.com/default3"; 
+
+        let selectedAdLink = AD_LINK_1;
+
+        if (currentHour >= 0 && currentHour < 8) {
+            selectedAdLink = AD_LINK_1; // රාත්‍රී 12 සිට උදේ 8 දක්වා
+        } else if (currentHour >= 8 && currentHour < 16) {
+            selectedAdLink = AD_LINK_2; // උදේ 8 සිට සවස 4 දක්වා
+        } else {
+            selectedAdLink = AD_LINK_3; // සවස 4 සිට රාත්‍රී 12 දක්වා
+        }
+        // ----------------------------------------------------------------------------------
 
         res.send(`
             <!DOCTYPE html>
@@ -247,7 +426,7 @@ app.get('/miniapp', async (req, res) => {
         </p>
 
         <div class="mb-5">
-            <a href="${AD_LINK}" target="_blank" id="ad-link-btn" onclick="openAd()" class="glow-effect flex items-center justify-center w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm gap-2">
+            <a href="${selectedAdLink}" target="_blank" id="ad-link-btn" onclick="openAd()" class="glow-effect flex items-center justify-center w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm gap-2">
                 <span>${t.appAdBtn}</span>
             </a>
         </div>
@@ -283,14 +462,13 @@ app.get('/miniapp', async (req, res) => {
             <div class="h-8 w-px bg-slate-800"></div>
             <div>
                 <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Total Views</p>
-                <p class="text-sm font-extrabold text-emerald-400 mt-0.5">👁️ ${totalViews.toLocaleString()}</p>
+                <p class="text-sm font-extrabold text-emerald-400 mt-0.5">👁️️ ${totalViews.toLocaleString()}</p>
             </div>
         </div>
 
     </div>
 
     <script>
-        // Check age verification on initial page load
         window.addEventListener('DOMContentLoaded', () => {
             const isVerified = localStorage.getItem('age_verified');
             if (isVerified !== 'true') {
@@ -406,6 +584,8 @@ app.get('/miniapp', async (req, res) => {
         res.send(`<!DOCTYPE html><html><body style="background:#09090b;color:white;text-align:center;padding-top:50px;"><h2>System Error. Please try again.</h2></body></html>`);
     }
 });
+
+
         
 
 async function checkUserSubscription(ctx, userId) {
