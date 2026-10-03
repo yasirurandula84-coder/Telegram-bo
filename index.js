@@ -34,7 +34,7 @@ const langs = {
         subSuccess: "✅ ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.",
         guideContent: "📖 **අන්තර්ගතයක් ලබාගන්නේ කෙසේද? (පියවර)**\n\n1️⃣ මුලින්ම **\"▶️ Watch Ad & Get Content\"** බොත්තම ඔබන්න.\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න.\n3️⃣ කාලය අවසන් වූ පසු මතුවන **\"🚀 වීඩියෝව ලබා ගන්න\"** බොත්තම ඔබන්න.\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත!",
         supportMsg: "📞 ගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
-        langSelect: "🌐 **ਕරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language:**",
+        langSelect: "🌐 **කරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language:**",
         // Mini App Dictionary (SI)
         appTitle: "වීඩියෝව සූදානම් වෙමින් පවතී",
         appInstruction: "පහත බොත්තම ඔබා දැන්වීම නරඹා, තත්පර <span class=\"text-sky-400 font-semibold\">5ක්</span> රැඳී සිටින්න.",
@@ -48,7 +48,7 @@ const langs = {
         appGetVideoBtn: "🚀 වීඩියෝව ලබා ගන්න",
         // Age Verification SI
         ageTitle: "වයස තහවුරු කිරීම අවශ්‍යයි",
-        ageDesc: "මෙම Mini App එක තුළ වැඩිහිටි අන්තර්ගතයන් අඩංගු වේ. ඇතුළු වීමට ඔබේ වයස අවුරුදු 18 හෝ அதற்கு වැඩි විය යුතුය.",
+        ageDesc: "මෙම Mini App එක තුළ වැඩිහිටි අන්තර්ගතයන් අඩංගු වේ. ඇතුළු වීමට ඔබේ වයස අවුරුදු 18 හෝ ඊට වැඩි විය යුතුය.",
         ageUnderBtn: "මගේ වයස 18ට අඩුයි",
         ageOverBtn: "මගේ වයස 18ට වැඩි හෝ සමානයි"
     },
@@ -221,7 +221,7 @@ bot.start(async (ctx) => {
             }
 
             if (sentVideoIds.length === 0) {
-                return ctx.reply("❌ සමාවන්න, මෙම වීඩියෝව Database Channel එකෙන් මකා දමා ඇත හෝ ලබා ගත නොහැක.");
+                return ctx.reply("❌ සමාවන්න, මෙම වීඩියෝව Database එකෙන් මකා දමා ඇත හෝ ලබා ගත නොහැක.");
             }
 
             let warningText = t.warningText + (isProtected ? t.protectedNote : "");
@@ -617,7 +617,7 @@ bot.use(async (ctx, next) => {
             if (ctx.callbackQuery) {
                 return ctx.answerCbQuery("🛠️ Bot is under maintenance!", { show_alert: true });
             }
-            return ctx.reply("🛠️ **ਬੋට් නඩත්තු කටයුතු සිදු කරමින් පවතී!**\n\nකරුණාකර சிறிது වේලාවකින් නැවත උත්සාහ කරන්න.", { parse_mode: 'Markdown' });
+            return ctx.reply("🛠️ **බොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!**\n\nකරුණාකර මද වේලාවකින් නැවත උත්සාහ කරන්න.", { parse_mode: 'Markdown' });
         }
     } catch (err) {
         console.error("Maintenance check error:", err);
