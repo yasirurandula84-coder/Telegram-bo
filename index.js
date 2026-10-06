@@ -298,11 +298,11 @@ bot.action('set_lang_en', async (ctx) => {
     await ctx.editMessageText("✅ **Language changed to English.** Type /start.", { parse_mode: 'Markdown' });
 });
 
-// Express App setup for Render
+            // Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
-// Fixed Express MiniApp Route with Stats, Age Verification and 8-Hour Ad Rotation
+// Fixed Express MiniApp Route with Dual Ads + Final 5-Second Timer & Loading Bar
 app.get('/miniapp', async (req, res) => {
     const token = req.query.token || '';
     const userId = req.query.uid || '';
@@ -322,7 +322,7 @@ app.get('/miniapp', async (req, res) => {
             totalViews += file.views || 0;
         });
 
-        // --- පැය 8කට සැරයක් ඇඩ් ලින්ක් 3 මාරු වීමේ ලොජික් එක (ශ්‍රී ලංකා වෙලාව GMT+5:30) ---
+        // --- පැය 8කට සැරයක් ඇඩ් ලින්ක් මාරු වීමේ ලොජික් එක (ශ්‍රී ලංකා වෙලාව GMT+5:30) ---
         const now = new Date();
         const sriLankaOffset = 5.5 * 60 * 60 * 1000;
         const slTime = new Date(now.getTime() + now.getTimezoneOffset() * 60000 + sriLankaOffset);
@@ -332,14 +332,18 @@ app.get('/miniapp', async (req, res) => {
         const AD_LINK_2 = process.env.AD_LINK_2 || "https://www.profitableratecpmnetwork.com/default2"; 
         const AD_LINK_3 = process.env.AD_LINK_3 || "https://www.profitableratecpmnetwork.com/default3"; 
 
-        let selectedAdLink = AD_LINK_1;
+        let adLink1 = AD_LINK_1;
+        let adLink2 = AD_LINK_2;
 
         if (currentHour >= 0 && currentHour < 8) {
-            selectedAdLink = AD_LINK_1; // රාත්‍රී 12 සිට උදේ 8 දක්වා
+            adLink1 = AD_LINK_1;
+            adLink2 = AD_LINK_2;
         } else if (currentHour >= 8 && currentHour < 16) {
-            selectedAdLink = AD_LINK_2; // උදේ 8 සිට සවස 4 දක්වා
+            adLink1 = AD_LINK_2;
+            adLink2 = AD_LINK_3;
         } else {
-            selectedAdLink = AD_LINK_3; // සවස 4 සිට රාත්‍රී 12 දක්වා
+            adLink1 = AD_LINK_3;
+            adLink2 = AD_LINK_1;
         }
         // ----------------------------------------------------------------------------------
 
@@ -407,6 +411,12 @@ app.get('/miniapp', async (req, res) => {
         <div class="absolute -top-12 -left-12 w-32 h-32 bg-sky-500/20 rounded-full blur-2xl"></div>
         <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl"></div>
 
+        <!-- Warning Message Banner -->
+        <div id="warning-banner" class="hidden mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-400 text-xs font-semibold animate-pulse">
+            ❌ නිවැරදිව තත්පර 5ක් දැන්වීම නරඹන්න! (Please watch the ad properly for 5 seconds)
+        </div>
+
+        <!-- Steps Indicator Dots -->
         <div class="flex items-center justify-center gap-2 mb-5">
             <div id="step-1-dot" class="flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-500/30">1</div>
             <div class="w-6 h-0.5 bg-slate-700"></div>
@@ -422,26 +432,38 @@ app.get('/miniapp', async (req, res) => {
         
         <h1 class="text-xl font-extrabold tracking-tight mb-2 text-slate-100">${t.appTitle}</h1>
         <p id="instruction-text" class="text-slate-400 text-xs mb-6 leading-relaxed">
-            ${t.appInstruction}
+            වීඩියෝව ලබා ගැනීමට පහත දැක්වෙන දැන්වීම් **දෙක (02)** නරඹා සම්පූර්ණ කරන්න.
         </p>
 
-        <div class="mb-5">
-            <a href="${selectedAdLink}" target="_blank" id="ad-link-btn" onclick="openAd()" class="glow-effect flex items-center justify-center w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm gap-2">
-                <span>${t.appAdBtn}</span>
+        <!-- Ad Button 1 -->
+        <div class="mb-3" id="ad-box-1">
+            <a href="${adLink1}" target="_blank" id="ad-btn-1" onclick="openAd(1)" class="glow-effect flex items-center justify-between w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm">
+                <span>⭐ Watch Ad 1</span>
+                <span id="ad-status-1" class="text-xs bg-white/20 px-2.5 py-1 rounded-xl">Pending</span>
             </a>
         </div>
 
+        <!-- Ad Button 2 -->
+        <div class="mb-5" id="ad-box-2">
+            <a href="${adLink2}" target="_blank" id="ad-btn-2" onclick="openAd(2)" class="flex items-center justify-between w-full bg-slate-800 text-slate-500 font-bold py-3.5 px-4 rounded-2xl transition-all text-sm pointer-events-none border border-slate-700/50">
+                <span>⭐ Watch Ad 2</span>
+                <span id="ad-status-2" class="text-xs bg-slate-700 px-2.5 py-1 rounded-xl text-slate-400">Locked</span>
+            </a>
+        </div>
+
+        <!-- Final Timer Box (Triggered after both ads are viewed) -->
         <div id="timer-box" class="my-5 hidden">
             <div class="relative w-20 h-20 mx-auto flex items-center justify-center bg-slate-800/80 border border-sky-500/30 rounded-full mb-3 shadow-inner">
                 <div id="countdown" class="text-3xl font-black text-sky-400">5</div>
             </div>
-            <p id="status-text" class="text-xs text-slate-400 font-medium">${t.appStatusWatching}</p>
+            <p id="status-text" class="text-xs text-slate-400 font-medium">සම්බන්ධ කරමින් පවතී...</p>
             
             <div class="w-full bg-slate-800 h-2 rounded-full mt-4 overflow-hidden">
                 <div id="progress-bar" class="bg-sky-500 h-full w-full transition-all duration-1000"></div>
             </div>
         </div>
 
+        <!-- Success / Get Video Section -->
         <div id="success-box" class="hidden">
             <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-4">
                 <p class="text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5">
@@ -462,7 +484,7 @@ app.get('/miniapp', async (req, res) => {
             <div class="h-8 w-px bg-slate-800"></div>
             <div>
                 <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Total Views</p>
-                <p class="text-sm font-extrabold text-emerald-400 mt-0.5">👁️️ ${totalViews.toLocaleString()}</p>
+                <p class="text-sm font-extrabold text-emerald-400 mt-0.5">👁 ${totalViews.toLocaleString()}</p>
             </div>
         </div>
 
@@ -490,60 +512,88 @@ app.get('/miniapp', async (req, res) => {
             }
         }
 
-        let adClicked = false;
+        let currentActiveAd = 0;
         let leaveTime = 0;
-        let timerStarted = false;
+        let ad1Completed = false;
+        let ad2Completed = false;
+        let finalTimerStarted = false;
 
-        function openAd() {
-            adClicked = true;
+        function openAd(adNumber) {
+            if (adNumber === 2 && !ad1Completed) return;
+            currentActiveAd = adNumber;
             leaveTime = Date.now();
             
-            document.getElementById('step-1-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold";
-            document.getElementById('step-2-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-500/30";
+            document.getElementById('warning-banner').classList.add('hidden');
 
-            const adBtn = document.getElementById('ad-link-btn');
-            adBtn.innerHTML = "${t.appAdBtnWatching}";
-            adBtn.className = "flex items-center justify-center w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-sm";
+            const btn = document.getElementById('ad-btn-' + adNumber);
+            const status = document.getElementById('ad-status-' + adNumber);
+
+            btn.className = "flex items-center justify-between w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-sm";
+            status.innerHTML = '<span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></span> Checking...';
         }
 
         document.addEventListener('visibilitychange', () => {
-            if (!adClicked || timerStarted) return;
+            if (currentActiveAd === 0) return;
 
             if (document.hidden) {
                 leaveTime = Date.now();
             } else {
                 const timeSpent = (Date.now() - leaveTime) / 1000;
-                const statusText = document.getElementById('status-text');
-                const timerBox = document.getElementById('timer-box');
-                const adBtn = document.getElementById('ad-link-btn');
+                const adNum = currentActiveAd;
+                currentActiveAd = 0;
+
+                const btn = document.getElementById('ad-btn-' + adNum);
+                const status = document.getElementById('ad-status-' + adNum);
+                const warningBanner = document.getElementById('warning-banner');
 
                 if (timeSpent < 5) {
-                    timerBox.classList.remove('hidden');
-                    statusText.innerText = "${t.appStatusWarning}";
-                    statusText.className = "text-xs text-rose-400 mt-2 font-semibold";
-                    adBtn.innerHTML = "${t.appAdBtnAgain}";
-                    adBtn.className = "flex items-center justify-center w-full bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-sm";
-                    adClicked = false;
+                    warningBanner.classList.remove('hidden');
+                    btn.className = "glow-effect flex items-center justify-between w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-sm";
+                    status.innerText = "❌ Failed";
+                    status.className = "text-xs bg-rose-500/20 text-rose-300 px-2.5 py-1 rounded-xl";
                 } else {
-                    timerBox.classList.remove('hidden');
-                    adBtn.style.display = 'none';
-                    startCountdown();
+                    warningBanner.classList.add('hidden');
+                    btn.className = "flex items-center justify-between w-full bg-slate-800 text-emerald-400 font-bold py-3.5 px-4 rounded-2xl text-sm border border-emerald-500/30 pointer-events-none";
+                    status.innerText = "✓ Verified";
+                    status.className = "text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-xl";
+
+                    if (adNum === 1) {
+                        ad1Completed = true;
+                        document.getElementById('step-1-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold";
+                        document.getElementById('step-2-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-500/30";
+
+                        const ad2Btn = document.getElementById('ad-btn-2');
+                        ad2Btn.className = "glow-effect flex items-center justify-between w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm";
+                        document.getElementById('ad-status-2').innerText = "Pending";
+                        document.getElementById('ad-status-2').className = "text-xs bg-white/20 px-2.5 py-1 rounded-xl";
+                    } else if (adNum === 2) {
+                        ad2Completed = true;
+                        document.getElementById('step-2-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold";
+                        document.getElementById('step-3-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-500/30";
+
+                        // Hide Ad buttons and show Final 5s Timer Box
+                        document.getElementById('ad-box-1').style.display = 'none';
+                        document.getElementById('ad-box-2').style.display = 'none';
+                        
+                        startFinalCountdown();
+                    }
                 }
             }
         });
 
-        function startCountdown() {
-            if (timerStarted) return;
-            timerStarted = true;
+        function startFinalCountdown() {
+            if (finalTimerStarted) return;
+            finalTimerStarted = true;
 
             let timeLeft = 5;
-            const countdownEl = document.getElementById('countdown');
             const timerBox = document.getElementById('timer-box');
+            const countdownEl = document.getElementById('countdown');
             const successBox = document.getElementById('success-box');
             const statusText = document.getElementById('status-text');
             const progressBar = document.getElementById('progress-bar');
             const mainCard = document.getElementById('main-card');
 
+            timerBox.classList.remove('hidden');
             statusText.innerText = "${t.appStatusWait}";
 
             const timer = setInterval(() => {
@@ -553,13 +603,8 @@ app.get('/miniapp', async (req, res) => {
 
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    
-                    document.getElementById('step-2-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold";
-                    document.getElementById('step-3-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-500/30";
-
                     timerBox.classList.add('hidden');
                     successBox.classList.remove('hidden');
-
                     mainCard.classList.add('success-card');
                 }
             }, 1000);
@@ -584,6 +629,7 @@ app.get('/miniapp', async (req, res) => {
         res.send(`<!DOCTYPE html><html><body style="background:#09090b;color:white;text-align:center;padding-top:50px;"><h2>System Error. Please try again.</h2></body></html>`);
     }
 });
+
 
 
         
