@@ -1311,10 +1311,26 @@ bot.command('done', async (ctx) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
+    
+    // --- Telegram Commands Menu එක Set කිරීම ---
+    try {
+        await bot.telegram.setMyCommands([
+            { command: 'start', description: 'Start the bot / බොට් ආරම්භ කරන්න' },
+            { command: 'language', description: 'Change language / භාෂාව මාරු කරන්න' },
+            { command: 'stats', description: 'Bot Statistics (Admin only)' },
+            { command: 'maintenance', description: 'Toggle Maintenance (Admin only)' }
+        ]);
+        console.log("Bot commands menu set successfully!");
+    } catch (err) {
+        console.error("Failed to set bot commands:", err);
+    }
+    // ------------------------------------------
+
     bot.launch();
 });
+
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
