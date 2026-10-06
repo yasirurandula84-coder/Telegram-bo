@@ -298,11 +298,11 @@ bot.action('set_lang_en', async (ctx) => {
     await ctx.editMessageText("✅ **Language changed to English.** Type /start.", { parse_mode: 'Markdown' });
 });
 
-            // Express App setup for Render
+        // Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
-// Fixed Express MiniApp Route with Dual Ads + Final 5-Second Timer & Loading Bar
+// Fixed Express MiniApp Route with Language-Aware Warnings and Instructions
 app.get('/miniapp', async (req, res) => {
     const token = req.query.token || '';
     const userId = req.query.uid || '';
@@ -311,6 +311,15 @@ app.get('/miniapp', async (req, res) => {
         const user = await UserModel.findOne({ userId: userId.toString() });
         const lang = (user && user.language) ? user.language : 'si';
         const t = langs[lang] || langs.si;
+
+        // ආරක්ෂිතව ලැන්ග්වේජ් එක අනුව Warnings සහ Instructions ලබා දීම
+        const warningText = lang === 'en' 
+            ? "❌ Please watch the ad properly for at least 5 seconds!" 
+            : "❌ නිවැරදිව තත්පර 5ක් දැන්වීම නරඹන්න!";
+
+        const instructionText = lang === 'en'
+            ? "Please watch and complete both (02) ads below to get the video."
+            : "වීඩියෝව ලබා ගැනීමට පහත දැක්වෙන දැන්වීම් **දෙක (02)** නරඹා සම්පූර්ණ කරන්න.";
 
         // 1. Get Total Bot Users
         const totalUsers = await UserModel.countDocuments({});
@@ -413,7 +422,7 @@ app.get('/miniapp', async (req, res) => {
 
         <!-- Warning Message Banner -->
         <div id="warning-banner" class="hidden mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-400 text-xs font-semibold animate-pulse">
-            ❌ නිවැරදිව තත්පර 5ක් දැන්වීම නරඹන්න! (Please watch the ad properly for 5 seconds)
+            ${warningText}
         </div>
 
         <!-- Steps Indicator Dots -->
@@ -432,7 +441,7 @@ app.get('/miniapp', async (req, res) => {
         
         <h1 class="text-xl font-extrabold tracking-tight mb-2 text-slate-100">${t.appTitle}</h1>
         <p id="instruction-text" class="text-slate-400 text-xs mb-6 leading-relaxed">
-            වීඩියෝව ලබා ගැනීමට පහත දැක්වෙන දැන්වීම් **දෙක (02)** නරඹා සම්පූර්ණ කරන්න.
+            ${instructionText}
         </p>
 
         <!-- Ad Button 1 -->
@@ -456,7 +465,7 @@ app.get('/miniapp', async (req, res) => {
             <div class="relative w-20 h-20 mx-auto flex items-center justify-center bg-slate-800/80 border border-sky-500/30 rounded-full mb-3 shadow-inner">
                 <div id="countdown" class="text-3xl font-black text-sky-400">5</div>
             </div>
-            <p id="status-text" class="text-xs text-slate-400 font-medium">සම්බන්ධ කරමින් පවතී...</p>
+            <p id="status-text" class="text-xs text-slate-400 font-medium">${t.appStatusWait || "Connecting..."}</p>
             
             <div class="w-full bg-slate-800 h-2 rounded-full mt-4 overflow-hidden">
                 <div id="progress-bar" class="bg-sky-500 h-full w-full transition-all duration-1000"></div>
@@ -594,7 +603,7 @@ app.get('/miniapp', async (req, res) => {
             const mainCard = document.getElementById('main-card');
 
             timerBox.classList.remove('hidden');
-            statusText.innerText = "${t.appStatusWait}";
+            statusText.innerText = "${t.appStatusWait || 'Connecting...'}";
 
             const timer = setInterval(() => {
                 timeLeft--;
@@ -629,6 +638,8 @@ app.get('/miniapp', async (req, res) => {
         res.send(`<!DOCTYPE html><html><body style="background:#09090b;color:white;text-align:center;padding-top:50px;"><h2>System Error. Please try again.</h2></body></html>`);
     }
 });
+        
+
 
 
 
