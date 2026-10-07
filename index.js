@@ -923,7 +923,7 @@ bot.command('stats', async (ctx) => {
     }
 });
 
-// Admin Broadcast Command
+// Admin Broadcast Command (Optimized & Non-Blocking)
 bot.command('broadcast', async (ctx) => {
     const ADMIN_ID = process.env.ADMIN_ID;
     if (ctx.from.id.toString() !== ADMIN_ID) return;
@@ -933,40 +933,55 @@ bot.command('broadcast', async (ctx) => {
         return ctx.reply("❌ කරුණාකර ඔබ බ්‍රෝඩ්කාස්ට් කිරීමට අවශ්‍ය පෝස්ට් එකට **Reply** කර `/broadcast` ලෙස යවන්න.");
     }
 
-    await ctx.reply("🚀 පෝස්ට් බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ කරන ලදී...");
+    await ctx.reply("🚀 පෝස්ට් බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ කරන ලදී... කරුණාකර රැඳී සිටින්න.");
 
-    const users = await UserModel.find({ status: { $ne: 'blocked' } });
-    let successCount = 0;
-    let blockedCount = 0;
-    let failedCount = 0;
-
-    for (const user of users) {
+    // Background එකේ රන් වෙන්න දීමෙන් සර්වර් එක හැנג් වීම වළක්වා ගත හැක
+    setImmediate(async () => {
         try {
-            await ctx.telegram.copyMessage(user.userId, ctx.chat.id, repliedMessage.message_id);
-            successCount++;
+            const users = await UserModel.find({ status: { $ne: 'blocked' } });
+            let successCount = 0;
+            let blockedCount = 0;
+            let failedCount = 0;
 
-            if (user.status !== 'active') {
-                await UserModel.updateOne({ userId: user.userId }, { status: 'active' });
+            for (const user of users) {
+                try {
+                    await ctx.telegram.copyMessage(user.userId, ctx.chat.id, repliedMessage.message_id);
+                    successCount++;
+
+                    if (user.status !== 'active') {
+                        await UserModel.updateOne({ userId: user.userId }, { status: 'active' });
+                    }
+                } catch (error) {
+                    if (error.response && error.response.error_code === 403) {
+                        blockedCount++;
+                        await UserModel.updateOne({ userId: user.userId }, { status: 'blocked' });
+                    } else if (error.response && error.response.error_code === 429) {
+                        // Telegram Flood Wait එකක් ආවොත් තව ටිකක් වෙලා නතර වී සිටීම
+                        const retryAfter = error.response.parameters?.retry_after || 5;
+                        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+                        failedCount++;
+                    } else {
+                        failedCount++;
+                    }
+                }
+                // සර්වර් එකේ ලෝඩ් එක අඩු කිරීමට සහ Flood Limit මඟහරවා ගැනීමට ඩේලි එක 70ms දක්වා වැඩි කරන ලදී
+                await new Promise(resolve => setTimeout(resolve, 70));
             }
-        } catch (error) {
-            if (error.response && error.response.error_code === 403) {
-                blockedCount++;
-                await UserModel.updateOne({ userId: user.userId }, { status: 'blocked' });
-            } else {
-                failedCount++;
-            }
+
+            await ctx.reply(
+                `📊 *පෝස්ට් බ්‍රෝඩ්කාස්ට් වාර්තාව:*\n\n` +
+                `✅ සාර්ථකයි (Active): \`${successCount}\`\n` +
+                `🔴 බ්ලොක් කර ඇත (Blocked): \`${blockedCount}\`\n` +
+                `⚠️ අනෙකුත් දෝෂ: \`${failedCount}\``,
+                { parse_mode: 'Markdown' }
+            );
+        } catch (err) {
+            console.error("Broadcast Execution Error:", err);
+            await ctx.reply("❌ බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
         }
-        await new Promise(resolve => setTimeout(resolve, 50));
-    }
-
-    await ctx.reply(
-        `📊 *පෝස්ට් බ්‍රෝඩ්කාස්ට් වාර්තාව:*\n\n` +
-        `✅ සාර්ථකයි (Active): \`${successCount}\`\n` +
-        `🔴 බ්ලොක් කර ඇත (Blocked): \`${blockedCount}\`\n` +
-        `⚠️ අනෙකුත් දෝෂ: \`${failedCount}\``,
-        { parse_mode: 'Markdown' }
-    );
+    });
 });
+
 
 // Check Subscription Action
 bot.action(/^check_sub_(.+)$/, async (ctx) => {
