@@ -14,27 +14,27 @@ const REQUIRED_CHANNEL = process.env.REQUIRED_CHANNEL || "@wal_lokaya1";
 // --- Language Dictionary (භාෂා පරිවර්තන එකතුව) ---
 const langs = {
     si: {
-        welcome: "👋 **ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.**\n\nමම ඔබේ වීඩියෝ සහ චිත්‍රපට ලබා දෙන ස්වයංක්‍රීය බොට් එකයි.\n\n👇 වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණེන්න.",
+        welcome: "👋 *ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.*\n\nමම ඔබේ වීඩියෝ ලබා දෙන ස්වයංක්‍රීය බොට් එකයි.\n\n👇 වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණෙන්න.",
         channelBtn: "📢 Our Channel",
         howToUseBtn: "ℹ️ How to Use",
         supportBtn: "📞 Support",
         langBtn: "🌐 Language / භාෂාව",
-        subRequired: "⚠️ **ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!**\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව **\"🔄 Check Subscription\"** ඔබන්න.",
+        subRequired: "⚠️ *ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!*\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය.\n\n👇 පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව *\"🔄 Check Subscription\"* ඔබන්න.",
         joinChannel: "📢 Join Channel",
         checkSub: "🔄 Check Subscription",
         linkExpired: "❌ සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.",
-        warningText: "⚠️ **අවධානයට:**\nමෙම අන්තර්ගතය **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!",
-        protectedNote: "\n\n🔒 *(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි ලෙස ආරක්ෂා කර ඇත)*",
-        clickBtnText: "🔓 **අන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න:**",
+        warningText: "⚠️ *අවධානයට:*\nමෙම අන්තර්ගතය **විනාඩි 30 කින්** ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත!",
+        protectedNote: "\n\n🔒 *(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි වේ.)*",
+        clickBtnText: "🔓 *අන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න:*",
         viewsCount: "📊 මෙතෙක් නැරඹුම් වාර:",
         watchAdText: "▶️ Watch Ad & Get Content",
         guideText: "❓ වීඩියෝව ලබා ගන්නේ කෙසේද? (Guide)",
         systemError: "පද්ධතියේ දෝෂයක් සිදු විය.",
         notSubbedAlert: "❌ ඔබ තවමත් චැනල් එකට Join වී නැත!",
         subSuccess: "✅ ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.",
-        guideContent: "📖 **අන්තර්ගතයක් ලබාගන්නේ කෙසේද? (පියවර)**\n\n1️⃣ මුලින්ම **\"▶️ Watch Ad & Get Content\"** බොත්තම ඔබන්න.\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න.\n3️⃣ කාලය අවසන් වූ පසු මතුවන **\"🚀 වීඩියෝව ලබා ගන්න\"** බොත්තම ඔබන්න.\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත!",
+        guideContent: "📖 *අන්තර්ගතයක් ලබාගන්නේ කෙසේද? (පියවර)*\n\n1️⃣ මුලින්ම *\"▶️ Watch Ad & Get Content\"* බොත්තම ඔබන්න.\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න.\n3️⃣ කාලය අවසන් වූ පසු මතුවන *\"🚀 වීඩියෝව ලබා ගන්න\"* බොත්තම ඔබන්න.\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත!",
         supportMsg: "📞 ගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
-        langSelect: "🌐 **කරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language:**",
+        langSelect: "🌐 *කරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language:*",
         // Mini App Dictionary (SI)
         appTitle: "වීඩියෝව සූදානම් වෙමින් පවතී",
         appInstruction: "පහත බොත්තම ඔබා දැන්වීම නරඹා, තත්පර <span class=\"text-sky-400 font-semibold\">5ක්</span> රැඳී සිටින්න.",
@@ -53,27 +53,27 @@ const langs = {
         ageOverBtn: "මගේ වයස 18ට වැඩි හෝ සමානයි"
     },
     en: {
-        welcome: "👋 **Hello! Welcome.**\n\nI am your automated bot that provides videos and movies.\n\n👇 Please use a link from our main channel to access content through the bot.",
+        welcome: "👋 *Hello! Welcome.*\n\nI am your automated bot that provides videos and movies.\n\n👇 Please use a link from our main channel to access content through the bot.",
         channelBtn: "📢 Our Channel",
         howToUseBtn: "ℹ️ How to Use",
         supportBtn: "📞 Support",
         langBtn: "🌐 Language",
-        subRequired: "⚠️ **You haven't joined our main channel yet!**\n\nYou must join our channel first to get this video.\n\n👇 Click the button below to join the channel, then click **\"🔄 Check Subscription\"**.",
+        subRequired: "⚠️ *You haven't joined our main channel yet!*\n\nYou must join our channel first to get this video.\n\n👇 Click the button below to join the channel, then click *\"🔄 Check Subscription\"*.",
         joinChannel: "📢 Join Channel",
         checkSub: "🔄 Check Subscription",
         linkExpired: "❌ Sorry, this link has expired or is invalid.",
-        warningText: "⚠️ **Attention:**\nThis content will automatically disappear from your chat in **30 minutes**!",
+        warningText: "⚠️ *Attention:*\nThis content will automatically disappear from your chat in **30 minutes**!",
         protectedNote: "\n\n🔒 *(This content is protected against forwarding or downloading)*",
-        clickBtnText: "🔓 **Click the button below to get the content:**",
+        clickBtnText: "🔓 *Click the button below to get the content:*",
         viewsCount: "📊 Total Views so far:",
         watchAdText: "▶️ Watch Ad & Get Content",
         guideText: "❓ How to get video? (Guide)",
         systemError: "A system error occurred.",
         notSubbedAlert: "❌ You have not joined the channel yet!",
         subSuccess: "✅ Thank you! You can now access the content.",
-        guideContent: "📖 **How to get content? (Steps)**\n\n1️⃣ First click the **\"▶ Watch Ad & Get Content\"** button.\n2️⃣ Click on the ad on the opened page and wait for 5 seconds.\n3️⃣ Once time is up, click the **\"🚀 Get Video\"** button that appears.\n4️⃣ Then you will automatically be redirected to the bot to receive your content!",
+        guideContent: "📖 *How to get content? (Steps)*\n\n1️⃣ First click the *\"▶ Watch Ad & Get Content\"* button.\n2️⃣ Click on the ad on the opened page and wait for 5 seconds.\n3️⃣ Once time is up, click the *\"🚀 Get Video\"* button that appears.\n4️⃣ Then you will automatically be redirected to the bot to receive your content!",
         supportMsg: "📞 For inquiries, please contact our main channel.",
-        langSelect: "🌐 **Please select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න:**",
+        langSelect: "🌐 *Please select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න:*",
         // Mini App Dictionary (EN)
         appTitle: "Video is getting ready",
         appInstruction: "Click the button below, view the ad, and wait for <span class=\"text-sky-400 font-semibold\">5 seconds</span>.",
@@ -177,7 +177,10 @@ bot.start(async (ctx) => {
             reply_markup: {
                 inline_keyboard: [
                     [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
-                    [{ text: t.howToUseBtn, callback_data: "how_to_use" }, { text: t.supportBtn, callback_data: "support_info" }],
+                    [
+                        { text: t.howToUseBtn, callback_data: "how_to_use" }, 
+                        { text: t.supportBtn, callback_data: "support_info" }
+                    ],
                     [{ text: t.langBtn, callback_data: "change_language" }]
                 ]
             }
@@ -243,7 +246,7 @@ bot.start(async (ctx) => {
         const miniAppUrl = `${hostUrl}/miniapp?token=${payload}&uid=${userId}`;
 
         await ctx.reply(
-            `${t.clickBtnText}\n\n${t.viewsCount} ${fileDoc.views}`,
+            `${t.clickBtnText}\n\n📊 *නැරඹුම් වාර (Views):* \`${fileDoc.views}\``,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
@@ -280,7 +283,14 @@ bot.action('change_language', async (ctx) => {
     const lang = await getUserLang(userId);
     await ctx.reply(langs[lang].langSelect, {
         parse_mode: 'Markdown',
-        reply_markup: { inline_keyboard: [[{ text: "සිංහල 🇱🇰", callback_data: "set_lang_si" }, { text: "English 🇬🇧", callback_data: "set_lang_en" }]] }
+        reply_markup: { 
+            inline_keyboard: [
+                [
+                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si" }, 
+                    { text: "🇬🇧 English", callback_data: "set_lang_en" }
+                ]
+            ] 
+        }
     });
 });
 
@@ -288,14 +298,14 @@ bot.action('set_lang_si', async (ctx) => {
     const userId = ctx.from.id.toString();
     await UserModel.updateOne({ userId }, { $set: { language: 'si' } }, { upsert: true });
     await ctx.answerCbQuery("සිංහල භාෂාව තෝරන ලදී.");
-    await ctx.editMessageText("✅ **භාෂාව සිංහල ලෙස වෙනස් කරන ලදී.** /start ටයිප් කරන්න.", { parse_mode: 'Markdown' });
+    await ctx.editMessageText("✅ *භාෂාව සිංහල ලෙස වෙනස් කරන ලදී.*\n\nමූලික මෙනුව වෙත යාමට /start ටයිප් කරන්න.", { parse_mode: 'Markdown' });
 });
 
 bot.action('set_lang_en', async (ctx) => {
     const userId = ctx.from.id.toString();
     await UserModel.updateOne({ userId }, { $set: { language: 'en' } }, { upsert: true });
     await ctx.answerCbQuery("Language set to English.");
-    await ctx.editMessageText("✅ **Language changed to English.** Type /start.", { parse_mode: 'Markdown' });
+    await ctx.editMessageText("✅ *Language changed to English.*\n\nType /start to go to the main menu.", { parse_mode: 'Markdown' });
 });
 
         // Express App setup for Render
@@ -312,7 +322,6 @@ app.get('/miniapp', async (req, res) => {
         const lang = (user && user.language) ? user.language : 'si';
         const t = langs[lang] || langs.si;
 
-        // ආරක්ෂිතව ලැන්ග්වේජ් එක අනුව Warnings සහ Instructions ලබා දීම
         const warningText = lang === 'en' 
             ? "❌ Please watch the ad properly for at least 5 seconds!" 
             : "❌ නිවැරදිව තත්පර 5ක් දැන්වීම නරඹන්න!";
@@ -321,17 +330,14 @@ app.get('/miniapp', async (req, res) => {
             ? "Please watch and complete both (02) ads below to get the video."
             : "වීඩියෝව ලබා ගැනීමට පහත දැක්වෙන දැන්වීම් **දෙක (02)** නරඹා සම්පූර්ණ කරන්න.";
 
-        // 1. Get Total Bot Users
         const totalUsers = await UserModel.countDocuments({});
 
-        // 2. Get Total File Views
         const allFiles = await FileModel.find({});
         let totalViews = 0;
         allFiles.forEach(file => {
             totalViews += file.views || 0;
         });
 
-        // --- පැය 8කට සැරයක් ඇඩ් ලින්ක් මාරු වීමේ ලොජික් එක (ශ්‍රී ලංකා වෙලාව GMT+5:30) ---
         const now = new Date();
         const sriLankaOffset = 5.5 * 60 * 60 * 1000;
         const slTime = new Date(now.getTime() + now.getTimezoneOffset() * 60000 + sriLankaOffset);
@@ -354,7 +360,6 @@ app.get('/miniapp', async (req, res) => {
             adLink1 = AD_LINK_3;
             adLink2 = AD_LINK_1;
         }
-        // ----------------------------------------------------------------------------------
 
         res.send(`
             <!DOCTYPE html>
@@ -387,7 +392,6 @@ app.get('/miniapp', async (req, res) => {
 </head>
 <body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-5 select-none font-sans">
     
-    <!-- Age Verification Modal / Gateway -->
     <div id="age-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-md hidden">
         <div class="w-full max-w-sm rounded-3xl bg-slate-900 border border-slate-800 p-7 text-center shadow-2xl relative overflow-hidden">
             <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-2xl font-black shadow-inner">
@@ -414,18 +418,15 @@ app.get('/miniapp', async (req, res) => {
         </div>
     </div>
 
-    <!-- Main Content App Card -->
     <div id="main-card" class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 p-7 rounded-3xl shadow-2xl max-w-sm w-full text-center relative overflow-hidden transition-all duration-500">
         
         <div class="absolute -top-12 -left-12 w-32 h-32 bg-sky-500/20 rounded-full blur-2xl"></div>
         <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl"></div>
 
-        <!-- Warning Message Banner -->
         <div id="warning-banner" class="hidden mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-400 text-xs font-semibold animate-pulse">
             ${warningText}
         </div>
 
-        <!-- Steps Indicator Dots -->
         <div class="flex items-center justify-center gap-2 mb-5">
             <div id="step-1-dot" class="flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-500/30">1</div>
             <div class="w-6 h-0.5 bg-slate-700"></div>
@@ -444,7 +445,6 @@ app.get('/miniapp', async (req, res) => {
             ${instructionText}
         </p>
 
-        <!-- Ad Button 1 -->
         <div class="mb-3" id="ad-box-1">
             <a href="${adLink1}" target="_blank" id="ad-btn-1" onclick="openAd(1)" class="glow-effect flex items-center justify-between w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm">
                 <span>⭐ Watch Ad 1</span>
@@ -452,7 +452,6 @@ app.get('/miniapp', async (req, res) => {
             </a>
         </div>
 
-        <!-- Ad Button 2 -->
         <div class="mb-5" id="ad-box-2">
             <a href="${adLink2}" target="_blank" id="ad-btn-2" onclick="openAd(2)" class="flex items-center justify-between w-full bg-slate-800 text-slate-500 font-bold py-3.5 px-4 rounded-2xl transition-all text-sm pointer-events-none border border-slate-700/50">
                 <span>⭐ Watch Ad 2</span>
@@ -460,7 +459,6 @@ app.get('/miniapp', async (req, res) => {
             </a>
         </div>
 
-        <!-- Final Timer Box (Triggered after both ads are viewed) -->
         <div id="timer-box" class="my-5 hidden">
             <div class="relative w-20 h-20 mx-auto flex items-center justify-center bg-slate-800/80 border border-sky-500/30 rounded-full mb-3 shadow-inner">
                 <div id="countdown" class="text-3xl font-black text-sky-400">5</div>
@@ -472,7 +470,6 @@ app.get('/miniapp', async (req, res) => {
             </div>
         </div>
 
-        <!-- Success / Get Video Section -->
         <div id="success-box" class="hidden">
             <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-4">
                 <p class="text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5">
@@ -484,7 +481,6 @@ app.get('/miniapp', async (req, res) => {
             </button>
         </div>
 
-        <!-- Live Stats Dashboard Inside Mini App -->
         <div class="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-around text-center">
             <div>
                 <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Total Users</p>
@@ -580,7 +576,6 @@ app.get('/miniapp', async (req, res) => {
                         document.getElementById('step-2-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold";
                         document.getElementById('step-3-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-500/30";
 
-                        // Hide Ad buttons and show Final 5s Timer Box
                         document.getElementById('ad-box-1').style.display = 'none';
                         document.getElementById('ad-box-2').style.display = 'none';
                         
@@ -638,12 +633,6 @@ app.get('/miniapp', async (req, res) => {
         res.send(`<!DOCTYPE html><html><body style="background:#09090b;color:white;text-align:center;padding-top:50px;"><h2>System Error. Please try again.</h2></body></html>`);
     }
 });
-        
-
-
-
-
-        
 
 async function checkUserSubscription(ctx, userId) {
     if (!REQUIRED_CHANNEL) return true;
@@ -674,7 +663,7 @@ bot.use(async (ctx, next) => {
             if (ctx.callbackQuery) {
                 return ctx.answerCbQuery("🛠️ Bot is under maintenance!", { show_alert: true });
             }
-            return ctx.reply("🛠️ **බොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!**\n\nකරුණාකර මද වේලාවකින් නැවත උත්සාහ කරන්න.", { parse_mode: 'Markdown' });
+            return ctx.reply("🛠️ *බොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!*\n\nකරුණාකර මද වේලාවකින් නැවත උත්සාහ කරන්න.", { parse_mode: 'Markdown' });
         }
     } catch (err) {
         console.error("Maintenance check error:", err);
@@ -700,7 +689,7 @@ bot.command('maintenance', async (ctx) => {
         }
 
         const statusText = setting.value ? "🔴 සක්‍රීය කරන ලදී (Enabled)" : "🟢 අක්‍රීය කරන ලදී (Disabled)";
-        await ctx.reply(`🛠 **Maintenance Mode Status:**\n\n${statusText}`, { parse_mode: 'Markdown' });
+        await ctx.reply(`🛠 *Maintenance Mode Status:*\n\n${statusText}`, { parse_mode: 'Markdown' });
     } catch (error) {
         console.error("Maintenance toggle error:", error);
         await ctx.reply("❌ දෝෂයක් ඇති විය.");
@@ -718,8 +707,8 @@ bot.command('language', async (ctx) => {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: "සිංහල 🇱🇰", callback_data: "set_lang_si" },
-                    { text: "English 🇬🇧", callback_data: "set_lang_en" }
+                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si" },
+                    { text: "🇬🇧 English", callback_data: "set_lang_en" }
                 ]
             ]
         }
@@ -730,14 +719,14 @@ bot.action('set_lang_si', async (ctx) => {
     const userId = ctx.from.id.toString();
     await UserModel.updateOne({ userId }, { $set: { language: 'si' } }, { upsert: true });
     await ctx.answerCbQuery("සිංහල භාෂාව තෝරන ලදී.");
-    await ctx.editMessageText("✅ **භාෂාව සිංහල ලෙස වෙනස් කරන ලදී.**\n\nමූලික මෙනුව වෙත යාමට /start ටයිප් කරන්න.", { parse_mode: 'Markdown' });
+    await ctx.editMessageText("✅ *භාෂාව සිංහල ලෙස වෙනස් කරන ලදී.*\n\nමූලික මෙනුව වෙත යාමට /start ටයිප් කරන්න.", { parse_mode: 'Markdown' });
 });
 
 bot.action('set_lang_en', async (ctx) => {
     const userId = ctx.from.id.toString();
     await UserModel.updateOne({ userId }, { $set: { language: 'en' } }, { upsert: true });
     await ctx.answerCbQuery("Language set to English.");
-    await ctx.editMessageText("✅ **Language changed to English.**\n\nType /start to go to the main menu.", { parse_mode: 'Markdown' });
+    await ctx.editMessageText("✅ *Language changed to English.*\n\nType /start to go to the main menu.", { parse_mode: 'Markdown' });
 });
 
 bot.start(async (ctx) => {
@@ -766,7 +755,10 @@ bot.start(async (ctx) => {
                 reply_markup: {
                     inline_keyboard: [
                         [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
-                        [{ text: t.howToUseBtn, callback_data: "how_to_use" }, { text: t.supportBtn, callback_data: "support_info" }],
+                        [
+                            { text: t.howToUseBtn, callback_data: "how_to_use" }, 
+                            { text: t.supportBtn, callback_data: "support_info" }
+                        ],
                         [{ text: t.langBtn, callback_data: "change_language" }]
                     ]
                 }
@@ -861,7 +853,7 @@ bot.start(async (ctx) => {
 
         await ctx.reply(
             `${t.clickBtnText}\n\n` +
-            `${t.viewsCount} ${fileDoc.views}\n\n` +
+            `📊 *නැරඹුම් වාර (Views):* \`${fileDoc.views}\`\n\n` +
             (lang === 'si' ? "මෙම බොත්තම එබූ විට විවෘත වන පිටුවෙන් දැන්වීම බලා තත්පර 5ක් රැඳී සිට අන්තර්ගතය ලබා ගන්න." : "Click the button below, view the ad on the page, wait 5 seconds, and get your content."),
             {
                 parse_mode: 'Markdown',
@@ -913,15 +905,15 @@ bot.command('stats', async (ctx) => {
         const conversionRate = totalClicks > 0 ? ((totalViews / totalClicks) * 100).toFixed(1) : 0;
 
         await ctx.reply(
-            `📊 **බොට් හි සංඛ්‍යාලේඛන (Analytics Dashboard)**\n\n` +
-            `👥 මුළු යුසර්ස්ලා (Total Users): **${totalUsers}**\n` +
-            `🟢 සක්‍රීය පරිශීලකයන් (Active): **${activeUsers}**\n` +
-            `🔴 බ්ලොක් කළ අය (Blocked): **${blockedUsers}**\n` +
-            `📅 මෙම මාසයේ අලුත් යුසර්ස්ලා: **${monthlyUsers}**\n` +
-            `📁 ගබඩා කර ඇති අන්තර්ගතයන්: **${totalFiles}**\n` +
-            `🔗 මුළු ලින්ක් ක්ලික්ස් (Total Clicks): **${totalClicks}**\n` +
-            `👁️ මුළු නැරඹුම් (Total Views): **${totalViews}**\n` +
-            `📈 ඇඩ් සාර්ථකත්ව අනුපාතය (Conversion): **${conversionRate}%**`,
+            `📊 *බොට් හි සංඛ්‍යාලේඛන (Analytics Dashboard)*\n\n` +
+            `👥 මුළු යුසර්ස්ලා (Total Users): \`${totalUsers}\`\n` +
+            `🟢 සක්‍රීය පරිශීලකයන් (Active): \`${activeUsers}\`\n` +
+            `🔴 බ්ලොක් කළ අය (Blocked): \`${blockedUsers}\`\n` +
+            `📅 මෙම මාසයේ අලුත් යුසර්ස්ලා: \`${monthlyUsers}\`\n` +
+            `📁 ගබඩා කර ඇති අන්තර්ගතයන්: \`${totalFiles}\`\n` +
+            `🔗 මුළු ලින්ක් ක්ලික්ස් (Total Clicks): \`${totalClicks}\`\n` +
+            `👁️ මුළු නැරඹුම් (Total Views): \`${totalViews}\`\n` +
+            `📈 ඇඩ් සාර්ථකත්ව අනුපාතය (Conversion): \`${conversionRate}%\``,
             { parse_mode: 'Markdown' }
         );
 
@@ -968,10 +960,10 @@ bot.command('broadcast', async (ctx) => {
     }
 
     await ctx.reply(
-        `📊 **පෝස්ට් බ්‍රෝඩ්කාස්ට් වාර්තාව:**\n\n` +
-        `✅ සාර්ථකයි (Active): ${successCount}\n` +
-        `🔴 බ්ලොක් කර ඇත (Blocked): ${blockedCount}\n` +
-        `⚠️ අනෙකුත් දෝෂ: ${failedCount}`,
+        `📊 *පෝස්ට් බ්‍රෝඩ්කාස්ට් වාර්තාව:*\n\n` +
+        `✅ සාර්ථකයි (Active): \`${successCount}\`\n` +
+        `🔴 බ්ලොක් කර ඇත (Blocked): \`${blockedCount}\`\n` +
+        `⚠️ අනෙකුත් දෝෂ: \`${failedCount}\``,
         { parse_mode: 'Markdown' }
     );
 });
@@ -1055,7 +1047,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}&uid=${userId}`;
 
         await ctx.editMessageText(
-            `${t.clickBtnText}\n\n${t.viewsCount} ${fileDoc.views}`,
+            `${t.clickBtnText}\n\n📊 *නැරඹුම් වාර (Views):* \`${fileDoc.views}\``,
             {
                 parse_mode: 'Markdown',
                 reply_markup: {
@@ -1082,8 +1074,8 @@ bot.action('change_language', async (ctx) => {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: "සිංහල 🇱🇰", callback_data: "set_lang_si" },
-                    { text: "English 🇬🇧", callback_data: "set_lang_en" }
+                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si" },
+                    { text: "🇬🇧 English", callback_data: "set_lang_en" }
                 ]
             ]
         }
@@ -1137,15 +1129,15 @@ bot.action('toggle_spoiler_no', async (ctx) => {
 
 async function promptProtectContent(ctx) {
     await ctx.editMessageText(
-        "🛡️ **Protect Content (Download / Forward Restriction):**\n\n" +
+        "🛡️ *Protect Content (Download / Forward Restriction):*\n\n" +
         "මෙම අන්තර්ගතය යූසර්ස්ලාට **Forward සහ Download කිරීමට නොහැකි වන සේ** ආරක්ෂා (Block) කරන්න ඕනේද?",
         {
             parse_mode: 'Markdown',
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🔒 ඔව්, Block කරන්න (Yes)", callback_data: "toggle_protect_yes" },
-                        { text: "🔓 නැහැ, ඉඩ දෙන්න (No)", callback_data: "toggle_protect_no" }
+                        { text: "🔒 ඔව් (Yes)", callback_data: "toggle_protect_yes" },
+                        { text: "🔓 නැහැ (No)", callback_data: "toggle_protect_no" }
                     ]
                 ]
             }
@@ -1162,10 +1154,10 @@ bot.action('toggle_protect_yes', async (ctx) => {
     }
     await ctx.answerCbQuery("🔒 Forward & Download බ්ලොක් කිරීමට සකසන ලදී.");
     await ctx.editMessageText(
-        "✅ **සැකසීම් සාර්ථකයි!**\n\n" +
-        "🔒 Blur Mode: **ON**\n" +
-        "🛡️ Protect Content: **ON (Block)**\n\n" +
-        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.",
+        "✅ *සැකසීම් සාර්ථකයි!*\n\n" +
+        "🔒 Blur Mode: \`ON\`\n" +
+        "🛡️ Protect Content: \`ON (Block)\`\n\n" +
+        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු \`/done\` ටයිප් කරන්න.",
         { parse_mode: 'Markdown' }
     );
 });
@@ -1179,10 +1171,10 @@ bot.action('toggle_protect_no', async (ctx) => {
     }
     await ctx.answerCbQuery("🔓 Forward & Download කිරීමට ඉඩ හරින ලදී.");
     await ctx.editMessageText(
-        "✅ **සැකසීම් සාර්ථකයි!**\n\n" +
-        "🔒 Blur Mode: **ස්ථාපිතයි**\n" +
-        "🛡️ Protect Content: **OFF (Allow)**\n\n" +
-        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු `/done` ටයිප් කරන්න.",
+        "✅ *සැකසීම් සාර්ථකයි!*\n\n" +
+        "🔒 Blur Mode: \`ස්ථාපිතයි\`\n" +
+        "🛡️ Protect Content: \`OFF (Allow)\`\n\n" +
+        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු \`/done\` ටයිප් කරන්න.",
         { parse_mode: 'Markdown' }
     );
 });
@@ -1227,8 +1219,8 @@ bot.on('photo', async (ctx) => {
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🔒 Blur කරන්න (Yes)", callback_data: "toggle_spoiler_yes" },
-                        { text: "🔓 Blur කරන්න එපා (No)", callback_data: "toggle_spoiler_no" }
+                        { text: "🔒 Blur කරන්න", callback_data: "toggle_spoiler_yes" },
+                        { text: "🔓 එපා", callback_data: "toggle_spoiler_no" }
                     ]
                 ]
             }
@@ -1251,7 +1243,7 @@ bot.on(['video', 'document'], async (ctx) => {
         pending.videoMsgIds.push(forwarded.message_id);
         pendingUploads.set(userId, pending);
 
-        await ctx.reply(`✅ අන්තර්ගතය එකතු විය! (මුළු ගණන: ${pending.videoMsgIds.length}). තවත් ඇත්නම් එවන්න, නැතහොත් `/done` ටයිප් කරන්න.`);
+        await ctx.reply(`✅ අන්තර්ගතය එකතු විය! (මුළු ගණන: ${pending.videoMsgIds.length}). තවත් ඇත්නම් එවන්න, නැතහොත් \`/done\` ටයිප් කරන්න.`);
     } catch (error) {
         console.error(error);
     }
@@ -1281,18 +1273,18 @@ bot.command('done', async (ctx) => {
         const botUsername = ctx.botInfo.username;
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
 
-        await ctx.reply(`✅ **සාර්ථකව ගබඩා විය!** (ගොනු ගණන: ${pending.videoMsgIds.length})\n\n🚀 ප්‍රධාන චැනල් එකට පෝස්ට් යවන ලදී!`, { parse_mode: 'Markdown' });
+        await ctx.reply(`✅ *සාර්ථකව ගබඩා විය!* (ගොනු ගණන: \`${pending.videoMsgIds.length}\`)\n\n🚀 ප්‍රධාන චැනල් එකට පෝස්ට් යවන ලදී!`, { parse_mode: 'Markdown' });
 
         const buttonText = pending.videoMsgIds.length > 1 ? "▶️ View Full Collection" : "▶️ View Content";
         const headerText = pending.videoMsgIds.length > 1 
-            ? "🔥 **දැන් නිකුත් වූ විශේෂ කලෙක්ෂන් එක!** 🔥" 
-            : "🔥 **දැන් නිකුත් වූ විශේෂ අන්තර්ගතය!** 🔥";
+            ? "🔥 *දැන් නිකුත් වූ විශේෂ කලෙක්ෂන් එක!* 🔥" 
+            : "🔥 *දැන් නිකුත් වූ විශේෂ අන්තර්ගතය!* 🔥";
 
         await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
             caption: `${headerText}\n\n` +
                      `✨ *${pending.caption}*\n\n` +
-                     `📁 **අන්තර්ගතය:** ගොනු ${pending.videoMsgIds.length} ක් ඇතුළත් වේ.\n\n` +
-                     `👇 **නරඹන්න පහත බොත්තම ක්ලික් කරන්න:**`,
+                     `📁 *අන්තර්ගතය:* ගොනු \`${pending.videoMsgIds.length}\` ක් ඇතුළත් වේ.\n\n` +
+                     `👇 *නරඹන්න පහත බොත්තම ක්ලික් කරන්න:*`,
             parse_mode: 'Markdown',
             has_spoiler: pending.hasSpoiler,
             reply_markup: {
@@ -1314,7 +1306,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
     
-    // --- Telegram Commands Menu එක Set කිරීම ---
     try {
         await bot.telegram.setMyCommands([
             { command: 'start', description: 'Start the bot / බොට් ආරම්භ කරන්න' },
@@ -1326,11 +1317,9 @@ app.listen(PORT, async () => {
     } catch (err) {
         console.error("Failed to set bot commands:", err);
     }
-    // ------------------------------------------
 
     bot.launch();
 });
-
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
