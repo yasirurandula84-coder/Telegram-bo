@@ -308,11 +308,10 @@ bot.action('set_lang_en', async (ctx) => {
     await ctx.editMessageText("✅ *Language changed to English.*\n\nType /start to go to the main menu.", { parse_mode: 'Markdown' });
 });
 
-        // Express App setup for Render
+// Express App setup for Render
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
-// Fixed Express MiniApp Route with Language-Aware Warnings and Instructions
 app.get('/miniapp', async (req, res) => {
     const token = req.query.token || '';
     const userId = req.query.uid || '';
@@ -935,7 +934,6 @@ bot.command('broadcast', async (ctx) => {
 
     await ctx.reply("🚀 පෝස්ට් බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ කරන ලදී... කරුණාකර රැඳී සිටින්න.");
 
-    // Background එකේ රන් වෙන්න දීමෙන් සර්වර් එක හැנג් වීම වළක්වා ගත හැක
     setImmediate(async () => {
         try {
             const users = await UserModel.find({ status: { $ne: 'blocked' } });
@@ -956,7 +954,6 @@ bot.command('broadcast', async (ctx) => {
                         blockedCount++;
                         await UserModel.updateOne({ userId: user.userId }, { status: 'blocked' });
                     } else if (error.response && error.response.error_code === 429) {
-                        // Telegram Flood Wait එකක් ආවොත් තව ටිකක් වෙලා නතර වී සිටීම
                         const retryAfter = error.response.parameters?.retry_after || 5;
                         await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
                         failedCount++;
@@ -964,7 +961,6 @@ bot.command('broadcast', async (ctx) => {
                         failedCount++;
                     }
                 }
-                // සර්වර් එකේ ලෝඩ් එක අඩු කිරීමට සහ Flood Limit මඟහරවා ගැනීමට ඩේලි එක 70ms දක්වා වැඩි කරන ලදී
                 await new Promise(resolve => setTimeout(resolve, 70));
             }
 
@@ -981,7 +977,6 @@ bot.command('broadcast', async (ctx) => {
         }
     });
 });
-
 
 // Check Subscription Action
 bot.action(/^check_sub_(.+)$/, async (ctx) => {
@@ -1118,7 +1113,38 @@ bot.action('support_info', async (ctx) => {
     await ctx.reply(t.supportMsg);
 });
 
-// --- Upload Workflow Actions ---
+// --- Upload Workflow Actions & Cancel Feature ---
+
+const pendingUploads = new Map();
+
+// Cancel Command
+bot.command('cancel', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const ADMIN_ID = process.env.ADMIN_ID;
+    if (ADMIN_ID && userId !== ADMIN_ID) return;
+
+    const pending = pendingUploads.get(userId);
+    if (!pending) {
+        return ctx.reply("⚠️ දැනට ක්‍රියාත්මක වන අප්‌ලෝඩ් කිරීමක් හෝ සකස් කිරීමක් නොමැත.");
+    }
+
+    pendingUploads.delete(userId);
+    await ctx.reply("❌ අප්‌ලෝඩ් කිරීම සාර්ථකව අවලංගු (Cancel) කරන ලදී. සියලු දත්ත මකා දමන ලදී.");
+});
+
+// Cancel Action Button
+bot.action('cancel_upload', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const pending = pendingUploads.get(userId);
+    
+    if (pending) {
+        pendingUploads.delete(userId);
+        await ctx.answerCbQuery("අප්‌ලෝඩ් කිරීම අවලංගු කරන ලදී.");
+        await ctx.editMessageText("❌ *අප්‌ලෝඩ් කිරීම සාර්ථකව අවලංගු (Cancel) කරන ලදී.*", { parse_mode: 'Markdown' });
+    } else {
+        await ctx.answerCbQuery("ක්‍රියාකාරී අප්‌ලෝඩ් එකක් හමු නොවීය.");
+    }
+});
 
 bot.action('toggle_spoiler_yes', async (ctx) => {
     const userId = ctx.from.id.toString();
@@ -1153,7 +1179,8 @@ async function promptProtectContent(ctx) {
                     [
                         { text: "🔒 ඔව් (Yes)", callback_data: "toggle_protect_yes" },
                         { text: "🔓 නැහැ (No)", callback_data: "toggle_protect_no" }
-                    ]
+                    ],
+                    [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload" }]
                 ]
             }
         }
@@ -1172,7 +1199,7 @@ bot.action('toggle_protect_yes', async (ctx) => {
         "✅ *සැකසීම් සාර්ථකයි!*\n\n" +
         "🔒 Blur Mode: \`ON\`\n" +
         "🛡️ Protect Content: \`ON (Block)\`\n\n" +
-        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු \`/done\` ටයිප් කරන්න.",
+        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු \`/done\` ටයිප් කරන්න, නැතහොත් අවලංගු කිරීමට /cancel භාවිතා කරන්න.",
         { parse_mode: 'Markdown' }
     );
 });
@@ -1189,12 +1216,10 @@ bot.action('toggle_protect_no', async (ctx) => {
         "✅ *සැකසීම් සාර්ථකයි!*\n\n" +
         "🔒 Blur Mode: \`ස්ථාපිතයි\`\n" +
         "🛡️ Protect Content: \`OFF (Allow)\`\n\n" +
-        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු \`/done\` ටයිප් කරන්න.",
+        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු \`/done\` ටයිප් කරන්න, නැතහොත් අවලංගු කිරීමට /cancel භාවිතා කරන්න.",
         { parse_mode: 'Markdown' }
     );
 });
-
-const pendingUploads = new Map();
 
 bot.on('photo', async (ctx) => {
     const userId = ctx.from.id.toString();
@@ -1208,7 +1233,16 @@ bot.on('photo', async (ctx) => {
             pending.videoMsgIds.push(forwarded.message_id);
             pendingUploads.set(userId, pending);
 
-            await ctx.reply(`✅ ඡායාරූපය එකතු විය! (මුළු ගණන: ${pending.videoMsgIds.length}). තවත් ඇත්නම් එවන්න, නැතහොත් /done ටයිප් කරන්න.`);
+            await ctx.reply(
+                `✅ ඡායාරූපය එකතු විය! (මුළු ගණන: ${pending.videoMsgIds.length}). තවත් ඇත්නම් එවන්න, නැතහොත් /done ටයිප් කරන්න.`,
+                {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload" }]
+                        ]
+                    }
+                }
+            );
         } catch (error) {
             console.error(error);
         }
@@ -1236,7 +1270,8 @@ bot.on('photo', async (ctx) => {
                     [
                         { text: "🔒 Blur කරන්න", callback_data: "toggle_spoiler_yes" },
                         { text: "🔓 එපා", callback_data: "toggle_spoiler_no" }
-                    ]
+                    ],
+                    [{ text: "❌ සම්පූර්ණයෙන්ම Cancel කරන්න", callback_data: "cancel_upload" }]
                 ]
             }
         }
@@ -1258,7 +1293,16 @@ bot.on(['video', 'document'], async (ctx) => {
         pending.videoMsgIds.push(forwarded.message_id);
         pendingUploads.set(userId, pending);
 
-        await ctx.reply(`✅ අන්තර්ගතය එකතු විය! (මුළු ගණන: ${pending.videoMsgIds.length}). තවත් ඇත්නම් එවන්න, නැතහොත් \`/done\` ටයිප් කරන්න.`);
+        await ctx.reply(
+            `✅ අන්තර්ගතය එකතු විය! (මුළු ගණන: ${pending.videoMsgIds.length}). තවත් ඇත්නම් එවන්න, නැතහොත් \`/done\` ටයිප් කරන්න.`,
+            {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload" }]
+                    ]
+                }
+            }
+        );
     } catch (error) {
         console.error(error);
     }
@@ -1325,6 +1369,7 @@ app.listen(PORT, async () => {
         await bot.telegram.setMyCommands([
             { command: 'start', description: 'Start the bot / බොට් ආරම්භ කරන්න' },
             { command: 'language', description: 'Change language / භාෂාව මාරු කරන්න' },
+            { command: 'cancel', description: 'Cancel current upload / අප්‌ලෝඩ් කිරීම අවලංගු කරන්න' },
             { command: 'stats', description: 'Bot Statistics (Admin only)' },
             { command: 'maintenance', description: 'Toggle Maintenance (Admin only)' }
         ]);
