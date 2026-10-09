@@ -613,16 +613,23 @@ app.get('/miniapp', async (req, res) => {
             }, 1000);
         }
 
-        function getVideo() {
+                function getVideo() {
             const botUsername = "${process.env.BOT_USERNAME || 'wallokaya_bot'}";
-            window.location.href = "https://t.me/" + botUsername + "?start=getvideo_" + "${token}";
+            const telegramUrl = "https://t.me/" + botUsername + "?start=getvideo_" + "${token}";
             
+            // Telegram WebApp එක මඟින් PC සහ Mobile දෙකේදීම වැඩ කරන ලෙස සකස් කිරීම
             if (window.Telegram && window.Telegram.WebApp) {
+                // මෙය PC (Desktop) සහ Mobile Telegram දෙකේදීම නිවැරදිව බොට් වෙත යොමු කරයි
+                window.Telegram.WebApp.openTelegramLink(telegramUrl);
+                
                 setTimeout(() => {
                     window.Telegram.WebApp.close();
                 }, 400);
+            } else {
+                window.location.href = telegramUrl;
             }
         }
+
     </script>
 </body>
 </html>
