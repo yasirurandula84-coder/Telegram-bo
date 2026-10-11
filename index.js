@@ -180,12 +180,12 @@ bot.start(async (ctx) => {
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
+                    [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
                     [
-                        { text: t.howToUseBtn, callback_data: "how_to_use" }, 
-                        { text: t.supportBtn, callback_data: "support_info" }
+                        { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
+                        { text: t.supportBtn, callback_data: "support_info", style: "primary" }
                     ],
-                    [{ text: t.langBtn, callback_data: "change_language" }]
+                    [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
                 ]
             }
         });
@@ -197,8 +197,8 @@ bot.start(async (ctx) => {
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: t.joinChannel, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
-                    [{ text: t.checkSub, callback_data: `check_sub_${payload}` }]
+                    [{ text: t.joinChannel, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
+                    [{ text: t.checkSub, callback_data: `check_sub_${payload}`, style: "success" }]
                 ]
             }
         });
@@ -255,8 +255,8 @@ bot.start(async (ctx) => {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: t.watchAdText, web_app: { url: miniAppUrl } }],
-                        [{ text: t.guideText, callback_data: "how_to_use" }]
+                        [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
+                        [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
                     ]
                 }
             }
@@ -290,8 +290,8 @@ bot.action('change_language', async (ctx) => {
         reply_markup: { 
             inline_keyboard: [
                 [
-                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si" }, 
-                    { text: "🇬🇧 English", callback_data: "set_lang_en" }
+                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si", style: "success" }, 
+                    { text: "🇬🇧 English", callback_data: "set_lang_en", style: "primary" }
                 ]
             ] 
         }
@@ -714,8 +714,8 @@ bot.command('language', async (ctx) => {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si" },
-                    { text: "🇬🇧 English", callback_data: "set_lang_en" }
+                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si", style: "success" },
+                    { text: "🇬🇧 English", callback_data: "set_lang_en", style: "primary" }
                 ]
             ]
         }
@@ -761,12 +761,12 @@ bot.start(async (ctx) => {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
+                        [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
                         [
-                            { text: t.howToUseBtn, callback_data: "how_to_use" }, 
-                            { text: t.supportBtn, callback_data: "support_info" }
+                            { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
+                            { text: t.supportBtn, callback_data: "support_info", style: "primary" }
                         ],
-                        [{ text: t.langBtn, callback_data: "change_language" }]
+                        [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
                     ]
                 }
             }
@@ -781,8 +781,8 @@ bot.start(async (ctx) => {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: t.joinChannel, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
-                        [{ text: t.checkSub, callback_data: `check_sub_${payload}` }]
+                        [{ text: t.joinChannel, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
+                        [{ text: t.checkSub, callback_data: `check_sub_${payload}`, style: "success" }]
                     ]
                 }
             }
@@ -866,8 +866,8 @@ bot.start(async (ctx) => {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: t.watchAdText, web_app: { url: miniAppUrl } }],
-                        [{ text: t.guideText, callback_data: "how_to_use" }]
+                        [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
+                        [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
                     ]
                 }
             }
@@ -1070,8 +1070,8 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: t.watchAdText, web_app: { url: miniAppUrl } }],
-                        [{ text: t.guideText, callback_data: "how_to_use" }]
+                        [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
+                        [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
                     ]
                 }
             }
@@ -1092,8 +1092,8 @@ bot.action('change_language', async (ctx) => {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si" },
-                    { text: "🇬🇧 English", callback_data: "set_lang_en" }
+                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si", style: "success" },
+                    { text: "🇬🇧 English", callback_data: "set_lang_en", style: "primary" }
                 ]
             ]
         }
@@ -1185,10 +1185,10 @@ async function promptProtectContent(ctx) {
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🔒 ඔව් (Yes)", callback_data: "toggle_protect_yes" },
-                        { text: "🔓 නැහැ (No)", callback_data: "toggle_protect_no" }
+                        { text: "🔒 ඔව් (Yes)", callback_data: "toggle_protect_yes", style: "success" },
+                        { text: "🔓 නැහැ (No)", callback_data: "toggle_protect_no", style: "primary" }
                     ],
-                    [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload" }]
+                    [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload", style: "danger" }]
                 ]
             }
         }
@@ -1247,7 +1247,7 @@ bot.on('photo', async (ctx) => {
                     parse_mode: 'HTML',
                     reply_markup: {
                         inline_keyboard: [
-                            [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload" }]
+                            [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload", style: "danger" }]
                         ]
                     }
                 }
@@ -1277,10 +1277,10 @@ bot.on('photo', async (ctx) => {
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🔒 Blur කරන්න", callback_data: "toggle_spoiler_yes" },
-                        { text: "🔓 එපා", callback_data: "toggle_spoiler_no" }
+                        { text: "🔒 Blur කරන්න", callback_data: "toggle_spoiler_yes", style: "success" },
+                        { text: "🔓 එපා", callback_data: "toggle_spoiler_no", style: "primary" }
                     ],
-                    [{ text: "❌ සම්පූර්ණයෙන්ම Cancel කරන්න", callback_data: "cancel_upload" }]
+                    [{ text: "❌ සම්පූර්ණයෙන්ම Cancel කරන්න", callback_data: "cancel_upload", style: "danger" }]
                 ]
             }
         }
@@ -1308,7 +1308,7 @@ bot.on(['video', 'document'], async (ctx) => {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload" }]
+                        [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload", style: "danger" }]
                     ]
                 }
             }
@@ -1358,8 +1358,8 @@ bot.command('done', async (ctx) => {
             has_spoiler: pending.hasSpoiler,
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: buttonText, url: shareLink }],
-                    [{ text: "📢 Join Backup Channel", url: `https://t.me/+bCed3QPGYqQ3MWY9` }]
+                    [{ text: buttonText, url: shareLink, style: "success" }],
+                    [{ text: "📢 Join Backup Channel", url: `https://t.me/+bCed3QPGYqQ3MWY9`, style: "primary" }]
                 ]
             }
         });
