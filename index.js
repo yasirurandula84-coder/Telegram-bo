@@ -143,6 +143,18 @@ const userSchema = new mongoose.Schema({
 });
 const UserModel = mongoose.model('User', userSchema);
 
+// Mongoose Schema for Active Video Delivery Sessions (Auto-Delete across Redeploys)
+const sessionSchema = new mongoose.Schema({
+    chatId: { type: String, required: true },
+    sentVideoIds: { type: [Number], required: true },
+    warningMsgId: { type: Number, required: true },
+    token: { type: String, required: true },
+    isProtected: { type: Boolean, default: false },
+    lang: { type: String, default: 'si' },
+    createdAt: { type: Date, default: Date.now }
+});
+const SessionModel = mongoose.model('Session', sessionSchema);
+
 // Mongoose Schema for Settings
 const settingSchema = new mongoose.Schema({
     key: { type: String, required: true, unique: true },
@@ -161,6 +173,99 @@ async function checkUserSubscription(ctx, userId) {
         return false;
     } catch (error) {
         return true;
+    }
+}
+
+// Active Timers In Memory
+const activeTimers = new Map();
+
+// Timer Starter Function
+function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, token, isProtected, lang, initialRemainingMinutes) {
+    let remainingMinutes = initialRemainingMinutes;
+
+    const updateInterval = setInterval(async () => {
+        remainingMinutes -= 5;
+        if (remainingMinutes > 0) {
+            const t = langs[lang] || langs.si;
+            let updatedWarningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
+            
+            try {
+                const fileDoc = await FileModel.findOne({ token });
+                const reactions = fileDoc ? (fileDoc.reactions || { peach: 0, banana: 0, hot: 0 }) : { peach: 0, banana: 0, hot: 0 };
+                
+                await bot.telegram.editMessageText(
+                    chatId, 
+                    warningMsgId, 
+                    null, 
+                    updatedWarningText, 
+                    {
+                        parse_mode: 'HTML',
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
+                                ]
+                            ]
+                        }
+                    }
+                ).catch(() => {});
+            } catch (e) {}
+        } else {
+            clearInterval(updateInterval);
+        }
+    }, 5 * 60 * 1000);
+
+    const deleteTimeout = setTimeout(async () => {
+        clearInterval(updateInterval);
+        activeTimers.delete(sessionId.toString());
+        try {
+            for (let msgId of sentVideoIds) {
+                await bot.telegram.deleteMessage(chatId, msgId).catch(() => {});
+            }
+            await bot.telegram.deleteMessage(chatId, warningMsgId).catch(() => {});
+        } catch (err) {}
+        await SessionModel.deleteOne({ _id: sessionId }).catch(() => {});
+    }, remainingMinutes * 60 * 1000);
+
+    activeTimers.set(sessionId.toString(), { updateInterval, deleteTimeout });
+}
+
+// Restore Active Video Timers after Bot Restart / Redeploy
+async function restoreActiveSessions() {
+    try {
+        const sessions = await SessionModel.find({});
+        const now = new Date();
+
+        for (const session of sessions) {
+            const elapsedMinutes = (now - new Date(session.createdAt)) / (1000 * 60);
+            const remainingMinutes = Math.ceil(30 - elapsedMinutes);
+
+            if (remainingMinutes <= 0) {
+                // Delete messages immediately if 30 minutes have already passed
+                for (let msgId of session.sentVideoIds) {
+                    await bot.telegram.deleteMessage(session.chatId, msgId).catch(() => {});
+                }
+                await bot.telegram.deleteMessage(session.chatId, session.warningMsgId).catch(() => {});
+                await SessionModel.deleteOne({ _id: session._id }).catch(() => {});
+            } else {
+                // Resume timer for remaining time
+                startVideoSessionTimer(
+                    session._id,
+                    session.chatId,
+                    session.sentVideoIds,
+                    session.warningMsgId,
+                    session.token,
+                    session.isProtected,
+                    session.lang,
+                    remainingMinutes
+                );
+            }
+        }
+        console.log(`Restored ${sessions.length} video sessions after restart.`);
+    } catch (err) {
+        console.error("Error restoring sessions:", err);
     }
 }
 
@@ -202,42 +307,26 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
         }
     });
 
-    const updateInterval = setInterval(async () => {
-        remainingMinutes -= 5;
-        if (remainingMinutes > 0) {
-            let updatedWarningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
-            await ctx.telegram.editMessageText(
-                ctx.chat.id, 
-                warningMsg.message_id, 
-                null, 
-                updatedWarningText, 
-                {
-                    parse_mode: 'HTML',
-                    reply_markup: {
-                        inline_keyboard: [
-                            [
-                                { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
-                                { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
-                                { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
-                            ]
-                        ]
-                    }
-                }
-            ).catch(() => {});
-        } else {
-            clearInterval(updateInterval);
-        }
-    }, 5 * 60 * 1000);
+    const sessionDoc = await SessionModel.create({
+        chatId: ctx.chat.id.toString(),
+        sentVideoIds: sentVideoIds,
+        warningMsgId: warningMsg.message_id,
+        token: token,
+        isProtected: isProtected,
+        lang: lang,
+        createdAt: new Date()
+    });
 
-    setTimeout(async () => {
-        clearInterval(updateInterval);
-        try {
-            for (let msgId of sentVideoIds) {
-                await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
-            }
-            await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id).catch(() => {});
-        } catch (err) {}
-    }, 30 * 60 * 1000);
+    startVideoSessionTimer(
+        sessionDoc._id,
+        ctx.chat.id.toString(),
+        sentVideoIds,
+        warningMsg.message_id,
+        token,
+        isProtected,
+        lang,
+        30
+    );
 }
 
 // Bot Start & Handlers
@@ -737,21 +826,6 @@ app.get('/miniapp', async (req, res) => {
     }
 });
 
-async function checkUserSubscription(ctx, userId) {
-    if (!REQUIRED_CHANNEL) return true;
-    try {
-        const chatMember = await ctx.telegram.getChatMember(REQUIRED_CHANNEL, userId);
-        const status = chatMember.status;
-        if (status === 'creator' || status === 'administrator' || status === 'member') {
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error("F-Sub Check Error:", error);
-        return true;
-    }
-}
-
 bot.use(async (ctx, next) => {
     try {
         const setting = await SettingModel.findOne({ key: 'maintenance_mode' });
@@ -818,18 +892,111 @@ bot.command('language', async (ctx) => {
     });
 });
 
-bot.action('set_lang_si', async (ctx) => {
+// Admin Stats Command
+bot.command('stats', async (ctx) => {
     const userId = ctx.from.id.toString();
-    await UserModel.updateOne({ userId }, { $set: { language: 'si' } }, { upsert: true });
-    await ctx.answerCbQuery("සිංහල භාෂාව තෝරන ලදී.");
-    await ctx.editMessageText("<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>භාෂාව සිංහල ලෙස වෙනස් කරන ලදී.</b>\n\nමූලික මෙනුව වෙත යාමට /start ටයිප් කරන්න.", { parse_mode: 'HTML' });
+    const ADMIN_ID = process.env.ADMIN_ID;
+
+    if (ADMIN_ID && userId !== ADMIN_ID) {
+        return ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.", { parse_mode: 'HTML' });
+    }
+
+    try {
+        const totalUsers = await UserModel.countDocuments({});
+        const activeUsers = await UserModel.countDocuments({ status: 'active' });
+        const blockedUsers = await UserModel.countDocuments({ status: 'blocked' });
+
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthlyUsers = await UserModel.countDocuments({
+            joinedAt: { $gte: startOfMonth }
+        });
+
+        const totalFiles = await FileModel.countDocuments({});
+        const files = await FileModel.find({});
+        let totalViews = 0;
+        let totalClicks = 0;
+
+        files.forEach(file => {
+            totalViews += file.views;
+            totalClicks += file.clicks || 0;
+        });
+
+        const conversionRate = totalClicks > 0 ? ((totalViews / totalClicks) * 100).toFixed(1) : 0;
+
+        await ctx.reply(
+            `<tg-emoji emoji-id=\"5469731513291418723\">📊</tg-emoji> <b>බොට් හි සංඛ්‍යාලේඛන (Analytics Dashboard)</b> <tg-emoji emoji-id=\"5431376038628160877\">📈</tg-emoji>\n\n` +
+            `<tg-emoji emoji-id=\"5370835848520631629\">👥</tg-emoji> මුළු යුසර්ස්ලා (Total Users): <code>${totalUsers}</code>\n` +
+            `<tg-emoji emoji-id=\"5427009714846171570\">🟢</tg-emoji> සක්‍රීය පරිශීලකයන් (Active): <code>${activeUsers}</code>\n` +
+            `<tg-emoji emoji-id=\"5370835848520631628\">🔴</tg-emoji> බ්ලොක් කළ අය (Blocked): <code>${blockedUsers}</code>\n` +
+            `<tg-emoji emoji-id=\"5469731513291418723\">📅</tg-emoji> මෙම මාසයේ අලුත් යුසර්ස්ලා: <code>${monthlyUsers}</code>\n` +
+            `<tg-emoji emoji-id=\"5370835848520631631\">📁</tg-emoji> ගබඩා කර ඇති අන්තර්ගතයන්: <code>${totalFiles}</code>\n` +
+            `<tg-emoji emoji-id=\"5406899432098627038\">🔗</tg-emoji> මුළු ලින්ක් ක්ලික්ස් (Total Clicks): <code>${totalClicks}</code>\n` +
+            `<tg-emoji emoji-id=\"5370835848520631627\">👁️</tg-emoji> මුළු නැරඹුම් (Total Views): <code>${totalViews}</code>\n` +
+            `<tg-emoji emoji-id=\"5431376038628160877\">📈</tg-emoji> ඇඩ් සාර්ථකත්ව අනුපාතය (Conversion): <code>${conversionRate}%</code>`,
+            { parse_mode: 'HTML' }
+        );
+
+    } catch (error) {
+        console.error("Stats error:", error);
+        await ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> සංඛ්‍යාලේඛන ලබාගැනීමේදී දෝෂයක් ඇති විය.", { parse_mode: 'HTML' });
+    }
 });
 
-bot.action('set_lang_en', async (ctx) => {
-    const userId = ctx.from.id.toString();
-    await UserModel.updateOne({ userId }, { $set: { language: 'en' } }, { upsert: true });
-    await ctx.answerCbQuery("Language set to English.");
-    await ctx.editMessageText("<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>Language changed to English.</b>\n\nType /start to go to the main menu.", { parse_mode: 'HTML' });
+// Admin Broadcast Command (Optimized & Non-Blocking)
+bot.command('broadcast', async (ctx) => {
+    const ADMIN_ID = process.env.ADMIN_ID;
+    if (ctx.from.id.toString() !== ADMIN_ID) return;
+
+    const repliedMessage = ctx.message.reply_to_message;
+    if (!repliedMessage) {
+        return ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> කරුණාකර ඔබ බ්‍රෝඩ්කාස්ට් කිරීමට අවශ්‍ය පෝස්ට් එකට <b>Reply</b> කර <code>/broadcast</code> ලෙස යවන්න.", { parse_mode: 'HTML' });
+    }
+
+    await ctx.reply("<tg-emoji emoji-id=\"5370835848520631627\">🚀</tg-emoji> <b>පෝස්ට් බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ කරන ලදී... කරුණාකර රැඳී සිටින්න.</b>", { parse_mode: 'HTML' });
+
+    setImmediate(async () => {
+        try {
+            const users = await UserModel.find({ status: { $ne: 'blocked' } });
+            let successCount = 0;
+            let blockedCount = 0;
+            let failedCount = 0;
+
+            for (const user of users) {
+                try {
+                    await ctx.telegram.copyMessage(user.userId, ctx.chat.id, repliedMessage.message_id);
+                    successCount++;
+
+                    if (user.status !== 'active') {
+                        await UserModel.updateOne({ userId: user.userId }, { status: 'active' });
+                    }
+                } catch (error) {
+                    if (error.response && error.response.error_code === 403) {
+                        blockedCount++;
+                        await UserModel.updateOne({ userId: user.userId }, { status: 'blocked' });
+                    } else if (error.response && error.response.error_code === 429) {
+                        const retryAfter = error.response.parameters?.retry_after || 5;
+                        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+                        failedCount++;
+                    } else {
+                        failedCount++;
+                    }
+                }
+                await new Promise(resolve => setTimeout(resolve, 70));
+            }
+
+            await ctx.reply(
+                `<tg-emoji emoji-id=\"5469731513291418723\">📊</tg-emoji> <b>පෝස්ට් බ්‍රෝඩ්කාස්ට් වාර්තාව:</b>\n\n` +
+                `<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> සාර්ථකයි (Active): <code>${successCount}</code>\n` +
+                `<tg-emoji emoji-id=\"5370835848520631628\">🔴</tg-emoji> බ්ලොක් කර ඇත (Blocked): <code>${blockedCount}</code>\n` +
+                `<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> අනෙකුත් දෝෂ: <code>${failedCount}</code>`,
+                { parse_mode: 'HTML' }
+            );
+        } catch (err) {
+            console.error("Broadcast Execution Error:", err);
+            await ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.", { parse_mode: 'HTML' });
+        }
+    });
 });
 
 // Check Subscription Action
@@ -887,46 +1054,6 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
     } catch (error) {
         console.error(error);
     }
-});
-
-bot.action('change_language', async (ctx) => {
-    await ctx.answerCbQuery();
-    const userId = ctx.from.id.toString();
-    const lang = await getUserLang(userId);
-    const t = langs[lang];
-
-    await ctx.reply(t.langSelect, {
-        parse_mode: 'HTML',
-        reply_markup: {
-            inline_keyboard: [
-                [
-                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si", style: "success" },
-                    { text: "🇬🇧 English", callback_data: "set_lang_en", style: "primary" }
-                ]
-            ]
-        }
-    });
-});
-
-bot.action('how_to_use', async (ctx) => {
-    try {
-        await ctx.answerCbQuery();
-        const userId = ctx.from.id.toString();
-        const lang = await getUserLang(userId);
-        const t = langs[lang];
-
-        await ctx.reply(t.guideContent, { parse_mode: 'HTML' });
-    } catch (error) {
-        console.error(error);
-    }
-});
-
-bot.action('support_info', async (ctx) => {
-    const userId = ctx.from.id.toString();
-    const lang = await getUserLang(userId);
-    const t = langs[lang];
-    await ctx.answerCbQuery();
-    await ctx.reply(t.supportMsg, { parse_mode: 'HTML' });
 });
 
 // --- Upload Workflow Actions & Cancel/Done Feature ---
@@ -1228,8 +1355,11 @@ app.listen(PORT, async () => {
             { command: 'maintenance', description: 'Toggle Maintenance (Admin only)' }
         ]);
         console.log("Bot commands menu set successfully!");
+        
+        // Restore sessions after startup
+        await restoreActiveSessions();
     } catch (err) {
-        console.error("Failed to set bot commands:", err);
+        console.error("Failed on startup:", err);
     }
 
     bot.launch();
