@@ -236,7 +236,8 @@ bot.start(async (ctx) => {
                 return ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>සමාවන්න, මෙම වීඩියෝව Database එකෙන් මකා දමා ඇත හෝ ලබා ගත නොහැක.</b>", { parse_mode: 'HTML' });
             }
 
-            let warningText = t.warningText + (isProtected ? t.protectedNote : "");
+                        let remainingMinutes = 30;
+            let warningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
             const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
 
             const warningMsg = await ctx.reply(warningText, {
@@ -252,13 +253,46 @@ bot.start(async (ctx) => {
                 }
             });
 
+            // විනාඩි 5න් 5ට කවුන්ට්ඩවුන් එක Edit කිරීම
+            const updateInterval = setInterval(async () => {
+                remainingMinutes -= 5;
+                if (remainingMinutes > 0) {
+                    let updatedWarningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
+                    await ctx.telegram.editMessageText(
+                        ctx.chat.id, 
+                        warningMsg.message_id, 
+                        null, 
+                        updatedWarningText, 
+                        {
+                            parse_mode: 'HTML',
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [
+                                        { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                                        { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                                        { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
+                                    ]
+                                ]
+                            }
+                        }
+                    ).catch(() => {});
+                } else {
+                    clearInterval(updateInterval);
+                }
+            }, 5 * 60 * 1000);
+
             setTimeout(async () => {
+                clearInterval(updateInterval);
                 try {
-                    for (let msgId of sentVideoIds) await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
+                    for (let msgId of sentVideoIds) {
+                        await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
+                    }
                     await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id).catch(() => {});
-                } catch (e) {}
+                } catch (err) {}
             }, 30 * 60 * 1000);
+
             return;
+
         }
 
         const fileDoc = await FileModel.findOneAndUpdate({ token: payload }, { $inc: { clicks: 1 } }, { new: true });
@@ -1098,12 +1132,10 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 }
             }
 
-            let warningText = t.warningText;
-            if (isProtected) {
-                warningText += t.protectedNote;
-            }
-
+                        let remainingMinutes = 30;
+            let warningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
             const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
+
             const warningMsg = await ctx.reply(warningText, {
                 parse_mode: 'HTML',
                 reply_markup: {
@@ -1117,7 +1149,36 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 }
             });
 
+            // විනාඩි 5න් 5ට කවුන්ට්ඩවුන් එක Edit කිරීම
+            const updateInterval = setInterval(async () => {
+                remainingMinutes -= 5;
+                if (remainingMinutes > 0) {
+                    let updatedWarningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
+                    await ctx.telegram.editMessageText(
+                        ctx.chat.id, 
+                        warningMsg.message_id, 
+                        null, 
+                        updatedWarningText, 
+                        {
+                            parse_mode: 'HTML',
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [
+                                        { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                                        { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                                        { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
+                                    ]
+                                ]
+                            }
+                        }
+                    ).catch(() => {});
+                } else {
+                    clearInterval(updateInterval);
+                }
+            }, 5 * 60 * 1000);
+
             setTimeout(async () => {
+                clearInterval(updateInterval);
                 try {
                     for (let msgId of sentVideoIds) {
                         await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
@@ -1127,8 +1188,8 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
             }, 30 * 60 * 1000);
 
             return;
-        }
 
+}
         const fileDoc = await FileModel.findOne({ token: payload });
         if (!fileDoc) {
             return ctx.editMessageText(t.linkExpired, { parse_mode: 'HTML' });
