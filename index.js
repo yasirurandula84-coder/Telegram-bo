@@ -23,7 +23,7 @@ const langs = {
         joinChannel: "📢 Join Channel",
         checkSub: "🔄 Check Subscription",
         linkExpired: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.</b>",
-        warningText: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>අවධානයට:</b>\nමෙම අන්තර්ගතය <b>විනාඩි 30 කින්</b> ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත! <tg-emoji emoji-id=\"5469731513291418723\">⏳</tg-emoji>",
+        warningText: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>අවධානයට:</b>\nමෙම අන්තර්ගතය ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත! <tg-emoji emoji-id=\"5469731513291418723\">⏳</tg-emoji>",
         protectedNote: "\n\n<tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji> <i>(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි වේ.)</i>",
         clickBtnText: "<tg-emoji emoji-id=\"5431376038628160877\">🔓</tg-emoji> <b>අන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න:</b> <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>",
         viewsCount: "📊 මෙතෙක් නැරඹුම් වාර:",
@@ -64,7 +64,7 @@ const langs = {
         joinChannel: "📢 Join Channel",
         checkSub: "🔄 Check Subscription",
         linkExpired: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>Sorry, this link has expired or is invalid.</b>",
-        warningText: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>Attention:</b>\nThis content will automatically disappear from your chat in <b>30 minutes</b>! <tg-emoji emoji-id=\"5469731513291418723\">⏳</tg-emoji>",
+        warningText: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>Attention:</b>\nThis content will automatically disappear from your chat! <tg-emoji emoji-id=\"5469731513291418723\">⏳</tg-emoji>",
         protectedNote: "\n\n<tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji> <i>(This content is protected against forwarding or downloading)</i>",
         clickBtnText: "<tg-emoji emoji-id=\"5431376038628160877\">🔓</tg-emoji> <b>Click the button below to get the content:</b> <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>",
         viewsCount: "📊 Total Views so far:",
@@ -128,7 +128,8 @@ const fileSchema = new mongoose.Schema({
         peach: { type: Number, default: 0 },
         banana: { type: Number, default: 0 },
         hot: { type: Number, default: 0 }
-    }
+    },
+    reactedUsers: { type: [String], default: [] }
 });
 
 const FileModel = mongoose.model('File', fileSchema);
@@ -161,6 +162,82 @@ async function checkUserSubscription(ctx, userId) {
     } catch (error) {
         return true;
     }
+}
+
+// Helper Function to handle Video Delivery, Countdown & Auto-Delete Timer
+async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
+    const t = langs[lang];
+    let msgIdsArray = fileDoc.fileMsgId ? [fileDoc.fileMsgId] : (fileDoc.fileMsgIds || []);
+    const isProtected = fileDoc.protectContent === true;
+    let sentVideoIds = [];
+
+    for (let id of msgIdsArray) {
+        try {
+            const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, id, { protect_content: isProtected });
+            sentVideoIds.push(sentMsg.message_id);
+            await new Promise(r => setTimeout(r, 400));
+        } catch (e) {
+            console.error("Error copying message:", e.message);
+        }
+    }
+
+    if (sentVideoIds.length === 0) {
+        return ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>සමාවන්න, මෙම වීඩියෝව Database එකෙන් මකා දමා ඇත හෝ ලබා ගත නොහැක.</b>", { parse_mode: 'HTML' });
+    }
+
+    let remainingMinutes = 30;
+    let warningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
+    const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
+
+    const warningMsg = await ctx.reply(warningText, {
+        parse_mode: 'HTML',
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
+                ]
+            ]
+        }
+    });
+
+    const updateInterval = setInterval(async () => {
+        remainingMinutes -= 5;
+        if (remainingMinutes > 0) {
+            let updatedWarningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
+            await ctx.telegram.editMessageText(
+                ctx.chat.id, 
+                warningMsg.message_id, 
+                null, 
+                updatedWarningText, 
+                {
+                    parse_mode: 'HTML',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                                { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                                { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
+                            ]
+                        ]
+                    }
+                }
+            ).catch(() => {});
+        } else {
+            clearInterval(updateInterval);
+        }
+    }, 5 * 60 * 1000);
+
+    setTimeout(async () => {
+        clearInterval(updateInterval);
+        try {
+            for (let msgId of sentVideoIds) {
+                await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
+            }
+            await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id).catch(() => {});
+        } catch (err) {}
+    }, 30 * 60 * 1000);
 }
 
 // Bot Start & Handlers
@@ -218,81 +295,8 @@ bot.start(async (ctx) => {
                 return ctx.reply(t.linkExpired, { parse_mode: 'HTML' });
             }
 
-            let msgIdsArray = fileDoc.fileMsgId ? [fileDoc.fileMsgId] : (fileDoc.fileMsgIds || []);
-            const isProtected = fileDoc.protectContent === true;
-            let sentVideoIds = [];
-
-            for (let id of msgIdsArray) {
-                try {
-                    const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, id, { protect_content: isProtected });
-                    sentVideoIds.push(sentMsg.message_id);
-                    await new Promise(r => setTimeout(r, 400));
-                } catch (e) {
-                    console.error("Error copying message:", e.message);
-                }
-            }
-
-            if (sentVideoIds.length === 0) {
-                return ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>සමාවන්න, මෙම වීඩියෝව Database එකෙන් මකා දමා ඇත හෝ ලබා ගත නොහැක.</b>", { parse_mode: 'HTML' });
-            }
-
-                        let remainingMinutes = 30;
-            let warningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
-            const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
-
-            const warningMsg = await ctx.reply(warningText, {
-                parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [
-                        [
-                            { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
-                            { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
-                            { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
-                        ]
-                    ]
-                }
-            });
-
-            // විනාඩි 5න් 5ට කවුන්ට්ඩවුන් එක Edit කිරීම
-            const updateInterval = setInterval(async () => {
-                remainingMinutes -= 5;
-                if (remainingMinutes > 0) {
-                    let updatedWarningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
-                    await ctx.telegram.editMessageText(
-                        ctx.chat.id, 
-                        warningMsg.message_id, 
-                        null, 
-                        updatedWarningText, 
-                        {
-                            parse_mode: 'HTML',
-                            reply_markup: {
-                                inline_keyboard: [
-                                    [
-                                        { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
-                                        { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
-                                        { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
-                                    ]
-                                ]
-                            }
-                        }
-                    ).catch(() => {});
-                } else {
-                    clearInterval(updateInterval);
-                }
-            }, 5 * 60 * 1000);
-
-            setTimeout(async () => {
-                clearInterval(updateInterval);
-                try {
-                    for (let msgId of sentVideoIds) {
-                        await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
-                    }
-                    await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id).catch(() => {});
-                } catch (err) {}
-            }, 30 * 60 * 1000);
-
+            await deliverVideosAndSetupTimer(ctx, fileDoc, token, lang);
             return;
-
         }
 
         const fileDoc = await FileModel.findOneAndUpdate({ token: payload }, { $inc: { clicks: 1 } }, { new: true });
@@ -319,22 +323,31 @@ bot.start(async (ctx) => {
     }
 });
 
-// Reaction Button Handler (🍑, 🍌, 🥵)
+// Single Reaction per User Handler (🍑, 🍌, 🥵)
 bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
     const type = ctx.match[1];
     const token = ctx.match[2];
+    const userId = ctx.from.id.toString();
 
     try {
+        const fileDoc = await FileModel.findOne({ token });
+        if (!fileDoc) return ctx.answerCbQuery("❌ Link Expired!");
+
+        if (fileDoc.reactedUsers && fileDoc.reactedUsers.includes(userId)) {
+            return ctx.answerCbQuery("⚠️ ඔබ දැනටමත් මෙම වීඩියෝවට ප්‍රතිචාරයක් දක්වා ඇත!", { show_alert: true });
+        }
+
         const updatedFile = await FileModel.findOneAndUpdate(
             { token: token },
-            { $inc: { [`reactions.${type}`]: 1 } },
+            { 
+                $inc: { [`reactions.${type}`]: 1 },
+                $push: { reactedUsers: userId }
+            },
             { new: true }
         );
 
-        if (!updatedFile) return ctx.answerCbQuery("❌ Link Expired!");
-
         const reactions = updatedFile.reactions || { peach: 0, banana: 0, hot: 0 };
-        await ctx.answerCbQuery("🔥 ඔබේ ප්‍රතිචාරය එකතු විය!");
+        await ctx.answerCbQuery("🔥 ඔබේ ප්‍රතිචාරය සාර්ථකව එකතු විය!");
 
         await ctx.editMessageReplyMarkup({
             inline_keyboard: [
@@ -819,268 +832,6 @@ bot.action('set_lang_en', async (ctx) => {
     await ctx.editMessageText("<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>Language changed to English.</b>\n\nType /start to go to the main menu.", { parse_mode: 'HTML' });
 });
 
-bot.start(async (ctx) => {
-    const userId = ctx.from.id;
-    const userIdStr = userId.toString();
-    const payload = ctx.startPayload;
-
-    try {
-        await UserModel.updateOne(
-            { userId: userIdStr }, 
-            { $setOnInsert: { joinedAt: new Date() },$set: { status: 'active' } }, 
-            { upsert: true }
-        );
-    } catch (err) {
-        console.error("User save error:", err);
-    }
-
-    const lang = await getUserLang(userId);
-    const t = langs[lang];
-
-    if (!payload) {
-        return ctx.reply(
-            t.welcome,
-            {
-                parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
-                        [
-                            { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
-                            { text: t.supportBtn, callback_data: "support_info", style: "primary" }
-                        ],
-                        [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
-                    ]
-                }
-            }
-        );
-    }
-
-    const isSubscribed = await checkUserSubscription(ctx, userId);
-    if (!isSubscribed) {
-        return ctx.reply(
-            t.subRequired,
-            {
-                parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: t.joinChannel, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
-                        [{ text: t.checkSub, callback_data: `check_sub_${payload}`, style: "success" }]
-                    ]
-                }
-            }
-        );
-    }
-
-    try {
-        if (payload.startsWith("getvideo_")) {
-            const token = payload.replace("getvideo_", "");
-            
-            const fileDoc = await FileModel.findOneAndUpdate(
-                { token: token }, 
-                { $inc: { views: 1 } }, 
-                { new: true }
-            );
-
-            if (!fileDoc) {
-                return ctx.reply(t.linkExpired, { parse_mode: 'HTML' });
-            }
-
-            let sentVideoIds = [];
-            let msgIdsArray = [];
-            if (fileDoc.fileMsgId) {
-                msgIdsArray = [fileDoc.fileMsgId];
-            } else if (fileDoc.fileMsgIds && Array.isArray(fileDoc.fileMsgIds)) {
-                msgIdsArray = fileDoc.fileMsgIds;
-            }
-
-            const isProtected = fileDoc.protectContent === true;
-
-            for (let i = 0; i < msgIdsArray.length; i++) {
-                try {
-                    const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, msgIdsArray[i], {
-                        protect_content: isProtected
-                    });
-                    sentVideoIds.push(sentMsg.message_id);
-                    await new Promise(resolve => setTimeout(resolve, 400));
-                } catch (copyErr) {
-                    console.error(`Copy Message Error for ID ${msgIdsArray[i]}:`, copyErr.message);
-                    return ctx.reply(`⚠ Error: ${copyErr.message}`);
-                }
-            }
-
-            let warningText = t.warningText;
-            if (isProtected) {
-                warningText += t.protectedNote;
-            }
-
-            const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
-            const warningMsg = await ctx.reply(warningText, {
-                parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [
-                        [
-                            { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
-                            { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
-                            { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
-                        ]
-                    ]
-                }
-            });
-
-            setTimeout(async () => {
-                try {
-                    for (let msgId of sentVideoIds) {
-                        await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
-                    }
-                    await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id).catch(() => {});
-                } catch (err) {}
-            }, 30 * 60 * 1000);
-
-            return;
-        }
-
-        const fileDoc = await FileModel.findOneAndUpdate(
-            { token: payload }, 
-            { $inc: { clicks: 1 } }, 
-            { new: true }
-        );
-
-        if (!fileDoc) {
-            return ctx.reply(t.linkExpired, { parse_mode: 'HTML' });
-        }
-
-        const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
-        const miniAppUrl = `${renderUrl}/miniapp?token=${payload}&uid=${userId}`;
-
-        await ctx.reply(
-            `${t.clickBtnText}\n\n` +
-            `<tg-emoji emoji-id=\"5469731513291418723\">📊</tg-emoji> <b>නැරඹුම් වාර (Views):</b> <code>${fileDoc.views}</code>\n\n` +
-            (lang === 'si' ? "<tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji> මෙම බොත්තම එබූ විට විවෘත වන පිටුවෙන් දැන්වීම බලා තත්පර 5ක් රැඳී සිට අන්තර්ගතය ලබා ගන්න." : "Click the button below, view the ad on the page, wait 5 seconds, and get your content."),
-            {
-                parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
-                        [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
-                    ]
-                }
-            }
-        );
-
-    } catch (error) {
-        console.error(error);
-        ctx.reply(t.systemError, { parse_mode: 'HTML' });
-    }
-});
-
-// Admin Stats Command
-bot.command('stats', async (ctx) => {
-    const userId = ctx.from.id.toString();
-    const ADMIN_ID = process.env.ADMIN_ID;
-
-    if (ADMIN_ID && userId !== ADMIN_ID) {
-        return ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.", { parse_mode: 'HTML' });
-    }
-
-    try {
-        const totalUsers = await UserModel.countDocuments({});
-        const activeUsers = await UserModel.countDocuments({ status: 'active' });
-        const blockedUsers = await UserModel.countDocuments({ status: 'blocked' });
-
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const monthlyUsers = await UserModel.countDocuments({
-            joinedAt: { $gte: startOfMonth }
-        });
-
-        const totalFiles = await FileModel.countDocuments({});
-        const files = await FileModel.find({});
-        let totalViews = 0;
-        let totalClicks = 0;
-
-        files.forEach(file => {
-            totalViews += file.views;
-            totalClicks += file.clicks || 0;
-        });
-
-        const conversionRate = totalClicks > 0 ? ((totalViews / totalClicks) * 100).toFixed(1) : 0;
-
-        await ctx.reply(
-            `<tg-emoji emoji-id=\"5469731513291418723\">📊</tg-emoji> <b>බොට් හි සංඛ්‍යාලේඛන (Analytics Dashboard)</b> <tg-emoji emoji-id=\"5431376038628160877\">📈</tg-emoji>\n\n` +
-            `<tg-emoji emoji-id=\"5370835848520631629\">👥</tg-emoji> මුළු යුසර්ස්ලා (Total Users): <code>${totalUsers}</code>\n` +
-            `<tg-emoji emoji-id=\"5427009714846171570\">🟢</tg-emoji> සක්‍රීය පරිශීලකයන් (Active): <code>${activeUsers}</code>\n` +
-            `<tg-emoji emoji-id=\"5370835848520631628\">🔴</tg-emoji> බ්ලොක් කළ අය (Blocked): <code>${blockedUsers}</code>\n` +
-            `<tg-emoji emoji-id=\"5469731513291418723\">📅</tg-emoji> මෙම මාසයේ අලුත් යුසර්ස්ලා: <code>${monthlyUsers}</code>\n` +
-            `<tg-emoji emoji-id=\"5370835848520631631\">📁</tg-emoji> ගබඩා කර ඇති අන්තර්ගතයන්: <code>${totalFiles}</code>\n` +
-            `<tg-emoji emoji-id=\"5406899432098627038\">🔗</tg-emoji> මුළු ලින්ක් ක්ලික්ස් (Total Clicks): <code>${totalClicks}</code>\n` +
-            `<tg-emoji emoji-id=\"5370835848520631627\">👁️</tg-emoji> මුළු නැරඹුම් (Total Views): <code>${totalViews}</code>\n` +
-            `<tg-emoji emoji-id=\"5431376038628160877\">📈</tg-emoji> ඇඩ් සාර්ථකත්ව අනුපාතය (Conversion): <code>${conversionRate}%</code>`,
-            { parse_mode: 'HTML' }
-        );
-
-    } catch (error) {
-        console.error("Stats error:", error);
-        await ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> සංඛ්‍යාලේඛන ලබාගැනීමේදී දෝෂයක් ඇති විය.", { parse_mode: 'HTML' });
-    }
-});
-
-// Admin Broadcast Command (Optimized & Non-Blocking)
-bot.command('broadcast', async (ctx) => {
-    const ADMIN_ID = process.env.ADMIN_ID;
-    if (ctx.from.id.toString() !== ADMIN_ID) return;
-
-    const repliedMessage = ctx.message.reply_to_message;
-    if (!repliedMessage) {
-        return ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> කරුණාකර ඔබ බ්‍රෝඩ්කාස්ට් කිරීමට අවශ්‍ය පෝස්ට් එකට <b>Reply</b> කර <code>/broadcast</code> ලෙස යවන්න.", { parse_mode: 'HTML' });
-    }
-
-    await ctx.reply("<tg-emoji emoji-id=\"5370835848520631627\">🚀</tg-emoji> <b>පෝස්ට් බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ කරන ලදී... කරුණාකර රැඳී සිටින්න.</b>", { parse_mode: 'HTML' });
-
-    setImmediate(async () => {
-        try {
-            const users = await UserModel.find({ status: { $ne: 'blocked' } });
-            let successCount = 0;
-            let blockedCount = 0;
-            let failedCount = 0;
-
-            for (const user of users) {
-                try {
-                    await ctx.telegram.copyMessage(user.userId, ctx.chat.id, repliedMessage.message_id);
-                    successCount++;
-
-                    if (user.status !== 'active') {
-                        await UserModel.updateOne({ userId: user.userId }, { status: 'active' });
-                    }
-                } catch (error) {
-                    if (error.response && error.response.error_code === 403) {
-                        blockedCount++;
-                        await UserModel.updateOne({ userId: user.userId }, { status: 'blocked' });
-                    } else if (error.response && error.response.error_code === 429) {
-                        const retryAfter = error.response.parameters?.retry_after || 5;
-                        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
-                        failedCount++;
-                    } else {
-                        failedCount++;
-                    }
-                }
-                await new Promise(resolve => setTimeout(resolve, 70));
-            }
-
-            await ctx.reply(
-                `<tg-emoji emoji-id=\"5469731513291418723\">📊</tg-emoji> <b>පෝස්ට් බ්‍රෝඩ්කාස්ට් වාර්තාව:</b>\n\n` +
-                `<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> සාර්ථකයි (Active): <code>${successCount}</code>\n` +
-                `<tg-emoji emoji-id=\"5370835848520631628\">🔴</tg-emoji> බ්ලොක් කර ඇත (Blocked): <code>${blockedCount}</code>\n` +
-                `<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> අනෙකුත් දෝෂ: <code>${failedCount}</code>`,
-                { parse_mode: 'HTML' }
-            );
-        } catch (err) {
-            console.error("Broadcast Execution Error:", err);
-            await ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.", { parse_mode: 'HTML' });
-        }
-    });
-});
-
 // Check Subscription Action
 bot.action(/^check_sub_(.+)$/, async (ctx) => {
     const userId = ctx.from.id;
@@ -1109,87 +860,10 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
             }
 
             await ctx.deleteMessage();
-
-            let sentVideoIds = [];
-            let msgIdsArray = [];
-            if (fileDoc.fileMsgId) {
-                msgIdsArray = [fileDoc.fileMsgId];
-            } else if (fileDoc.fileMsgIds && Array.isArray(fileDoc.fileMsgIds)) {
-                msgIdsArray = fileDoc.fileMsgIds;
-            }
-
-            const isProtected = fileDoc.protectContent === true;
-
-            for (let i = 0; i < msgIdsArray.length; i++) {
-                try {
-                    const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, msgIdsArray[i], {
-                        protect_content: isProtected
-                    });
-                    sentVideoIds.push(sentMsg.message_id);
-                    await new Promise(resolve => setTimeout(resolve, 400));
-                } catch (copyErr) {
-                    console.error(`Copy Message Error for ID ${msgIdsArray[i]}:`, copyErr.message);
-                }
-            }
-
-                        let remainingMinutes = 30;
-            let warningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
-            const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
-
-            const warningMsg = await ctx.reply(warningText, {
-                parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [
-                        [
-                            { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
-                            { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
-                            { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
-                        ]
-                    ]
-                }
-            });
-
-            // විනාඩි 5න් 5ට කවුන්ට්ඩවුන් එක Edit කිරීම
-            const updateInterval = setInterval(async () => {
-                remainingMinutes -= 5;
-                if (remainingMinutes > 0) {
-                    let updatedWarningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
-                    await ctx.telegram.editMessageText(
-                        ctx.chat.id, 
-                        warningMsg.message_id, 
-                        null, 
-                        updatedWarningText, 
-                        {
-                            parse_mode: 'HTML',
-                            reply_markup: {
-                                inline_keyboard: [
-                                    [
-                                        { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
-                                        { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
-                                        { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
-                                    ]
-                                ]
-                            }
-                        }
-                    ).catch(() => {});
-                } else {
-                    clearInterval(updateInterval);
-                }
-            }, 5 * 60 * 1000);
-
-            setTimeout(async () => {
-                clearInterval(updateInterval);
-                try {
-                    for (let msgId of sentVideoIds) {
-                        await ctx.telegram.deleteMessage(ctx.chat.id, msgId).catch(() => {});
-                    }
-                    await ctx.telegram.deleteMessage(ctx.chat.id, warningMsg.message_id).catch(() => {});
-                } catch (err) {}
-            }, 30 * 60 * 1000);
-
+            await deliverVideosAndSetupTimer(ctx, fileDoc, token, lang);
             return;
+        }
 
-}
         const fileDoc = await FileModel.findOne({ token: payload });
         if (!fileDoc) {
             return ctx.editMessageText(t.linkExpired, { parse_mode: 'HTML' });
@@ -1292,7 +966,6 @@ bot.action('cancel_upload', async (ctx) => {
 bot.action('done_upload', async (ctx) => {
     const userId = ctx.from.id.toString();
     await ctx.answerCbQuery();
-    // Simulate /done command logic
     await finalizeUpload(ctx);
 });
 
