@@ -123,7 +123,12 @@ const fileSchema = new mongoose.Schema({
     fileMsgIds: { type: [Number] },   
     views: { type: Number, default: 0 },
     clicks: { type: Number, default: 0 },
-    protectContent: { type: Boolean, default: false }
+    protectContent: { type: Boolean, default: false },
+    reactions: {
+        peach: { type: Number, default: 0 },
+        banana: { type: Number, default: 0 },
+        hot: { type: Number, default: 0 }
+    }
 });
 
 const FileModel = mongoose.model('File', fileSchema);
@@ -232,7 +237,20 @@ bot.start(async (ctx) => {
             }
 
             let warningText = t.warningText + (isProtected ? t.protectedNote : "");
-            const warningMsg = await ctx.reply(warningText, { parse_mode: 'HTML' });
+            const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
+
+            const warningMsg = await ctx.reply(warningText, {
+                parse_mode: 'HTML',
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                            { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                            { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
+                        ]
+                    ]
+                }
+            });
 
             setTimeout(async () => {
                 try {
@@ -264,6 +282,37 @@ bot.start(async (ctx) => {
     } catch (error) {
         console.error("Start command error:", error);
         ctx.reply(t.systemError, { parse_mode: 'HTML' });
+    }
+});
+
+// Reaction Button Handler (🍑, 🍌, 🥵)
+bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
+    const type = ctx.match[1];
+    const token = ctx.match[2];
+
+    try {
+        const updatedFile = await FileModel.findOneAndUpdate(
+            { token: token },
+            { $inc: { [`reactions.${type}`]: 1 } },
+            { new: true }
+        );
+
+        if (!updatedFile) return ctx.answerCbQuery("❌ Link Expired!");
+
+        const reactions = updatedFile.reactions || { peach: 0, banana: 0, hot: 0 };
+        await ctx.answerCbQuery("🔥 ඔබේ ප්‍රතිචාරය එකතු විය!");
+
+        await ctx.editMessageReplyMarkup({
+            inline_keyboard: [
+                [
+                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
+                ]
+            ]
+        });
+    } catch (err) {
+        console.error("Reaction Error:", err);
     }
 });
 
@@ -831,7 +880,19 @@ bot.start(async (ctx) => {
                 warningText += t.protectedNote;
             }
 
-            const warningMsg = await ctx.reply(warningText, { parse_mode: 'HTML' });
+            const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
+            const warningMsg = await ctx.reply(warningText, {
+                parse_mode: 'HTML',
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                            { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                            { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
+                        ]
+                    ]
+                }
+            });
 
             setTimeout(async () => {
                 try {
@@ -1042,7 +1103,19 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 warningText += t.protectedNote;
             }
 
-            const warningMsg = await ctx.reply(warningText, { parse_mode: 'HTML' });
+            const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
+            const warningMsg = await ctx.reply(warningText, {
+                parse_mode: 'HTML',
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                            { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                            { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
+                        ]
+                    ]
+                }
+            });
 
             setTimeout(async () => {
                 try {
@@ -1121,7 +1194,7 @@ bot.action('support_info', async (ctx) => {
     await ctx.reply(t.supportMsg, { parse_mode: 'HTML' });
 });
 
-// --- Upload Workflow Actions & Cancel Feature ---
+// --- Upload Workflow Actions & Cancel/Done Feature ---
 
 const pendingUploads = new Map();
 
@@ -1152,6 +1225,14 @@ bot.action('cancel_upload', async (ctx) => {
     } else {
         await ctx.answerCbQuery("ක්‍රියාකාරී අප්‌ලෝඩ් එකක් හමු නොවීය.");
     }
+});
+
+// Done Action Button
+bot.action('done_upload', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    await ctx.answerCbQuery();
+    // Simulate /done command logic
+    await finalizeUpload(ctx);
 });
 
 bot.action('toggle_spoiler_yes', async (ctx) => {
@@ -1207,8 +1288,16 @@ bot.action('toggle_protect_yes', async (ctx) => {
         "<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>සැකසීම් සාර්ථකයි!</b>\n\n" +
         "🔒 Blur Mode: <code>ON</code>\n" +
         "🛡️ Protect Content: <code>ON (Block)</code>\n\n" +
-        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <code>/done</code> ටයිප් කරන්න, නැතහොත් අවලංගු කිරීමට /cancel භාවිතා කරන්න.",
-        { parse_mode: 'HTML' }
+        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බටන් එක ඔබන්න.",
+        { 
+            parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: "✅ Done & Publish", callback_data: "done_upload", style: "success" }],
+                    [{ text: "❌ Cancel", callback_data: "cancel_upload", style: "danger" }]
+                ]
+            }
+        }
     );
 });
 
@@ -1224,8 +1313,16 @@ bot.action('toggle_protect_no', async (ctx) => {
         "<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>සැකසීම් සාර්ථකයි!</b>\n\n" +
         "🔒 Blur Mode: <code>ස්ථාපිතයි</code>\n" +
         "🛡️ Protect Content: <code>OFF (Allow)</code>\n\n" +
-        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <code>/done</code> ටයිප් කරන්න, නැතහොත් අවලංගු කිරීමට /cancel භාවිතා කරන්න.",
-        { parse_mode: 'HTML' }
+        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බටන් එක ඔබන්න.",
+        { 
+            parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: "✅ Done & Publish", callback_data: "done_upload", style: "success" }],
+                    [{ text: "❌ Cancel", callback_data: "cancel_upload", style: "danger" }]
+                ]
+            }
+        }
     );
 });
 
@@ -1242,12 +1339,15 @@ bot.on('photo', async (ctx) => {
             pendingUploads.set(userId, pending);
 
             await ctx.reply(
-                `<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> ඡායාරූපය එකතු විය! (මුළු ගණන: <code>${pending.videoMsgIds.length}</code>). තවත් ඇත්නම් එවන්න, නැතහොත් /done ටයිප් කරන්න.`,
+                `<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> ඡායාරූපය එකතු විය! (මුළු ගණන: <code>${pending.videoMsgIds.length}</code>). තවත් ඇත්නම් එවන්න, අවසන් වූ පසු /done හෝ බටන් එක ඔබන්න.`,
                 {
                     parse_mode: 'HTML',
                     reply_markup: {
                         inline_keyboard: [
-                            [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload", style: "danger" }]
+                            [
+                                { text: "✅ Done", callback_data: "done_upload", style: "success" },
+                                { text: "❌ Cancel", callback_data: "cancel_upload", style: "danger" }
+                            ]
                         ]
                     }
                 }
@@ -1303,12 +1403,15 @@ bot.on(['video', 'document'], async (ctx) => {
         pendingUploads.set(userId, pending);
 
         await ctx.reply(
-            `<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> අන්තර්ගතය එකතු විය! (මුළු ගණන: <code>${pending.videoMsgIds.length}</code>). තවත් ඇත්නම් එවන්න, නැතහොත් <code>/done</code> ටයිප් කරන්න.`,
+            `<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> අන්තර්ගතය එකතු විය! (මුළු ගණන: <code>${pending.videoMsgIds.length}</code>). තවත් ඇත්නම් එවන්න, අවසන් වූ පසු <code>/done</code> හෝ පහත බොත්තම ඔබන්න.`,
             {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload", style: "danger" }]
+                        [
+                            { text: "✅ Done", callback_data: "done_upload", style: "success" },
+                            { text: "❌ Cancel", callback_data: "cancel_upload", style: "danger" }
+                        ]
                     ]
                 }
             }
@@ -1318,10 +1421,9 @@ bot.on(['video', 'document'], async (ctx) => {
     }
 });
 
-bot.command('done', async (ctx) => {
-    const userId = ctx.from.id.toString();
-    const ADMIN_ID = process.env.ADMIN_ID;
-    if (ADMIN_ID && userId !== ADMIN_ID) return;
+async function finalizeUpload(ctx) {
+    const userId = (ctx.from && ctx.from.id) ? ctx.from.id.toString() : null;
+    if (!userId) return;
 
     const pending = pendingUploads.get(userId);
     if (!pending || pending.videoMsgIds.length === 0) {
@@ -1369,6 +1471,13 @@ bot.command('done', async (ctx) => {
         console.error(error);
         ctx.reply("ප්‍රධාන චැනල් එකට පෝස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
     }
+}
+
+bot.command('done', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const ADMIN_ID = process.env.ADMIN_ID;
+    if (ADMIN_ID && userId !== ADMIN_ID) return;
+    await finalizeUpload(ctx);
 });
 
 const PORT = process.env.PORT || 3000;
@@ -1380,6 +1489,7 @@ app.listen(PORT, async () => {
             { command: 'start', description: 'Start the bot / බොට් ආරම්භ කරන්න' },
             { command: 'language', description: 'Change language / භාෂාව මාරු කරන්න' },
             { command: 'cancel', description: 'Cancel current upload / අප්‌ලෝඩ් කිරීම අවලංගු කරන්න' },
+            { command: 'done', description: 'Finish upload and publish / අවසන් කර ප්‍රකාශයට පත් කරන්න' },
             { command: 'stats', description: 'Bot Statistics (Admin only)' },
             { command: 'maintenance', description: 'Toggle Maintenance (Admin only)' }
         ]);
