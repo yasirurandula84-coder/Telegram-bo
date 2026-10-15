@@ -13,7 +13,7 @@ const MONGO_URI = process.env.MONGO_URI;
 const REQUIRED_CHANNEL = process.env.REQUIRED_CHANNEL || "@wal_lokaya1"; 
 const CHAT_GROUP_LINK = 'https://t.me/wallokaya_chat';
 
-// --- Language Dictionary (භාෂා පරිවර්තන එකතුව - Premium Emojis සමග) ---
+// --- Language Dictionary (භාෂා පරිවර්තන එකතුව - දෝෂ නිවැරදි කර ඇත) ---
 const langs = {
     si: {
         welcome: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji> <b>𝐖𝐀𝐋 𝐋𝐎𝐊𝐀𝐘𝐀 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋</b> <tg-emoji emoji-id=\"5431376038628160877\">👑</tg-emoji>\n━━━━━━━━━━━━━━━━━━━━\n\n<tg-emoji emoji-id=\"5427009714846171570\">👋</tg-emoji> <b>ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.</b>\n\nමම ඔබේ වීඩියෝ ලබා දෙන ස්වයංක්‍රීය බොට් එකයි. <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>\n\n<tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji> <b>වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණෙන්න.</b> <tg-emoji emoji-id=\"5370835848520631629\">💎</tg-emoji>",
@@ -24,7 +24,7 @@ const langs = {
         backBtn: "⬅️ 𝐁𝐚𝐜𝐤 𝐭𝐨 𝐌𝐞𝐧𝐮",
         subRequired: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>අවධානයෙයි! වීඩියෝව ලබා ගැනීමට පහත පියවර සම්පූර්ණ කරන්න.</b>\n\nවීඩියෝව Download කර ගැනීමට නම් ඔබ අපගේ ප්‍රධාන චැනල් එකේ සහ චැට් ගෲප් එකේ සාමාජිකයෙකු විය යුතුය.\n\n<tg-emoji emoji-id=\"5406899432098627038\">👇</tg-emoji> පහත බටන් භාවිතයෙන් Join වී <b>\"🔄 නැවත Verify කරන්න\"</b> බොත්තම ක්ලික් කරන්න.",
         joinChannel: "📢 𝐉𝐨𝐢𝐧 𝐂𝐡𝐚𝐧𝐧𝐞𝐥",
-        checkSub: "🔄 𝐂𝐡𝐞𝐜𝐤 𝐒𝐮𝐛𝐬𝐜𝐫ⵉ𝐩𝐭𝐢𝐨𝐧",
+        checkSub: "🔄 𝐂𝐡𝐞𝐜𝐤 𝐒𝐮𝐛𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧",
         linkExpired: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.</b>",
         warningText: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>𝐀𝐓𝐓𝐄𝐍𝐓𝐈𝐎𝐍 / අවධානයට:</b>\n━━━━━━━━━━━━━━━━━━━━\nමෙම අන්තර්ගතය ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත! <tg-emoji emoji-id=\"5469731513291418723\">⏳</tg-emoji>",
         protectedNote: "\n\n<tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji> <i>(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි වේ.)</i>",
@@ -35,9 +35,9 @@ const langs = {
         systemError: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> පද්ධතියේ දෝෂයක් සිදු විය.",
         notSubbedAlert: "❌ ඔබ අවශ්‍ය සියලුම නාලිකා/ගෲප් සඳහා Join වී නැත!",
         subSuccess: "<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.",
-        guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐂𝐎𝐍𝐓𝐄𝐍𝐓</b> <tg-emoji emoji-id=\"5431376038628160877\">💡</tg-emoji>\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ මුලින්ම <b>\"▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\"</b> බොත්තම ඔබන්න. <tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji>\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න. <tg-emoji emoji-id=\"5469731513291418723\">⏱️</tg-emoji>\n3️⃣ කාලය අවසන් වූ පසු මතුවන <b>\"🚀 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨\"</b> බොත්තම ඔබන්න. <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත! <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>",
-        supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>𝐒𝐔𝐏𝐏𝐎𝐑𝐓 & 𝐇𝐄𝐋𝐏</b>\n━━━━━━━━━━━━━━━━━━━━\n\nగැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
-        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>𝐋𝐀𝐍𝐆𝐔𝐀𝐆𝐄 𝐒𝐄𝐋𝐄𝐂Տ𝐈𝐎𝐍</b>\n━━━━━━━━━━━━━━━━━━━━\n\nකරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language: <tg-emoji emoji-id=\"5469731513291418723\">✨</tg-emoji>",
+        guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐂𝐎𝐍𝐓𝐄𝐍𝐓</b> <tg-emoji emoji-id=\"5431376038628160877\">💡</tg-emoji>\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ මුලින්ම <b>\"▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\"</b> බොත්තම ඔබන්න. <tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji>\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න. <tg-emoji emoji-id=\"5469731513291418723\">⏱️</tg-emoji>\n3️⃣ කාලය අවසන් වූ පසු මතුවන <b>\"🚀 𝐆𝐞𝐭 𝐕𝐢ඩියෝ\"</b> බොත්තම ඔබන්න. <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත! <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>",
+        supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>𝐒𝐔𝐏𝐏𝐎𝐑𝐓 & 𝐇𝐄𝐋𝐏</b>\n━━━━━━━━━━━━━━━━━━━━\n\nගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
+        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>𝐋𝐀𝐍𝐆𝐔𝐀𝐆𝐄 𝐒𝐄𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n━━━━━━━━━━━━━━━━━━━━\n\nਕරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language: <tg-emoji emoji-id=\"5469731513291418723\">✨</tg-emoji>",
         
         // Mini App Dictionary (SI)
         appTitle: "වීඩියෝව සූදානම් වෙමින් පවතී",
@@ -406,7 +406,7 @@ bot.start(async (ctx) => {
             buttons.push([{ text: '📢 Main Channel එකට Join වන්න', url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }]);
         }
         if (!membership.isGroupMember) {
-            buttons.push([{ text: '💬 Kama Lokaya Chat Group එකට Join වන්න', url: CHAT_GROUP_LINK }]);
+            buttons.push([{ text: '💬 Chat Group එකට Join වන්න', url: CHAT_GROUP_LINK }]);
         }
 
         buttons.push([{ text: '🔄 නැවත Verify කරන්න', callback_data: `check_sub_${payload}` }]);
