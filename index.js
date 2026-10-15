@@ -14,27 +14,28 @@ const REQUIRED_CHANNEL = process.env.REQUIRED_CHANNEL || "@wal_lokaya1";
 // --- Language Dictionary (භාෂා පරිවර්තන එකතුව - Premium Emojis සමග) ---
 const langs = {
     si: {
-        welcome: "<tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji> <b>ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.</b> <tg-emoji emoji-id=\"5431376038628160877\">👑</tg-emoji>\n\nමම ඔබේ වීඩියෝ ලබා දෙන ස්වයංක්‍රීය බොට් එකයි. <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>\n\n<tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji> <b>වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණෙන්න.</b> <tg-emoji emoji-id=\"5370835848520631629\">💎</tg-emoji>",
-        channelBtn: "📢 Our Channel",
-        howToUseBtn: "ℹ️ How to Use",
-        supportBtn: "📞 Support",
-        langBtn: "🌐 Language / භාෂාව",
-        subRequired: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!</b> <tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji>\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය. <tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji>\n\n<tg-emoji emoji-id=\"5406899432098627038\">👇</tg-emoji> පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව <b>\"🔄 Check Subscription\"</b> ඔබන්න.",
-        joinChannel: "📢 Join Channel",
-        checkSub: "🔄 Check Subscription",
+        welcome: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji> <b>𝐖𝐀𝐋 𝐋𝐎𝐊𝐀𝐘𝐀 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋</b> <tg-emoji emoji-id=\"5431376038628160877\">👑</tg-emoji>\n━━━━━━━━━━━━━━━━━━━━\n\n<tg-emoji emoji-id=\"5427009714846171570\">👋</tg-emoji> <b>ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.</b>\n\nමම ඔබේ වීඩියෝ ලබා දෙන ස්වයංක්‍රීය බොට් එකයි. <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>\n\n<tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji> <b>වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණෙන්න.</b> <tg-emoji emoji-id=\"5370835848520631629\">💎</tg-emoji>",
+        channelBtn: "📢 𝐎𝐮𝐫 𝐂𝐡𝐚𝐧𝐧𝐞𝐥",
+        howToUseBtn: "ℹ️ 𝐇𝐨𝐰 𝐭𝐨 𝐔𝐬𝐞",
+        supportBtn: "📞 𝐒𝐮𝐩𝐩𝐨𝐫𝐭",
+        langBtn: "🌐 𝐋𝐚𝐧𝐠𝐮𝐚𝐠𝐞 / භාෂාව",
+        backBtn: "⬅️ 𝐁𝐚𝐜𝐤 𝐭𝐨 𝐌𝐞𝐧𝐮",
+        subRequired: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!</b> <tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji>\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය. <tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji>\n\n<tg-emoji emoji-id=\"5406899432098627038\">👇</tg-emoji> පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව <b>\"🔄 𝐂𝐡𝐞𝐜𝐤 𝐒𝐮𝐛𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧\"</b> ඔබන්න.",
+        joinChannel: "📢 𝐉𝐨𝐢𝐧 𝐂𝐡𝐚𝐧𝐧𝐞𝐥",
+        checkSub: "🔄 𝐂𝐡𝐞𝐜𝐤 𝐒𝐮𝐛𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧",
         linkExpired: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.</b>",
-        warningText: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>අවධානයට:</b>\nමෙම අන්තර්ගතය ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත! <tg-emoji emoji-id=\"5469731513291418723\">⏳</tg-emoji>",
+        warningText: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>𝐀𝐓𝐓𝐄𝐍𝐓𝐈𝐎𝐍 / අවධානයට:</b>\n━━━━━━━━━━━━━━━━━━━━\nමෙම අන්තර්ගතය ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත! <tg-emoji emoji-id=\"5469731513291418723\">⏳</tg-emoji>",
         protectedNote: "\n\n<tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji> <i>(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි වේ.)</i>",
-        clickBtnText: "<tg-emoji emoji-id=\"5431376038628160877\">🔓</tg-emoji> <b>අන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න:</b> <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>",
+        clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5431376038628160877\">🔓</tg-emoji> <b>𝐑𝐄𝐀𝐃𝐘 𝐓𝐎 𝐔𝐍𝐋𝐎𝐂𝐊</b>\n━━━━━━━━━━━━━━━━━━━━\n\nඅන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න: <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>",
         viewsCount: "📊 මෙතෙක් නැරඹුම් වාර:",
-        watchAdText: "▶️ Watch Ad & Get Content",
-        guideText: "❓ වීඩියෝව ලබා ගන්නේ කෙසේද? (Guide)",
+        watchAdText: "▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭",
+        guideText: "❓ 𝐇𝐨𝐰 𝐭𝐨 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨? (𝐆𝐮𝐢𝐝𝐞)",
         systemError: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> පද්ධතියේ දෝෂයක් සිදු විය.",
         notSubbedAlert: "❌ ඔබ තවමත් චැනල් එකට Join වී නැත!",
         subSuccess: "<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.",
-        guideContent: "📖 <b>අන්තර්ගතයක් ලබාගන්නේ කෙසේද? (පියවර)</b> <tg-emoji emoji-id=\"5431376038628160877\">💡</tg-emoji>\n\n1️⃣ මුලින්ම <b>\"▶️ Watch Ad & Get Content\"</b> බොත්තම ඔබන්න. <tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji>\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න. <tg-emoji emoji-id=\"5469731513291418723\">⏱️</tg-emoji>\n3️⃣ කාලය අවසන් වූ පසු මතුවන <b>\"🚀 වීඩියෝව ලබා ගන්න\"</b> බොත්තම ඔබන්න. <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත! <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>",
-        supportMsg: "<tg-emoji emoji-id=\"5370835848520631629\">📞</tg-emoji> ගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
-        langSelect: "🌐 <b>කරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language:</b> <tg-emoji emoji-id=\"5469731513291418723\">✨</tg-emoji>",
+        guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐂𝐎𝐍𝐓𝐄𝐍𝐓</b> <tg-emoji emoji-id=\"5431376038628160877\">💡</tg-emoji>\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ මුලින්ම <b>\"▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\"</b> බොත්තම ඔබන්න. <tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji>\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න. <tg-emoji emoji-id=\"5469731513291418723\">⏱️</tg-emoji>\n3️⃣ කාලය අවසන් වූ පසු මතුවන <b>\"🚀 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨\"</b> බොත්තම ඔබන්න. <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත! <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>",
+        supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>𝐒𝐔𝐏𝐏𝐎𝐑𝐓 & 𝐇𝐄𝐋𝐏</b>\n━━━━━━━━━━━━━━━━━━━━\n\nগැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
+        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>𝐋𝐀𝐍𝐆𝐔𝐀𝐆𝐄 𝐒𝐄𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n━━━━━━━━━━━━━━━━━━━━\n\nකරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language: <tg-emoji emoji-id=\"5469731513291418723\">✨</tg-emoji>",
         
         // Mini App Dictionary (SI)
         appTitle: "වීඩියෝව සූදානම් වෙමින් පවතී",
@@ -55,27 +56,28 @@ const langs = {
         ageOverBtn: "මගේ වයස 18ට වැඩි හෝ සමානයි"
     },
     en: {
-        welcome: "<tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji> <b>Hello! Welcome.</b> <tg-emoji emoji-id=\"5431376038628160877\">👑</tg-emoji>\n\nI am your automated bot that provides videos and movies. <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>\n\n<tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji> <b>Please use a link from our main channel to access content through the bot.</b> <tg-emoji emoji-id=\"5370835848520631629\">💎</tg-emoji>",
-        channelBtn: "📢 Our Channel",
-        howToUseBtn: "ℹ️ How to Use",
-        supportBtn: "📞 Support",
-        langBtn: "🌐 Language",
-        subRequired: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>You haven't joined our main channel yet!</b> <tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji>\n\nYou must join our channel first to get this video. <tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji>\n\n<tg-emoji emoji-id=\"5406899432098627038\">👇</tg-emoji> Click the button below to join the channel, then click <b>\"🔄 Check Subscription\"</b>.",
-        joinChannel: "📢 Join Channel",
-        checkSub: "🔄 Check Subscription",
+        welcome: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji> <b>𝐖𝐀𝐋 𝐋𝐎𝐊𝐀𝐘𝐀 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋</b> <tg-emoji emoji-id=\"5431376038628160877\">👑</tg-emoji>\n━━━━━━━━━━━━━━━━━━━━\n\n<tg-emoji emoji-id=\"5427009714846171570\">👋</tg-emoji> <b>Hello! Welcome.</b>\n\nI am your automated bot that provides videos and movies. <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>\n\n<tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji> <b>Please use a link from our main channel to access content through the bot.</b> <tg-emoji emoji-id=\"5370835848520631629\">💎</tg-emoji>",
+        channelBtn: "📢 𝐎𝐮𝐫 𝐂𝐡𝐚𝐧𝐧𝐞𝐥",
+        howToUseBtn: "ℹ️ 𝐇𝐨𝐰 𝐭𝐨 𝐔𝐬𝐞",
+        supportBtn: "📞 𝐒𝐮𝐩𝐩𝐨𝐫𝐭",
+        langBtn: "🌐 𝐋𝐚𝐧𝐠𝐮𝐚𝐠𝐞",
+        backBtn: "⬅️ 𝐁𝐚𝐜𝐤 𝐭𝐨 𝐌𝐞𝐧𝐮",
+        subRequired: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>You haven't joined our main channel yet!</b> <tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji>\n\nYou must join our channel first to get this video. <tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji>\n\n<tg-emoji emoji-id=\"5406899432098627038\">👇</tg-emoji> Click the button below to join the channel, then click <b>\"🔄 𝐂𝐡𝐞𝐜𝐤 𝐒𝐮𝐛𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧\"</b>.",
+        joinChannel: "📢 𝐉𝐨𝐢𝐧 𝐂𝐡𝐚𝐧𝐧𝐞𝐥",
+        checkSub: "🔄 𝐂𝐡𝐞𝐜𝐤 𝐒𝐮𝐛𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧",
         linkExpired: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>Sorry, this link has expired or is invalid.</b>",
-        warningText: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>Attention:</b>\nThis content will automatically disappear from your chat! <tg-emoji emoji-id=\"5469731513291418723\">⏳</tg-emoji>",
+        warningText: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>𝐀𝐓𝐓𝐄𝐍𝐓𝐈𝐎𝐍:</b>\n━━━━━━━━━━━━━━━━━━━━\nThis content will automatically disappear from your chat! <tg-emoji emoji-id=\"5469731513291418723\">⏳</tg-emoji>",
         protectedNote: "\n\n<tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji> <i>(This content is protected against forwarding or downloading)</i>",
-        clickBtnText: "<tg-emoji emoji-id=\"5431376038628160877\">🔓</tg-emoji> <b>Click the button below to get the content:</b> <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>",
+        clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5431376038628160877\">🔓</tg-emoji> <b>𝐑𝐄𝐀𝐃𝐘 𝐓𝐎 𝐔𝐍𝐋𝐎𝐂𝐊</b>\n━━━━━━━━━━━━━━━━━━━━\n\nClick the button below to get the content: <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>",
         viewsCount: "📊 Total Views so far:",
-        watchAdText: "▶️ Watch Ad & Get Content",
-        guideText: "❓ How to get video? (Guide)",
+        watchAdText: "▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭",
+        guideText: "❓ 𝐇𝐨𝐰 𝐭𝐨 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨? (𝐆𝐮𝐢𝐝𝐞)",
         systemError: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> A system error occurred.",
         notSubbedAlert: "❌ You have not joined the channel yet!",
         subSuccess: "<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> Thank you! You can now access the content.",
-        guideContent: "📖 <b>How to get content? (Steps)</b> <tg-emoji emoji-id=\"5431376038628160877\">💡</tg-emoji>\n\n1️⃣ First click the <b>\"▶ Watch Ad & Get Content\"</b> button. <tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji>\n2️⃣ Click on the ad on the opened page and wait for 5 seconds. <tg-emoji emoji-id=\"5469731513291418723\">⏱️</tg-emoji>\n3️⃣ Once time is up, click the <b>\"🚀 Get Video\"</b> button that appears. <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>\n4️⃣ Then you will automatically be redirected to the bot to receive your content! <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>",
-        supportMsg: "<tg-emoji emoji-id=\"5370835848520631629\">📞</tg-emoji> For inquiries, please contact our main channel.",
-        langSelect: "🌐 <b>Please select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න:</b> <tg-emoji emoji-id=\"5469731513291418723\">✨</tg-emoji>",
+        guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐂𝐎𝐍𝐓𝐄𝐍𝐓</b> <tg-emoji emoji-id=\"5431376038628160877\">💡</tg-emoji>\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ First click the <b>\"▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\"</b> button. <tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji>\n2️⃣ Click on the ad on the opened page and wait for 5 seconds. <tg-emoji emoji-id=\"5469731513291418723\">⏱️</tg-emoji>\n3️⃣ Once time is up, click the <b>\"🚀 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨\"</b> button that appears. <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>\n4️⃣ Then you will automatically be redirected to the bot to receive your content! <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>",
+        supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>𝐒𝐔𝐏𝐏𝐎𝐑𝐓 & 𝐇𝐄𝐋𝐏</b>\n━━━━━━━━━━━━━━━━━━━━\n\nFor inquiries, please contact our main channel.",
+        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>𝐋𝐀𝐍𝐆𝐔𝐀𝐆𝐄 𝐒𝐄𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n━━━━━━━━━━━━━━━━━━━━\n\nPlease select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න: <tg-emoji emoji-id=\"5469731513291418723\">✨</tg-emoji>",
         
         // Mini App Dictionary (EN)
         appTitle: "Video is getting ready",
@@ -179,6 +181,17 @@ async function checkUserSubscription(ctx, userId) {
 // Active Timers In Memory
 const activeTimers = new Map();
 
+// Helper to generate Reaction Rating/Heat Bar text
+function getReactionHeatBar(reactions) {
+    const total = (reactions.peach || 0) + (reactions.banana || 0) + (reactions.hot || 0);
+    if (total === 0) return `[░░░░░░░░░░] 0% Reactions`;
+    const positive = (reactions.peach || 0) + (reactions.hot || 0);
+    const percentage = Math.round((positive / total) * 100);
+    const filledCount = Math.round(percentage / 10);
+    const bar = '🟩'.repeat(filledCount) + '⬛'.repeat(10 - filledCount);
+    return `[${bar}] ${percentage}% Positive (${total} Votes)`;
+}
+
 // Timer Starter Function
 function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, token, isProtected, lang, initialRemainingMinutes) {
     let remainingMinutes = initialRemainingMinutes;
@@ -187,11 +200,13 @@ function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, t
         remainingMinutes -= 5;
         if (remainingMinutes > 0) {
             const t = langs[lang] || langs.si;
-            let updatedWarningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
             
             try {
                 const fileDoc = await FileModel.findOne({ token });
                 const reactions = fileDoc ? (fileDoc.reactions || { peach: 0, banana: 0, hot: 0 }) : { peach: 0, banana: 0, hot: 0 };
+                const heatBarText = getReactionHeatBar(reactions);
+
+                let updatedWarningText = t.warningText + `\n\n📊 <b>𝐂𝐎𝐍𝐓𝐄𝐍𝐓 𝐑𝐀𝐓𝐈𝐍𝐆:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
                 
                 await bot.telegram.editMessageText(
                     chatId, 
@@ -291,8 +306,10 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     }
 
     let remainingMinutes = 30;
-    let warningText = t.warningText + `\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
     const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
+    const heatBarText = getReactionHeatBar(reactions);
+
+    let warningText = t.warningText + `\n\n📊 <b>𝐂𝐎𝐍𝐓𝐄𝐍𝐓 𝐑𝐀𝐓𝐈𝐍𝐆:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
 
     const warningMsg = await ctx.reply(warningText, {
         parse_mode: 'HTML',
@@ -452,49 +469,118 @@ bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
     }
 });
 
+// Interactive Menu Handlers with Back Button Support
 bot.action('how_to_use', async (ctx) => {
     await ctx.answerCbQuery();
     const userId = ctx.from.id.toString();
     const lang = await getUserLang(userId);
-    await ctx.reply(langs[lang].guideContent, { parse_mode: 'HTML' });
+    const t = langs[lang];
+    await ctx.editMessageText(t.guideContent, {
+        parse_mode: 'HTML',
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+            ]
+        }
+    }).catch(() => ctx.reply(t.guideContent, {
+        parse_mode: 'HTML',
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+            ]
+        }
+    }));
 });
 
 bot.action('support_info', async (ctx) => {
     const userId = ctx.from.id.toString();
     const lang = await getUserLang(userId);
+    const t = langs[lang];
     await ctx.answerCbQuery();
-    await ctx.reply(langs[lang].supportMsg, { parse_mode: 'HTML' });
+    await ctx.editMessageText(t.supportMsg, {
+        parse_mode: 'HTML',
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+            ]
+        }
+    }).catch(() => ctx.reply(t.supportMsg, {
+        parse_mode: 'HTML',
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+            ]
+        }
+    }));
 });
 
 bot.action('change_language', async (ctx) => {
     await ctx.answerCbQuery();
     const userId = ctx.from.id.toString();
     const lang = await getUserLang(userId);
-    await ctx.reply(langs[lang].langSelect, {
+    const t = langs[lang];
+    await ctx.editMessageText(t.langSelect, {
         parse_mode: 'HTML',
         reply_markup: { 
             inline_keyboard: [
                 [
                     { text: "🇱🇰 සිංහල", callback_data: "set_lang_si", style: "success" }, 
                     { text: "🇬🇧 English", callback_data: "set_lang_en", style: "primary" }
-                ]
+                ],
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
             ] 
         }
-    });
+    }).catch(() => {});
+});
+
+bot.action('back_to_main', async (ctx) => {
+    await ctx.answerCbQuery();
+    const userId = ctx.from.id.toString();
+    const lang = await getUserLang(userId);
+    const t = langs[lang];
+    await ctx.editMessageText(t.welcome, {
+        parse_mode: 'HTML',
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
+                [
+                    { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
+                    { text: t.supportBtn, callback_data: "support_info", style: "primary" }
+                ],
+                [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
+            ]
+        }
+    }).catch(() => {});
 });
 
 bot.action('set_lang_si', async (ctx) => {
     const userId = ctx.from.id.toString();
     await UserModel.updateOne({ userId }, { $set: { language: 'si' } }, { upsert: true });
     await ctx.answerCbQuery("සිංහල භාෂාව තෝරන ලදී.");
-    await ctx.editMessageText("<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>භාෂාව සිංහල ලෙස වෙනස් කරන ලදී.</b>\n\nමූලික මෙනුව වෙත යාමට /start ටයිප් කරන්න.", { parse_mode: 'HTML' });
+    const t = langs['si'];
+    await ctx.editMessageText("<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>භාෂාව සිංහල ලෙස වෙනස් කරන ලදී.</b>", {
+        parse_mode: 'HTML',
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+            ]
+        }
+    }).catch(() => {});
 });
 
 bot.action('set_lang_en', async (ctx) => {
     const userId = ctx.from.id.toString();
     await UserModel.updateOne({ userId }, { $set: { language: 'en' } }, { upsert: true });
     await ctx.answerCbQuery("Language set to English.");
-    await ctx.editMessageText("<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>Language changed to English.</b>\n\nType /start to go to the main menu.", { parse_mode: 'HTML' });
+    const t = langs['en'];
+    await ctx.editMessageText("<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>Language changed to English.</b>", {
+        parse_mode: 'HTML',
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+            ]
+        }
+    }).catch(() => {});
 });
 
 // Express App setup for Render
@@ -886,7 +972,8 @@ bot.command('language', async (ctx) => {
                 [
                     { text: "🇱🇰 සිංහල", callback_data: "set_lang_si", style: "success" },
                     { text: "🇬🇧 English", callback_data: "set_lang_en", style: "primary" }
-                ]
+                ],
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
             ]
         }
     });
