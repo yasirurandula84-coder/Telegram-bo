@@ -7,9 +7,11 @@ require('dotenv').config();
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const DB_CHANNEL_ID = process.env.DB_CHANNEL_ID;
 const MAIN_CHANNEL_ID = process.env.MAIN_CHANNEL_ID || "@wal_lokaya1"; 
+const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID; // Your Chat Group ID (e.g. -100xxxxxxxxxx)
 const MONGO_URI = process.env.MONGO_URI;
 
 const REQUIRED_CHANNEL = process.env.REQUIRED_CHANNEL || "@wal_lokaya1"; 
+const CHAT_GROUP_LINK = 'https://t.me/wallokaya_chat';
 
 // --- Language Dictionary (භාෂා පරිවර්තන එකතුව - Premium Emojis සමග) ---
 const langs = {
@@ -20,9 +22,9 @@ const langs = {
         supportBtn: "📞 𝐒𝐮𝐩𝐩𝐨𝐫𝐭",
         langBtn: "🌐 𝐋𝐚𝐧𝐠𝐮𝐚𝐠𝐞 / භාෂාව",
         backBtn: "⬅️ 𝐁𝐚𝐜𝐤 𝐭𝐨 𝐌𝐞𝐧𝐮",
-        subRequired: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>ඔබ තවමත් අපේ ප්‍රධාන චැනල් එක Join වී නැත!</b> <tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji>\n\nමෙම වීඩියෝව ලබා ගැනීමට නම් මුලින්ම අපේ චැනල් එකට Join වී සිටිය යුතුය. <tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji>\n\n<tg-emoji emoji-id=\"5406899432098627038\">👇</tg-emoji> පහත බොත්තම ඔබා චැනල් එකට Join වී, පසුව <b>\"🔄 𝐂𝐡𝐞𝐜𝐤 𝐒𝐮𝐛𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧\"</b> ඔබන්න.",
+        subRequired: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>අවධානයෙයි! වීඩියෝව ලබා ගැනීමට පහත පියවර සම්පූර්ණ කරන්න.</b>\n\nවීඩියෝව Download කර ගැනීමට නම් ඔබ අපගේ ප්‍රධාන චැනල් එකේ සහ චැට් ගෲප් එකේ සාමාජිකයෙකු විය යුතුය.\n\n<tg-emoji emoji-id=\"5406899432098627038\">👇</tg-emoji> පහත බටන් භාවිතයෙන් Join වී <b>\"🔄 නැවත Verify කරන්න\"</b> බොත්තම ක්ලික් කරන්න.",
         joinChannel: "📢 𝐉𝐨𝐢𝐧 𝐂𝐡𝐚𝐧𝐧𝐞𝐥",
-        checkSub: "🔄 𝐂𝐡𝐞𝐜𝐤 𝐒𝐮𝐛𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧",
+        checkSub: "🔄 𝐂𝐡𝐞𝐜𝐤 𝐒𝐮𝐛𝐬𝐜𝐫ⵉ𝐩𝐭𝐢𝐨𝐧",
         linkExpired: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.</b>",
         warningText: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>𝐀𝐓𝐓𝐄𝐍𝐓𝐈𝐎𝐍 / අවධානයට:</b>\n━━━━━━━━━━━━━━━━━━━━\nමෙම අන්තර්ගතය ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත! <tg-emoji emoji-id=\"5469731513291418723\">⏳</tg-emoji>",
         protectedNote: "\n\n<tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji> <i>(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි වේ.)</i>",
@@ -31,11 +33,11 @@ const langs = {
         watchAdText: "▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭",
         guideText: "❓ 𝐇𝐨𝐰 𝐭𝐨 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨? (𝐆𝐮𝐢𝐝𝐞)",
         systemError: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> පද්ධතියේ දෝෂයක් සිදු විය.",
-        notSubbedAlert: "❌ ඔබ තවමත් චැනල් එකට Join වී නැත!",
+        notSubbedAlert: "❌ ඔබ අවශ්‍ය සියලුම නාලිකා/ගෲප් සඳහා Join වී නැත!",
         subSuccess: "<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.",
         guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐂𝐎𝐍𝐓𝐄𝐍𝐓</b> <tg-emoji emoji-id=\"5431376038628160877\">💡</tg-emoji>\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ මුලින්ම <b>\"▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\"</b> බොත්තම ඔබන්න. <tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji>\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න. <tg-emoji emoji-id=\"5469731513291418723\">⏱️</tg-emoji>\n3️⃣ කාලය අවසන් වූ පසු මතුවන <b>\"🚀 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨\"</b> බොත්තම ඔබන්න. <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත! <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>",
-        supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>𝐒𝐔𝐏𝐏𝐎𝐑𝐓 & 𝐇𝐄𝐋𝐏</b>\n━━━━━━━━━━━━━━━━━━━━\n\nগැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
-        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>𝐋𝐀𝐍𝐆𝐔𝐀𝐆𝐄 𝐒𝐄𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n━━━━━━━━━━━━━━━━━━━━\n\nකරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language: <tg-emoji emoji-id=\"5469731513291418723\">✨</tg-emoji>",
+        supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>𝐒𝐔𝐏𝐏𝐎𝐑𝐓 & 𝐇𝐄𝐋𝐏</b>\n━━━━━━━━━━━━━━━━━━━━\n\nగැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
+        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>𝐋𝐀𝐍𝐆𝐔𝐀𝐆𝐄 𝐒𝐄𝐋𝐄𝐂Տ𝐈𝐎𝐍</b>\n━━━━━━━━━━━━━━━━━━━━\n\nකරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language: <tg-emoji emoji-id=\"5469731513291418723\">✨</tg-emoji>",
         
         // Mini App Dictionary (SI)
         appTitle: "වීඩියෝව සූදානම් වෙමින් පවතී",
@@ -62,9 +64,9 @@ const langs = {
         supportBtn: "📞 𝐒𝐮𝐩𝐩𝐨𝐫𝐭",
         langBtn: "🌐 𝐋𝐚𝐧𝐠𝐮𝐚𝐠𝐞",
         backBtn: "⬅️ 𝐁𝐚𝐜𝐤 𝐭𝐨 𝐌𝐞𝐧𝐮",
-        subRequired: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>You haven't joined our main channel yet!</b> <tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji>\n\nYou must join our channel first to get this video. <tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji>\n\n<tg-emoji emoji-id=\"5406899432098627038\">👇</tg-emoji> Click the button below to join the channel, then click <b>\"🔄 𝐂𝐡𝐞𝐜𝐤 𝐒𝐮𝐛𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧\"</b>.",
-        joinChannel: "📢 𝐉𝐨𝐢𝐧 𝐂𝐡𝐚𝐧𝐧𝐞𝐥",
-        checkSub: "🔄 𝐂𝐡𝐞𝐜𝐤 𝐒𝐮𝐛𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧",
+        subRequired: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>Attention! Complete the steps below.</b>\n\nYou must join our main channel and chat group to get this video.\n\n<tg-emoji emoji-id=\"5406899432098627038\">👇</tg-emoji> Join using the buttons below and click <b>\"🔄 Check Again\"</b>.",
+        joinChannel: "📢 Join Channel",
+        checkSub: "🔄 Check Again",
         linkExpired: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>Sorry, this link has expired or is invalid.</b>",
         warningText: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>𝐀𝐓𝐓𝐄𝐍𝐓𝐈𝐎𝐍:</b>\n━━━━━━━━━━━━━━━━━━━━\nThis content will automatically disappear from your chat! <tg-emoji emoji-id=\"5469731513291418723\">⏳</tg-emoji>",
         protectedNote: "\n\n<tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji> <i>(This content is protected against forwarding or downloading)</i>",
@@ -73,7 +75,7 @@ const langs = {
         watchAdText: "▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭",
         guideText: "❓ 𝐇𝐨𝐰 𝐭𝐨 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨? (𝐆𝐮𝐢𝐝𝐞)",
         systemError: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> A system error occurred.",
-        notSubbedAlert: "❌ You have not joined the channel yet!",
+        notSubbedAlert: "❌ You have not joined all required channels/groups yet!",
         subSuccess: "<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> Thank you! You can now access the content.",
         guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐂𝐎𝐍𝐓𝐄𝐍𝐓</b> <tg-emoji emoji-id=\"5431376038628160877\">💡</tg-emoji>\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ First click the <b>\"▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\"</b> button. <tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji>\n2️⃣ Click on the ad on the opened page and wait for 5 seconds. <tg-emoji emoji-id=\"5469731513291418723\">⏱️</tg-emoji>\n3️⃣ Once time is up, click the <b>\"🚀 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨\"</b> button that appears. <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>\n4️⃣ Then you will automatically be redirected to the bot to receive your content! <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>",
         supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>𝐒𝐔𝐏𝐏𝐎𝐑𝐓 & 𝐇𝐄𝐋𝐏</b>\n━━━━━━━━━━━━━━━━━━━━\n\nFor inquiries, please contact our main channel.",
@@ -164,18 +166,36 @@ const settingSchema = new mongoose.Schema({
 });
 const SettingModel = mongoose.model('Setting', settingSchema);
 
-async function checkUserSubscription(ctx, userId) {
-    if (!REQUIRED_CHANNEL) return true;
-    try {
-        const chatMember = await ctx.telegram.getChatMember(REQUIRED_CHANNEL, userId);
-        const status = chatMember.status;
-        if (status === 'creator' || status === 'administrator' || status === 'member') {
-            return true;
+// Membership Check Function for both Channel & Chat Group
+async function checkMembership(ctx, userId) {
+    let isChannelMember = true;
+    let isGroupMember = true;
+
+    if (REQUIRED_CHANNEL) {
+        try {
+            const chatMember = await ctx.telegram.getChatMember(REQUIRED_CHANNEL, userId);
+            const status = chatMember.status;
+            isChannelMember = ['creator', 'administrator', 'member'].includes(status);
+        } catch (error) {
+            isChannelMember = true;
         }
-        return false;
-    } catch (error) {
-        return true;
     }
+
+    if (CHAT_GROUP_ID) {
+        try {
+            const groupMember = await ctx.telegram.getChatMember(CHAT_GROUP_ID, userId);
+            const status = groupMember.status;
+            isGroupMember = ['creator', 'administrator', 'member'].includes(status);
+        } catch (error) {
+            isGroupMember = true;
+        }
+    }
+
+    return {
+        isChannelMember,
+        isGroupMember,
+        isFullySubscribed: isChannelMember && isGroupMember
+    };
 }
 
 // Active Timers In Memory
@@ -258,14 +278,12 @@ async function restoreActiveSessions() {
             const remainingMinutes = Math.ceil(30 - elapsedMinutes);
 
             if (remainingMinutes <= 0) {
-                // Delete messages immediately if 30 minutes have already passed
                 for (let msgId of session.sentVideoIds) {
                     await bot.telegram.deleteMessage(session.chatId, msgId).catch(() => {});
                 }
                 await bot.telegram.deleteMessage(session.chatId, session.warningMsgId).catch(() => {});
                 await SessionModel.deleteOne({ _id: session._id }).catch(() => {});
             } else {
-                // Resume timer for remaining time
                 startVideoSessionTimer(
                     session._id,
                     session.chatId,
@@ -379,17 +397,38 @@ bot.start(async (ctx) => {
         });
     }
 
-    const isSubscribed = await checkUserSubscription(ctx, userId);
-    if (!isSubscribed) {
-        return ctx.reply(t.subRequired, {
-            parse_mode: 'HTML',
-            reply_markup: {
-                inline_keyboard: [
-                    [{ text: t.joinChannel, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
-                    [{ text: t.checkSub, callback_data: `check_sub_${payload}`, style: "success" }]
-                ]
+    const membership = await checkMembership(ctx, userId);
+    if (!membership.isFullySubscribed) {
+        const buttons = [];
+        let missingMessage = "";
+
+        if (!membership.isChannelMember) {
+            buttons.push([{ text: '📢 Main Channel එකට Join වන්න', url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }]);
+        }
+        if (!membership.isGroupMember) {
+            buttons.push([{ text: '💬 Kama Lokaya Chat Group එකට Join වන්න', url: CHAT_GROUP_LINK }]);
+        }
+
+        buttons.push([{ text: '🔄 නැවත Verify කරන්න', callback_data: `check_sub_${payload}` }]);
+
+        if (!membership.isChannelMember && !membership.isGroupMember) {
+            missingMessage = "ඔබ අපගේ **Main Channel** එකට සහ **Chat Group** එකට Join වී නොමැත.";
+        } else if (!membership.isChannelMember) {
+            missingMessage = "ඔබ අපගේ **Main Channel** එකට Join වී නොමැත.";
+        } else if (!membership.isGroupMember) {
+            missingMessage = "ඔබ අපගේ **Kama Lokaya Chat Group** එකට Join වී නොමැත.";
+        }
+
+        return ctx.replyWithHTML(
+            `⚠️ <b>අවධානයෙයි!</b>\n\n` +
+            `${missingMessage}\n\n` +
+            `වීඩියෝව Download කර ගැනීමට පහත බටන් එකෙන් Join වී **"නැවත Verify කරන්න"** බටන් එක ක්ලික් කරන්න.`,
+            {
+                reply_markup: {
+                    inline_keyboard: buttons
+                }
             }
-        });
+        );
     }
 
     try {
@@ -1093,8 +1132,8 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
     const lang = await getUserLang(userId);
     const t = langs[lang];
 
-    const isSubscribed = await checkUserSubscription(ctx, userId);
-    if (!isSubscribed) {
+    const membership = await checkMembership(ctx, userId);
+    if (!membership.isFullySubscribed) {
         return ctx.answerCbQuery(t.notSubbedAlert, { show_alert: true });
     }
 
@@ -1443,7 +1482,6 @@ app.listen(PORT, async () => {
         ]);
         console.log("Bot commands menu set successfully!");
         
-        // Restore sessions after startup
         await restoreActiveSessions();
     } catch (err) {
         console.error("Failed on startup:", err);
