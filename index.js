@@ -808,11 +808,17 @@ app.get('/miniapp', async (req, res) => {
 
     </div>
 
-    <script>
+                <script>
         window.addEventListener('DOMContentLoaded', () => {
             const isVerified = localStorage.getItem('age_verified');
             if (isVerified !== 'true') {
                 document.getElementById('age-modal').classList.remove('hidden');
+            }
+
+            // Telegram WebApp Setup
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
             }
         });
 
@@ -942,6 +948,8 @@ app.get('/miniapp', async (req, res) => {
             }
         }
     </script>
+
+                
 </body>
 </html>
         `);
