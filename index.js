@@ -7,37 +7,37 @@ require('dotenv').config();
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const DB_CHANNEL_ID = process.env.DB_CHANNEL_ID;
 const MAIN_CHANNEL_ID = process.env.MAIN_CHANNEL_ID || "@wal_lokaya1"; 
-const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID; // Your Chat Group ID (e.g. -100xxxxxxxxxx)
+const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID; 
 const MONGO_URI = process.env.MONGO_URI;
 
 const REQUIRED_CHANNEL = process.env.REQUIRED_CHANNEL || "@wal_lokaya1"; 
 const CHAT_GROUP_LINK = 'https://t.me/wallokaya_chat';
 
-// --- Language Dictionary (භාෂා පරිවර්තන එකතුව - දෝෂ නිවැරදි කර ඇත) ---
+// --- Language Dictionary ---
 const langs = {
     si: {
-        welcome: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji> <b>𝐖𝐀𝐋 𝐋𝐎𝐊𝐀𝐘𝐀 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋</b> <tg-emoji emoji-id=\"5431376038628160877\">👑</tg-emoji>\n━━━━━━━━━━━━━━━━━━━━\n\n<tg-emoji emoji-id=\"5427009714846171570\">👋</tg-emoji> <b>ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.</b>\n\nමම ඔබේ වීඩියෝ ලබා දෙන ස්වයංක්‍රීය බොට් එකයි. <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>\n\n<tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji> <b>වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණෙන්න.</b> <tg-emoji emoji-id=\"5370835848520631629\">💎</tg-emoji>",
+        welcome: "✨ <b>𝐖𝐀𝐋 𝐋𝐎𝐊𝐀𝐘𝐀 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋</b> 👑\n━━━━━━━━━━━━━━━━━━━━\n\n👋 <b>ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.</b>\n\nමම ඔබේ වීඩියෝ ලබා දෙන ස්වයංක්‍රීය බොට් එකයි. 🎬\n\n👉 <b>වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණෙන්න.</b> 💎\n\n━━━━━━━━━━━━━━━━━━━━\n📊 <b>පද්ධති තත්ත්වය:</b> 🟢 <i>Online & Active</i>\n⚡ <b>වේගය:</b> <i>Ultra Fast</i>",
         channelBtn: "📢 𝐎𝐮𝐫 𝐂𝐡𝐚𝐧𝐧𝐞𝐥",
         howToUseBtn: "ℹ️ 𝐇𝐨𝐰 𝐭𝐨 𝐔𝐬𝐞",
         supportBtn: "📞 𝐒𝐮𝐩𝐩𝐨𝐫𝐭",
         langBtn: "🌐 𝐋𝐚𝐧𝐠𝐮𝐚𝐠𝐞 / භාෂාව",
         backBtn: "⬅️ 𝐁𝐚𝐜𝐤 𝐭𝐨 𝐌𝐞𝐧𝐮",
-        subRequired: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>අවධානයෙයි! වීඩියෝව ලබා ගැනීමට පහත පියවර සම්පූර්ණ කරන්න.</b>\n\nවීඩියෝව Download කර ගැනීමට නම් ඔබ අපගේ ප්‍රධාන චැනල් එකේ සහ චැට් ගෲප් එකේ සාමාජිකයෙකු විය යුතුය.\n\n<tg-emoji emoji-id=\"5406899432098627038\">👇</tg-emoji> පහත බටන් භාවිතයෙන් Join වී <b>\"🔄 නැවත Verify කරන්න\"</b> බොත්තම ක්ලික් කරන්න.",
+        subRequired: "⚠️ <b>අවධානයෙයි! වීඩියෝව ලබා ගැනීමට පහත පියවර සම්පූර්ණ කරන්න.</b>\n━━━━━━━━━━━━━━━━━━━━\n\nවීඩියෝව Download කර ගැනීමට නම් ඔබ අපගේ ප්‍රධාන චැනල් එකේ සහ චැට් ගෲප් එකේ සාමාජිකයෙකු විය යුතුය.\n\n👇 පහත බටන් භාවිතයෙන් Join වී <b>\"🔄 නැවත Verify කරන්න\"</b> බොත්තම ක්ලික් කරන්න.",
         joinChannel: "📢 𝐉𝐨𝐢𝐧 𝐂𝐡𝐚𝐧𝐧𝐞𝐥",
         checkSub: "🔄 𝐂𝐡𝐞𝐜𝐤 𝐒𝐮𝐛𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧",
-        linkExpired: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.</b>",
-        warningText: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>𝐀𝐓𝐓𝐄𝐍𝐓𝐈𝐎𝐍 / අවධානයට:</b>\n━━━━━━━━━━━━━━━━━━━━\nමෙම අන්තර්ගතය ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත! <tg-emoji emoji-id=\"5469731513291418723\">⏳</tg-emoji>",
-        protectedNote: "\n\n<tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji> <i>(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි වේ.)</i>",
-        clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5431376038628160877\">🔓</tg-emoji> <b>𝐑𝐄𝐀𝐃𝐘 𝐓𝐎 𝐔𝐍𝐋𝐎𝐂𝐊</b>\n━━━━━━━━━━━━━━━━━━━━\n\nඅන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න: <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>",
+        linkExpired: "❌ <b>සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.</b>",
+        warningText: "━━━━━━━━━━━━━━━━━━━━\n⚠️ <b>𝐀𝐓𝐓𝐄𝐍𝐓𝐈𝐎𝐍 / අවධානයට:</b>\n━━━━━━━━━━━━━━━━━━━━\nමෙම අන්තර්ගතය ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත! ⏳",
+        protectedNote: "\n\n🔒 <i>(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි වේ.)</i>",
+        clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n🔓 <b>𝐑𝐄𝐀𝐃𝐘 𝐓𝐎 𝐔𝐍𝐋𝐎𝐂𝐊</b>\n━━━━━━━━━━━━━━━━━━━━\n\nඅන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න: 🔥",
         viewsCount: "📊 මෙතෙක් නැරඹුම් වාර:",
         watchAdText: "▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭",
         guideText: "❓ 𝐇𝐨𝐰 𝐭𝐨 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨? (𝐆𝐮𝐢𝐝𝐞)",
-        systemError: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> පද්ධතියේ දෝෂයක් සිදු විය.",
+        systemError: "❌ පද්ධතියේ දෝෂයක් සිදු විය.",
         notSubbedAlert: "❌ ඔබ අවශ්‍ය සියලුම නාලිකා/ගෲප් සඳහා Join වී නැත!",
-        subSuccess: "<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.",
-        guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐂𝐎𝐍𝐓𝐄𝐍𝐓</b> <tg-emoji emoji-id=\"5431376038628160877\">💡</tg-emoji>\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ මුලින්ම <b>\"▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\"</b> බොත්තම ඔබන්න. <tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji>\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න. <tg-emoji emoji-id=\"5469731513291418723\">⏱️</tg-emoji>\n3️⃣ කාලය අවසන් වූ පසු මතුවන <b>\"🚀 𝐆𝐞𝐭 𝐕𝐢ඩියෝ\"</b> බොත්තම ඔබන්න. <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත! <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>",
+        subSuccess: "✅ ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.",
+        guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐂𝐎𝐍𝐓𝐄𝐍𝐓</b> 💡\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ මුලින්ම <b>\"▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\"</b> බොත්තම ඔබන්න. 👉\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න. ⏱️\n3️⃣ කාලය අවසන් වූ පසු මතුවන <b>\"🚀 𝐆𝐞𝐭 𝐕𝐢ඩියෝ\"</b> බොත්තම ඔබන්න. 🔥\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත! 🎬",
         supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>𝐒𝐔𝐏𝐏𝐎𝐑𝐓 & 𝐇𝐄𝐋𝐏</b>\n━━━━━━━━━━━━━━━━━━━━\n\nගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
-        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>𝐋𝐀𝐍𝐆𝐔𝐀𝐆𝐄 𝐒𝐄𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n━━━━━━━━━━━━━━━━━━━━\n\nਕරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language: <tg-emoji emoji-id=\"5469731513291418723\">✨</tg-emoji>",
+        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>𝐋𝐀𝐍𝐆𝐔𝐀𝐆𝐄 𝐒𝐄𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n━━━━━━━━━━━━━━━━━━━━\n\nකරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language: ✨",
         
         // Mini App Dictionary (SI)
         appTitle: "වීඩියෝව සූදානම් වෙමින් පවතී",
@@ -58,28 +58,28 @@ const langs = {
         ageOverBtn: "මගේ වයස 18ට වැඩි හෝ සමානයි"
     },
     en: {
-        welcome: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji> <b>𝐖𝐀𝐋 𝐋𝐎𝐊𝐀𝐘𝐀 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋</b> <tg-emoji emoji-id=\"5431376038628160877\">👑</tg-emoji>\n━━━━━━━━━━━━━━━━━━━━\n\n<tg-emoji emoji-id=\"5427009714846171570\">👋</tg-emoji> <b>Hello! Welcome.</b>\n\nI am your automated bot that provides videos and movies. <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>\n\n<tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji> <b>Please use a link from our main channel to access content through the bot.</b> <tg-emoji emoji-id=\"5370835848520631629\">💎</tg-emoji>",
+        welcome: "✨ <b>𝐖𝐀𝐋 𝐋𝐎𝐊𝐀𝐘𝐀 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋</b> 👑\n━━━━━━━━━━━━━━━━━━━━\n\n👋 <b>Hello! Welcome.</b>\n\nI am your automated bot that provides videos and movies. 🎬\n\n👉 <b>Please use a link from our main channel to access content through the bot.</b> 💎\n\n━━━━━━━━━━━━━━━━━━━━\n📊 <b>System Status:</b> 🟢 <i>Online & Active</i>\n⚡ <b>Speed:</b> <i>Ultra Fast</i>",
         channelBtn: "📢 𝐎𝐮𝐫 𝐂𝐡𝐚𝐧𝐧𝐞𝐥",
         howToUseBtn: "ℹ️ 𝐇𝐨𝐰 𝐭𝐨 𝐔𝐬𝐞",
         supportBtn: "📞 𝐒𝐮𝐩𝐩𝐨𝐫𝐭",
         langBtn: "🌐 𝐋𝐚𝐧𝐠𝐮𝐚𝐠𝐞",
         backBtn: "⬅️ 𝐁𝐚𝐜𝐤 𝐭𝐨 𝐌𝐞𝐧𝐮",
-        subRequired: "<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>Attention! Complete the steps below.</b>\n\nYou must join our main channel and chat group to get this video.\n\n<tg-emoji emoji-id=\"5406899432098627038\">👇</tg-emoji> Join using the buttons below and click <b>\"🔄 Check Again\"</b>.",
+        subRequired: "⚠️ <b>Attention! Complete the steps below.</b>\n━━━━━━━━━━━━━━━━━━━━\n\nYou must join our main channel and chat group to get this video.\n\n👇 Join using the buttons below and click <b>\"🔄 Check Again\"</b>.",
         joinChannel: "📢 Join Channel",
         checkSub: "🔄 Check Again",
-        linkExpired: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>Sorry, this link has expired or is invalid.</b>",
-        warningText: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> <b>𝐀𝐓𝐓𝐄𝐍𝐓𝐈𝐎𝐍:</b>\n━━━━━━━━━━━━━━━━━━━━\nThis content will automatically disappear from your chat! <tg-emoji emoji-id=\"5469731513291418723\">⏳</tg-emoji>",
-        protectedNote: "\n\n<tg-emoji emoji-id=\"5427009714846171570\">🔒</tg-emoji> <i>(This content is protected against forwarding or downloading)</i>",
-        clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n<tg-emoji emoji-id=\"5431376038628160877\">🔓</tg-emoji> <b>𝐑𝐄𝐀𝐃𝐘 𝐓𝐎 𝐔𝐍𝐋𝐎𝐂𝐊</b>\n━━━━━━━━━━━━━━━━━━━━\n\nClick the button below to get the content: <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>",
+        linkExpired: "❌ <b>Sorry, this link has expired or is invalid.</b>",
+        warningText: "━━━━━━━━━━━━━━━━━━━━\n⚠️ <b>𝐀𝐓𝐓𝐄𝐍𝐓𝐈𝐎𝐍:</b>\n━━━━━━━━━━━━━━━━━━━━\nThis content will automatically disappear from your chat! ⏳",
+        protectedNote: "\n\n🔒 <i>(This content is protected against forwarding or downloading)</i>",
+        clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n🔓 <b>𝐑𝐄𝐀𝐃𝐘 𝐓𝐎 𝐔𝐍𝐋𝐎𝐂𝐊</b>\n━━━━━━━━━━━━━━━━━━━━\n\nClick the button below to get the content: 🔥",
         viewsCount: "📊 Total Views so far:",
         watchAdText: "▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭",
         guideText: "❓ 𝐇𝐨𝐰 𝐭𝐨 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨? (𝐆𝐮𝐢𝐝𝐞)",
-        systemError: "<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> A system error occurred.",
+        systemError: "❌ A system error occurred.",
         notSubbedAlert: "❌ You have not joined all required channels/groups yet!",
-        subSuccess: "<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> Thank you! You can now access the content.",
-        guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐂𝐎𝐍𝐓𝐄𝐍𝐓</b> <tg-emoji emoji-id=\"5431376038628160877\">💡</tg-emoji>\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ First click the <b>\"▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\"</b> button. <tg-emoji emoji-id=\"5406899432098627038\">👉</tg-emoji>\n2️⃣ Click on the ad on the opened page and wait for 5 seconds. <tg-emoji emoji-id=\"5469731513291418723\">⏱️</tg-emoji>\n3️⃣ Once time is up, click the <b>\"🚀 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨\"</b> button that appears. <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>\n4️⃣ Then you will automatically be redirected to the bot to receive your content! <tg-emoji emoji-id=\"5370835848520631631\">🎬</tg-emoji>",
+        subSuccess: "✅ Thank you! You can now access the content.",
+        guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐂𝐎𝐍𝐓𝐄𝐍𝐓</b> 💡\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ First click the <b>\"▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\"</b> button. 👉\n2️⃣ Click on the ad on the opened page and wait for 5 seconds. ⏱️\n3️⃣ Once time is up, click the <b>\"🚀 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨\"</b> button that appears. 🔥\n4️⃣ Then you will automatically be redirected to the bot to receive your content! 🎬",
         supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>𝐒𝐔𝐏𝐏𝐎𝐑𝐓 & 𝐇𝐄𝐋𝐏</b>\n━━━━━━━━━━━━━━━━━━━━\n\nFor inquiries, please contact our main channel.",
-        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>𝐋𝐀𝐍𝐆𝐔𝐀𝐆𝐄 𝐒𝐄𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n━━━━━━━━━━━━━━━━━━━━\n\nPlease select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න: <tg-emoji emoji-id=\"5469731513291418723\">✨</tg-emoji>",
+        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>𝐋𝐀𝐍𝐆𝐔𝐀𝐆𝐄 𝐒𝐄𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n━━━━━━━━━━━━━━━━━━━━\n\nPlease select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න: ✨",
         
         // Mini App Dictionary (EN)
         appTitle: "Video is getting ready",
@@ -100,6 +100,14 @@ const langs = {
         ageOverBtn: "I am 18 or older"
     }
 };
+
+// Dynamic Progress Bar Helper Function
+function renderProgressBar(percent) {
+    const totalBars = 10;
+    const filledBars = Math.round((percent / 100) * totalBars);
+    const emptyBars = totalBars - filledBars;
+    return "🟩".repeat(filledBars) + "⬛".repeat(emptyBars) + ` ${percent}%`;
+}
 
 // Helper to get user language safely
 async function getUserLang(userId) {
@@ -147,7 +155,7 @@ const userSchema = new mongoose.Schema({
 });
 const UserModel = mongoose.model('User', userSchema);
 
-// Mongoose Schema for Active Video Delivery Sessions (Auto-Delete across Redeploys)
+// Mongoose Schema for Active Video Delivery Sessions
 const sessionSchema = new mongoose.Schema({
     chatId: { type: String, required: true },
     sentVideoIds: { type: [Number], required: true },
@@ -207,9 +215,7 @@ function getReactionHeatBar(reactions) {
     if (total === 0) return `[░░░░░░░░░░] 0% Reactions`;
     const positive = (reactions.peach || 0) + (reactions.hot || 0);
     const percentage = Math.round((positive / total) * 100);
-    const filledCount = Math.round(percentage / 10);
-    const bar = '🟩'.repeat(filledCount) + '⬛'.repeat(10 - filledCount);
-    return `[${bar}] ${percentage}% Positive (${total} Votes)`;
+    return `[${renderProgressBar(percentage)}] (${total} Votes)`;
 }
 
 // Timer Starter Function
@@ -226,7 +232,7 @@ function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, t
                 const reactions = fileDoc ? (fileDoc.reactions || { peach: 0, banana: 0, hot: 0 }) : { peach: 0, banana: 0, hot: 0 };
                 const heatBarText = getReactionHeatBar(reactions);
 
-                let updatedWarningText = t.warningText + `\n\n📊 <b>𝐂𝐎𝐍𝐓𝐄𝐍𝐓 𝐑𝐀𝐓𝐈𝐍𝐆:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
+                let updatedWarningText = t.warningText + `\n\n📊 <b>𝐂𝐎𝐍𝐓𝐄𝐍𝐓 𝐑𝐀𝐓𝐈𝐍𝐆:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> விනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
                 
                 await bot.telegram.editMessageText(
                     chatId, 
@@ -267,7 +273,7 @@ function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, t
     activeTimers.set(sessionId.toString(), { updateInterval, deleteTimeout });
 }
 
-// Restore Active Video Timers after Bot Restart / Redeploy
+// Restore Active Video Timers after Bot Restart
 async function restoreActiveSessions() {
     try {
         const sessions = await SessionModel.find({});
@@ -302,25 +308,41 @@ async function restoreActiveSessions() {
     }
 }
 
-// Helper Function to handle Video Delivery, Countdown & Auto-Delete Timer
+// Helper Function to handle Video Delivery with Visual Progress Updates
 async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     const t = langs[lang];
     let msgIdsArray = fileDoc.fileMsgId ? [fileDoc.fileMsgId] : (fileDoc.fileMsgIds || []);
     const isProtected = fileDoc.protectContent === true;
     let sentVideoIds = [];
 
-    for (let id of msgIdsArray) {
+    // Animated Loading Message
+    const statusMsg = await ctx.reply(`⚡ <b>අන්තර්ගතය සූදානම් වෙමින් පවතී...</b>\n\n${renderProgressBar(30)}`, { parse_mode: 'HTML' });
+
+    for (let i = 0; i < msgIdsArray.length; i++) {
+        let id = msgIdsArray[i];
         try {
             const sentMsg = await ctx.telegram.copyMessage(ctx.chat.id, DB_CHANNEL_ID, id, { protect_content: isProtected });
             sentVideoIds.push(sentMsg.message_id);
+            
+            let progress = Math.round(((i + 1) / msgIdsArray.length) * 100);
+            await ctx.telegram.editMessageText(
+                ctx.chat.id,
+                statusMsg.message_id,
+                null,
+                `⚡ <b>අන්තර්ගතය ලැබෙමින් පවතී...</b>\n\n${renderProgressBar(progress)}`,
+                { parse_mode: 'HTML' }
+            ).catch(() => {});
+
             await new Promise(r => setTimeout(r, 400));
         } catch (e) {
             console.error("Error copying message:", e.message);
         }
     }
 
+    await ctx.telegram.deleteMessage(ctx.chat.id, statusMsg.message_id).catch(() => {});
+
     if (sentVideoIds.length === 0) {
-        return ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>සමාවන්න, මෙම වීඩියෝව Database එකෙන් මකා දමා ඇත හෝ ලබා ගත නොහැක.</b>", { parse_mode: 'HTML' });
+        return ctx.reply("❌ <b>සමාවන්න, මෙම වීඩියෝව Database එකෙන් මකා දමා ඇත හෝ ලබා ගත නොහැක.</b>", { parse_mode: 'HTML' });
     }
 
     let remainingMinutes = 30;
@@ -420,7 +442,7 @@ bot.start(async (ctx) => {
         }
 
         return ctx.replyWithHTML(
-            `⚠️ <b>අවධානයෙයි!</b>\n\n` +
+            `⚠️ <b>අවධානයෙයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n` +
             `${missingMessage}\n\n` +
             `වීඩියෝව Download කර ගැනීමට පහත බටන් එකෙන් Join වී **"නැවත Verify කරන්න"** බටන් එක ක්ලික් කරන්න.`,
             {
@@ -451,7 +473,7 @@ bot.start(async (ctx) => {
         const miniAppUrl = `${hostUrl}/miniapp?token=${payload}&uid=${userId}`;
 
         await ctx.reply(
-            `${t.clickBtnText}\n\n<tg-emoji emoji-id=\"5469731513291418723\">📊</tg-emoji> <b>නැරඹුම් වාර (Views):</b> <code>${fileDoc.views}</code>`,
+            `${t.clickBtnText}\n\n📊 <b>නැරඹුම් වාර (Views):</b> <code>${fileDoc.views}</code>`,
             {
                 parse_mode: 'HTML',
                 reply_markup: {
@@ -468,7 +490,7 @@ bot.start(async (ctx) => {
     }
 });
 
-// Single Reaction per User Handler (🍑, 🍌, 🥵)
+// Single Reaction Handler
 bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
     const type = ctx.match[1];
     const token = ctx.match[2];
@@ -492,7 +514,7 @@ bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
         );
 
         const reactions = updatedFile.reactions || { peach: 0, banana: 0, hot: 0 };
-        await ctx.answerCbQuery("🔥 ඔබේ ප්‍රතිචාරය සාර්ථකව එකතු විය!");
+        await ctx.answerCbQuery("🎉 ඔබේ ප්‍රතිචාරය සාර්ථකව එකතු විය!", { show_alert: true });
 
         await ctx.editMessageReplyMarkup({
             inline_keyboard: [
@@ -508,7 +530,7 @@ bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
     }
 });
 
-// Interactive Menu Handlers with Back Button Support
+// Interactive Menu Handlers
 bot.action('how_to_use', async (ctx) => {
     await ctx.answerCbQuery();
     const userId = ctx.from.id.toString();
@@ -595,9 +617,9 @@ bot.action('back_to_main', async (ctx) => {
 bot.action('set_lang_si', async (ctx) => {
     const userId = ctx.from.id.toString();
     await UserModel.updateOne({ userId }, { $set: { language: 'si' } }, { upsert: true });
-    await ctx.answerCbQuery("සිංහල භාෂාව තෝරන ලදී.");
+    await ctx.answerCbQuery("සිංහල භාෂාව තෝරන ලදී.", { show_alert: true });
     const t = langs['si'];
-    await ctx.editMessageText("<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>භාෂාව සිංහල ලෙස වෙනස් කරන ලදී.</b>", {
+    await ctx.editMessageText("✅ <b>භාෂාව සිංහල ලෙස වෙනස් කරන ලදී.</b>", {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
@@ -610,9 +632,9 @@ bot.action('set_lang_si', async (ctx) => {
 bot.action('set_lang_en', async (ctx) => {
     const userId = ctx.from.id.toString();
     await UserModel.updateOne({ userId }, { $set: { language: 'en' } }, { upsert: true });
-    await ctx.answerCbQuery("Language set to English.");
+    await ctx.answerCbQuery("Language set to English.", { show_alert: true });
     const t = langs['en'];
-    await ctx.editMessageText("<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>Language changed to English.</b>", {
+    await ctx.editMessageText("✅ <b>Language changed to English.</b>", {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
@@ -622,7 +644,7 @@ bot.action('set_lang_en', async (ctx) => {
     }).catch(() => {});
 });
 
-// Express App setup for Render
+// Express App setup with Glassmorphism & Sleek Animated Mini App UI
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
@@ -675,7 +697,7 @@ app.get('/miniapp', async (req, res) => {
         }
 
         res.send(`
-            <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="${lang}">
 <head>
     <meta charset="UTF-8">
@@ -685,8 +707,8 @@ app.get('/miniapp', async (req, res) => {
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 15px rgba(14, 165, 233, 0.3); }
-            50% { box-shadow: 0 0 30px rgba(14, 165, 233, 0.6); }
+            0%, 100% { box-shadow: 0 0 20px rgba(14, 165, 233, 0.4); }
+            50% { box-shadow: 0 0 35px rgba(14, 165, 233, 0.8); }
         }
         .glow-effect { animation: pulse-glow 2s infinite; }
         
@@ -697,16 +719,21 @@ app.get('/miniapp', async (req, res) => {
         .spinner-ring { animation: spin-slow 1.5s linear infinite; }
 
         @keyframes success-glow {
-            0%, 100% { border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); }
-            50% { border-color: rgba(16, 185, 129, 0.8); box-shadow: 0 0 40px rgba(16, 185, 129, 0.5); }
+            0%, 100% { border-color: rgba(16, 185, 129, 0.5); box-shadow: 0 0 25px rgba(16, 185, 129, 0.3); }
+            50% { border-color: rgba(16, 185, 129, 0.9); box-shadow: 0 0 45px rgba(16, 185, 129, 0.6); }
         }
         .success-card { animation: success-glow 2s infinite; }
     </style>
 </head>
-<body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-5 select-none font-sans">
+<body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-5 select-none font-sans relative overflow-hidden">
     
-    <div id="age-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-md hidden">
-        <div class="w-full max-w-sm rounded-3xl bg-slate-900 border border-slate-800 p-7 text-center shadow-2xl relative overflow-hidden">
+    <!-- Background Animated Glow Blobs -->
+    <div class="absolute -top-20 -left-20 w-64 h-64 bg-sky-600/30 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-600/30 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Age Verification Modal -->
+    <div id="age-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-xl hidden">
+        <div class="w-full max-w-sm rounded-3xl bg-slate-900/90 border border-slate-800/80 p-7 text-center shadow-2xl relative overflow-hidden backdrop-blur-2xl">
             <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-2xl font-black shadow-inner">
                 18+
             </div>
@@ -717,13 +744,13 @@ app.get('/miniapp', async (req, res) => {
             <div class="flex flex-col gap-3">
                 <button
                     onclick="handleAgeVerify(true)"
-                    class="w-full bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg shadow-rose-900/30 text-sm"
+                    class="w-full bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg shadow-rose-900/40 text-sm active:scale-95"
                 >
                     ${t.ageOverBtn}
                 </button>
                 <button
                     onclick="handleAgeVerify(false)"
-                    class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3 px-4 rounded-2xl transition-all text-sm"
+                    class="w-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-semibold py-3 px-4 rounded-2xl transition-all text-sm border border-slate-700/50"
                 >
                     ${t.ageUnderBtn}
                 </button>
@@ -731,15 +758,14 @@ app.get('/miniapp', async (req, res) => {
         </div>
     </div>
 
-    <div id="main-card" class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 p-7 rounded-3xl shadow-2xl max-w-sm w-full text-center relative overflow-hidden transition-all duration-500">
+    <!-- Main Card -->
+    <div id="main-card" class="bg-slate-900/60 backdrop-blur-2xl border border-white/10 p-7 rounded-3xl shadow-2xl max-w-sm w-full text-center relative overflow-hidden transition-all duration-500">
         
-        <div class="absolute -top-12 -left-12 w-32 h-32 bg-sky-500/20 rounded-full blur-2xl"></div>
-        <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl"></div>
-
         <div id="warning-banner" class="hidden mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-400 text-xs font-semibold animate-pulse">
             ${warningText}
         </div>
 
+        <!-- Progress Steps -->
         <div class="flex items-center justify-center gap-2 mb-5">
             <div id="step-1-dot" class="flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-500/30">1</div>
             <div class="w-6 h-0.5 bg-slate-700"></div>
@@ -758,42 +784,47 @@ app.get('/miniapp', async (req, res) => {
             ${instructionText}
         </p>
 
+        <!-- Ad Button 1 -->
         <div class="mb-3" id="ad-box-1">
-            <a href="${adLink1}" target="_blank" id="ad-btn-1" onclick="openAd(1)" class="glow-effect flex items-center justify-between w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm">
+            <a href="${adLink1}" target="_blank" id="ad-btn-1" onclick="openAd(1)" class="glow-effect flex items-center justify-between w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm active:scale-95">
                 <span>⭐ Watch Ad 1</span>
                 <span id="ad-status-1" class="text-xs bg-white/20 px-2.5 py-1 rounded-xl">Pending</span>
             </a>
         </div>
 
+        <!-- Ad Button 2 -->
         <div class="mb-5" id="ad-box-2">
-            <a href="${adLink2}" target="_blank" id="ad-btn-2" onclick="openAd(2)" class="flex items-center justify-between w-full bg-slate-800 text-slate-500 font-bold py-3.5 px-4 rounded-2xl transition-all text-sm pointer-events-none border border-slate-700/50">
+            <a href="${adLink2}" target="_blank" id="ad-btn-2" onclick="openAd(2)" class="flex items-center justify-between w-full bg-slate-800/80 text-slate-500 font-bold py-3.5 px-4 rounded-2xl transition-all text-sm pointer-events-none border border-slate-700/50">
                 <span>⭐ Watch Ad 2</span>
                 <span id="ad-status-2" class="text-xs bg-slate-700 px-2.5 py-1 rounded-xl text-slate-400">Locked</span>
             </a>
         </div>
 
+        <!-- Timer Box -->
         <div id="timer-box" class="my-5 hidden">
             <div class="relative w-20 h-20 mx-auto flex items-center justify-center bg-slate-800/80 border border-sky-500/30 rounded-full mb-3 shadow-inner">
                 <div id="countdown" class="text-3xl font-black text-sky-400">5</div>
             </div>
             <p id="status-text" class="text-xs text-slate-400 font-medium">${t.appStatusWait || "Connecting..."}</p>
             
-            <div class="w-full bg-slate-800 h-2 rounded-full mt-4 overflow-hidden">
-                <div id="progress-bar" class="bg-sky-500 h-full w-full transition-all duration-1000"></div>
+            <div class="w-full bg-slate-800 h-2 rounded-full mt-4 overflow-hidden border border-slate-700/50">
+                <div id="progress-bar" class="bg-gradient-to-r from-sky-500 to-emerald-400 h-full w-full transition-all duration-1000"></div>
             </div>
         </div>
 
+        <!-- Success Box -->
         <div id="success-box" class="hidden">
             <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-4">
                 <p class="text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5">
                     ${t.appSuccessMsg}
                 </p>
             </div>
-            <button onclick="getVideo()" id="unlock-btn" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg shadow-emerald-900/30 text-sm">
+            <button onclick="getVideo()" id="unlock-btn" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg shadow-emerald-900/30 text-sm active:scale-95">
                 ${t.appGetVideoBtn}
             </button>
         </div>
 
+        <!-- Footer Stats -->
         <div class="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-around text-center">
             <div>
                 <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Total Users</p>
@@ -808,14 +839,13 @@ app.get('/miniapp', async (req, res) => {
 
     </div>
 
-                <script>
+    <script>
         window.addEventListener('DOMContentLoaded', () => {
             const isVerified = localStorage.getItem('age_verified');
             if (isVerified !== 'true') {
                 document.getElementById('age-modal').classList.remove('hidden');
             }
 
-            // Telegram WebApp Setup
             if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.ready();
                 window.Telegram.WebApp.expand();
@@ -939,17 +969,12 @@ app.get('/miniapp', async (req, res) => {
             
             if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.openTelegramLink(telegramUrl);
-                
-                setTimeout(() => {
-                    window.Telegram.WebApp.close();
-                }, 400);
+                setTimeout(() => { window.Telegram.WebApp.close(); }, 400);
             } else {
                 window.location.href = telegramUrl;
             }
         }
     </script>
-
-                
 </body>
 </html>
         `);
@@ -973,7 +998,7 @@ bot.use(async (ctx, next) => {
             if (ctx.callbackQuery) {
                 return ctx.answerCbQuery("🛠️ Bot is under maintenance!", { show_alert: true });
             }
-            return ctx.reply("<tg-emoji emoji-id=\"5368324170671202869\">🛠️</tg-emoji> <b>බොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!</b>\n\nකරුණාකර මද වේලාවකින් නැවත උත්සාහ කරන්න.", { parse_mode: 'HTML' });
+            return ctx.reply("🛠️ <b>බොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!</b>\n━━━━━━━━━━━━━━━━━━━━\n\nකරුණාකර මද වේලාවකින් නැවත උත්සාහ කරන්න.", { parse_mode: 'HTML' });
         }
     } catch (err) {
         console.error("Maintenance check error:", err);
@@ -986,7 +1011,7 @@ bot.command('maintenance', async (ctx) => {
     const ADMIN_ID = process.env.ADMIN_ID;
 
     if (ADMIN_ID && userId !== ADMIN_ID) {
-        return ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.", { parse_mode: 'HTML' });
+        return ctx.reply("❌ මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.", { parse_mode: 'HTML' });
     }
 
     try {
@@ -998,11 +1023,11 @@ bot.command('maintenance', async (ctx) => {
             await setting.save();
         }
 
-        const statusText = setting.value ? "<tg-emoji emoji-id=\"5370835848520631628\">🔴</tg-emoji> <b>සක්‍රීය කරන ලදී (Enabled)</b>" : "<tg-emoji emoji-id=\"5427009714846171570\">🟢</tg-emoji> <b>අක්‍රීය කරන ලදී (Disabled)</b>";
-        await ctx.reply(`🛠 <b>Maintenance Mode Status:</b>\n\n${statusText}`, { parse_mode: 'HTML' });
+        const statusText = setting.value ? "🔴 <b>සක්‍රීය කරන ලදී (Enabled)</b>" : "🟢 <b>අක්‍රීය කරන ලදී (Disabled)</b>";
+        await ctx.reply(`🛠 <b>Maintenance Mode Status:</b>\n━━━━━━━━━━━━━━━━━━━━\n\n${statusText}`, { parse_mode: 'HTML' });
     } catch (error) {
         console.error("Maintenance toggle error:", error);
-        await ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> දෝෂයක් ඇති විය.", { parse_mode: 'HTML' });
+        await ctx.reply("❌ දෝෂයක් ඇති විය.", { parse_mode: 'HTML' });
     }
 });
 
@@ -1032,7 +1057,7 @@ bot.command('stats', async (ctx) => {
     const ADMIN_ID = process.env.ADMIN_ID;
 
     if (ADMIN_ID && userId !== ADMIN_ID) {
-        return ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.", { parse_mode: 'HTML' });
+        return ctx.reply("❌ මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.", { parse_mode: 'HTML' });
     }
 
     try {
@@ -1059,35 +1084,35 @@ bot.command('stats', async (ctx) => {
         const conversionRate = totalClicks > 0 ? ((totalViews / totalClicks) * 100).toFixed(1) : 0;
 
         await ctx.reply(
-            `<tg-emoji emoji-id=\"5469731513291418723\">📊</tg-emoji> <b>බොට් හි සංඛ්‍යාලේඛන (Analytics Dashboard)</b> <tg-emoji emoji-id=\"5431376038628160877\">📈</tg-emoji>\n\n` +
-            `<tg-emoji emoji-id=\"5370835848520631629\">👥</tg-emoji> මුළු යුසර්ස්ලා (Total Users): <code>${totalUsers}</code>\n` +
-            `<tg-emoji emoji-id=\"5427009714846171570\">🟢</tg-emoji> සක්‍රීය පරිශීලකයන් (Active): <code>${activeUsers}</code>\n` +
-            `<tg-emoji emoji-id=\"5370835848520631628\">🔴</tg-emoji> බ්ලොක් කළ අය (Blocked): <code>${blockedUsers}</code>\n` +
-            `<tg-emoji emoji-id=\"5469731513291418723\">📅</tg-emoji> මෙම මාසයේ අලුත් යුසර්ස්ලා: <code>${monthlyUsers}</code>\n` +
-            `<tg-emoji emoji-id=\"5370835848520631631\">📁</tg-emoji> ගබඩා කර ඇති අන්තර්ගතයන්: <code>${totalFiles}</code>\n` +
-            `<tg-emoji emoji-id=\"5406899432098627038\">🔗</tg-emoji> මුළු ලින්ක් ක්ලික්ස් (Total Clicks): <code>${totalClicks}</code>\n` +
-            `<tg-emoji emoji-id=\"5370835848520631627\">👁️</tg-emoji> මුළු නැරඹුම් (Total Views): <code>${totalViews}</code>\n` +
-            `<tg-emoji emoji-id=\"5431376038628160877\">📈</tg-emoji> ඇඩ් සාර්ථකත්ව අනුපාතය (Conversion): <code>${conversionRate}%</code>`,
+            `📊 <b>බොට් හි සංඛ්‍යාලේඛන (Analytics Dashboard)</b> 📈\n━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `👥 මුළු යුසර්ස්ලා (Total Users): <code>${totalUsers}</code>\n` +
+            `🟢 සක්‍රීය පරිශීලකයන් (Active): <code>${activeUsers}</code>\n` +
+            `🔴 බ්ලොක් කළ අය (Blocked): <code>${blockedUsers}</code>\n` +
+            `📅 මෙම මාසයේ අලුත් යුසර්ස්ලා: <code>${monthlyUsers}</code>\n` +
+            `📁 ගබඩා කර ඇති අන්තර්ගතයන්: <code>${totalFiles}</code>\n` +
+            `🔗 මුළු ලින්ක් ක්ලික්ස් (Total Clicks): <code>${totalClicks}</code>\n` +
+            `👁️ මුළු නැරඹුම් (Total Views): <code>${totalViews}</code>\n` +
+            `📈 ඇඩ් සාර්ථකත්ව අනුපාතය (Conversion): <code>${conversionRate}%</code>`,
             { parse_mode: 'HTML' }
         );
 
     } catch (error) {
         console.error("Stats error:", error);
-        await ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> සංඛ්‍යාලේඛන ලබාගැනීමේදී දෝෂයක් ඇති විය.", { parse_mode: 'HTML' });
+        await ctx.reply("❌ සංඛ්‍යාලේඛන ලබාගැනීමේදී දෝෂයක් ඇති විය.", { parse_mode: 'HTML' });
     }
 });
 
-// Admin Broadcast Command (Optimized & Non-Blocking)
+// Admin Broadcast Command
 bot.command('broadcast', async (ctx) => {
     const ADMIN_ID = process.env.ADMIN_ID;
     if (ctx.from.id.toString() !== ADMIN_ID) return;
 
     const repliedMessage = ctx.message.reply_to_message;
     if (!repliedMessage) {
-        return ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> කරුණාකර ඔබ බ්‍රෝඩ්කාස්ට් කිරීමට අවශ්‍ය පෝස්ට් එකට <b>Reply</b> කර <code>/broadcast</code> ලෙස යවන්න.", { parse_mode: 'HTML' });
+        return ctx.reply("❌ කරුණාකර ඔබ බ්‍රෝඩ්කාස්ට් කිරීමට අවශ්‍ය පෝස්ට් එකට <b>Reply</b> කර <code>/broadcast</code> ලෙස යවන්න.", { parse_mode: 'HTML' });
     }
 
-    await ctx.reply("<tg-emoji emoji-id=\"5370835848520631627\">🚀</tg-emoji> <b>පෝස්ට් බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ කරන ලදී... කරුණාකර රැඳී සිටින්න.</b>", { parse_mode: 'HTML' });
+    await ctx.reply("🚀 <b>පෝස්ට් බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ කරන ලදී... කරුණාකර රැඳී සිටින්න.</b>", { parse_mode: 'HTML' });
 
     setImmediate(async () => {
         try {
@@ -1120,15 +1145,15 @@ bot.command('broadcast', async (ctx) => {
             }
 
             await ctx.reply(
-                `<tg-emoji emoji-id=\"5469731513291418723\">📊</tg-emoji> <b>පෝස්ට් බ්‍රෝඩ්කාස්ට් වාර්තාව:</b>\n\n` +
-                `<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> සාර්ථකයි (Active): <code>${successCount}</code>\n` +
-                `<tg-emoji emoji-id=\"5370835848520631628\">🔴</tg-emoji> බ්ලොක් කර ඇත (Blocked): <code>${blockedCount}</code>\n` +
-                `<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> අනෙකුත් දෝෂ: <code>${failedCount}</code>`,
+                `📊 <b>පෝස්ට් බ්‍රෝඩ්කාස්ට් වාර්තාව:</b>\n━━━━━━━━━━━━━━━━━━━━\n\n` +
+                `✅ සාර්ථකයි (Active): <code>${successCount}</code>\n` +
+                `🔴 බ්ලොක් කර ඇත (Blocked): <code>${blockedCount}</code>\n` +
+                `⚠️ අනෙකුත් දෝෂ: <code>${failedCount}</code>`,
                 { parse_mode: 'HTML' }
             );
         } catch (err) {
             console.error("Broadcast Execution Error:", err);
-            await ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.", { parse_mode: 'HTML' });
+            await ctx.reply("❌ බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.", { parse_mode: 'HTML' });
         }
     });
 });
@@ -1145,7 +1170,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
         return ctx.answerCbQuery(t.notSubbedAlert, { show_alert: true });
     }
 
-    await ctx.answerCbQuery(t.subSuccess);
+    await ctx.answerCbQuery(t.subSuccess, { show_alert: true });
     
     try {
         if (payload.startsWith("getvideo_")) {
@@ -1174,7 +1199,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}&uid=${userId}`;
 
         await ctx.editMessageText(
-            `${t.clickBtnText}\n\n<tg-emoji emoji-id=\"5469731513291418723\">📊</tg-emoji> <b>නැරඹුම් වාර (Views):</b> <code>${fileDoc.views}</code>`,
+            `${t.clickBtnText}\n\n📊 <b>නැරඹුම් වාර (Views):</b> <code>${fileDoc.views}</code>`,
             {
                 parse_mode: 'HTML',
                 reply_markup: {
@@ -1190,11 +1215,9 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
     }
 });
 
-// --- Upload Workflow Actions & Cancel/Done Feature ---
-
+// Upload Workflow Actions
 const pendingUploads = new Map();
 
-// Cancel Command
 bot.command('cancel', async (ctx) => {
     const userId = ctx.from.id.toString();
     const ADMIN_ID = process.env.ADMIN_ID;
@@ -1202,28 +1225,26 @@ bot.command('cancel', async (ctx) => {
 
     const pending = pendingUploads.get(userId);
     if (!pending) {
-        return ctx.reply("<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> දැනට ක්‍රියාත්මක වන අප්‌ලෝඩ් කිරීමක් හෝ සකස් කිරීමක් නොමැත.", { parse_mode: 'HTML' });
+        return ctx.reply("⚠️ දැනට ක්‍රියාත්මක වන අප්‌ලෝඩ් කිරීමක් හෝ සකස් කිරීමක් නොමැත.", { parse_mode: 'HTML' });
     }
 
     pendingUploads.delete(userId);
-    await ctx.reply("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>අප්‌ලෝඩ් කිරීම සාර්ථකව අවලංගු (Cancel) කරන ලදී. සියලු දත්ත මකා දමන ලදී.</b>", { parse_mode: 'HTML' });
+    await ctx.reply("❌ <b>අප්‌ලෝඩ් කිරීම සාර්ථකව අවලංගු (Cancel) කරන ලදී. සියලු දත්ත මකා දමන ලදී.</b>", { parse_mode: 'HTML' });
 });
 
-// Cancel Action Button
 bot.action('cancel_upload', async (ctx) => {
     const userId = ctx.from.id.toString();
     const pending = pendingUploads.get(userId);
     
     if (pending) {
         pendingUploads.delete(userId);
-        await ctx.answerCbQuery("අප්‌ලෝඩ් කිරීම අවලංගු කරන ලදී.");
-        await ctx.editMessageText("<tg-emoji emoji-id=\"5370835848520631628\">❌</tg-emoji> <b>අප්‌ලෝඩ් කිරීම සාර්ථකව අවලංගු (Cancel) කරන ලදී.</b>", { parse_mode: 'HTML' });
+        await ctx.answerCbQuery("අප්‌ලෝඩ් කිරීම අවලංගු කරන ලදී.", { show_alert: true });
+        await ctx.editMessageText("❌ <b>අප්‌ලෝඩ් කිරීම සාර්ථකව අවලංගු (Cancel) කරන ලදී.</b>", { parse_mode: 'HTML' });
     } else {
         await ctx.answerCbQuery("ක්‍රියාකාරී අප්‌ලෝඩ් එකක් හමු නොවීය.");
     }
 });
 
-// Done Action Button
 bot.action('done_upload', async (ctx) => {
     const userId = ctx.from.id.toString();
     await ctx.answerCbQuery();
@@ -1237,7 +1258,7 @@ bot.action('toggle_spoiler_yes', async (ctx) => {
         pending.hasSpoiler = true;
         pendingUploads.set(userId, pending);
     }
-    await ctx.answerCbQuery("🔒 Thumbnail එක Blur කිරීමට සකසන ලදී.");
+    await ctx.answerCbQuery("🔒 Thumbnail එක Blur කිරීමට සකසන ලදී.", { show_alert: true });
     await promptProtectContent(ctx);
 });
 
@@ -1248,13 +1269,13 @@ bot.action('toggle_spoiler_no', async (ctx) => {
         pending.hasSpoiler = false;
         pendingUploads.set(userId, pending);
     }
-    await ctx.answerCbQuery("🔓 Thumbnail එක Blur නොකිරීමට සකසන ලදී.");
+    await ctx.answerCbQuery("🔓 Thumbnail එක Blur නොකිරීමට සකසන ලදී.", { show_alert: true });
     await promptProtectContent(ctx);
 });
 
 async function promptProtectContent(ctx) {
     await ctx.editMessageText(
-        "<tg-emoji emoji-id=\"5427009714846171570\">🛡️</tg-emoji> <b>Protect Content (Download / Forward Restriction):</b>\n\n" +
+        "🛡️ <b>Protect Content (Download / Forward Restriction):</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
         "මෙම අන්තර්ගතය යූසර්ස්ලාට <b>Forward සහ Download කිරීමට නොහැකි වන සේ</b> ආරක්ෂා (Block) කරන්න ඕනේද?",
         {
             parse_mode: 'HTML',
@@ -1278,9 +1299,9 @@ bot.action('toggle_protect_yes', async (ctx) => {
         pending.protectContent = true;
         pendingUploads.set(userId, pending);
     }
-    await ctx.answerCbQuery("🔒 Forward & Download බ්ලොක් කිරීමට සකසන ලදී.");
+    await ctx.answerCbQuery("🔒 Forward & Download බ්ලොක් කිරීමට සකසන ලදී.", { show_alert: true });
     await ctx.editMessageText(
-        "<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>සැකසීම් සාර්ථකයි!</b>\n\n" +
+        "✅ <b>සැකසීම් සාර්ථකයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
         "🔒 Blur Mode: <code>ON</code>\n" +
         "🛡️ Protect Content: <code>ON (Block)</code>\n\n" +
         "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බටන් එක ඔබන්න.",
@@ -1303,9 +1324,9 @@ bot.action('toggle_protect_no', async (ctx) => {
         pending.protectContent = false;
         pendingUploads.set(userId, pending);
     }
-    await ctx.answerCbQuery("🔓 Forward & Download කිරීමට ඉඩ හරින ලදී.");
+    await ctx.answerCbQuery("🔓 Forward & Download කිරීමට ඉඩ හරින ලදී.", { show_alert: true });
     await ctx.editMessageText(
-        "<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>සැකසීම් සාර්ථකයි!</b>\n\n" +
+        "✅ <b>සැකසීම් සාර්ථකයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
         "🔒 Blur Mode: <code>ස්ථාපිතයි</code>\n" +
         "🛡️ Protect Content: <code>OFF (Allow)</code>\n\n" +
         "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බටන් එක ඔබන්න.",
@@ -1334,7 +1355,7 @@ bot.on('photo', async (ctx) => {
             pendingUploads.set(userId, pending);
 
             await ctx.reply(
-                `<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> ඡායාරූපය එකතු විය! (මුළු ගණන: <code>${pending.videoMsgIds.length}</code>). තවත් ඇත්නම් එවන්න, අවසන් වූ පසු /done හෝ බටන් එක ඔබන්න.`,
+                `✅ ඡායාරූපය එකතු විය! (මුළු ගණන: <code>${pending.videoMsgIds.length}</code>). තවත් ඇත්නම් එවන්න, අවසන් වූ පසු /done හෝ බටන් එක ඔබන්න.`,
                 {
                     parse_mode: 'HTML',
                     reply_markup: {
@@ -1365,7 +1386,7 @@ bot.on('photo', async (ctx) => {
     });
 
     await ctx.reply(
-        "<tg-emoji emoji-id=\"5370835848520631631\">📸</tg-emoji> <b>Thumbnail එක ලැබුණා!</b>\n\n" +
+        "📸 <b>Thumbnail එක ලැබුණා!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
         "දැන් තෝරන්න මේකේ Thumbnail එක <b>Blur (Spoiler)</b> කරන්න ඕනේද නැද්ද කියලා:",
         {
             parse_mode: 'HTML',
@@ -1389,7 +1410,7 @@ bot.on(['video', 'document'], async (ctx) => {
 
     const pending = pendingUploads.get(userId);
     if (!pending) {
-        return ctx.reply("<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> මුලින්ම Thumbnail එකක් එවන්න.", { parse_mode: 'HTML' });
+        return ctx.reply("⚠️ මුලින්ම Thumbnail එකක් එවන්න.", { parse_mode: 'HTML' });
     }
 
     try {
@@ -1398,7 +1419,7 @@ bot.on(['video', 'document'], async (ctx) => {
         pendingUploads.set(userId, pending);
 
         await ctx.reply(
-            `<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> අන්තර්ගතය එකතු විය! (මුළු ගණන: <code>${pending.videoMsgIds.length}</code>). තවත් ඇත්නම් එවන්න, අවසන් වූ පසු <code>/done</code> හෝ පහත බොත්තම ඔබන්න.`,
+            `✅ අන්තර්ගතය එකතු විය! (මුළු ගණන: <code>${pending.videoMsgIds.length}</code>). තවත් ඇත්නම් එවන්න, අවසන් වූ පසු <code>/done</code> හෝ පහත බොත්තම ඔබන්න.`,
             {
                 parse_mode: 'HTML',
                 reply_markup: {
@@ -1422,7 +1443,7 @@ async function finalizeUpload(ctx) {
 
     const pending = pendingUploads.get(userId);
     if (!pending || pending.videoMsgIds.length === 0) {
-        return ctx.reply("<tg-emoji emoji-id=\"5368324170671202869\">⚠️</tg-emoji> කරුණාකර මුලින්ම Thumbnail එකක් සහ අන්තර්ගතයක් (වීඩියෝ/ፎටෝ) එකක් හෝ කිහිපයක් එවන්න.", { parse_mode: 'HTML' });
+        return ctx.reply("⚠️ කරුණාකර මුලින්ම Thumbnail එකක් සහ අන්තර්ගතයක් (වීඩියෝ/ፎටෝ) එකක් හෝ කිහිපයක් එවන්න.", { parse_mode: 'HTML' });
     }
 
     try {
@@ -1439,18 +1460,18 @@ async function finalizeUpload(ctx) {
         const botUsername = ctx.botInfo.username;
         const shareLink = `https://t.me/${botUsername}?start=${token}`;
 
-        await ctx.reply(`<tg-emoji emoji-id=\"5427009714846171570\">✅</tg-emoji> <b>සාර්ථකව ගබඩා විය!</b> (ගොනු ගණන: <code>${pending.videoMsgIds.length}</code>)\n\n<tg-emoji emoji-id=\"5370835848520631627\">🚀</tg-emoji> ප්‍රධාන චැනල් එකට පෝස්ට් යවන ලදී!`, { parse_mode: 'HTML' });
+        await ctx.reply(`✅ <b>සාර්ථකව ගබඩා විය!</b> (ගොනු ගණන: <code>${pending.videoMsgIds.length}</code>)\n\n🚀 ප්‍රධාන චැනල් එකට පෝස්ට් යවන ලදී!`, { parse_mode: 'HTML' });
 
         const buttonText = pending.videoMsgIds.length > 1 ? "▶️ View Full Collection" : "▶️ View Content";
         const headerText = pending.videoMsgIds.length > 1 
-            ? "<tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji> <b>දැන් නිකුත් වූ විශේෂ කලෙක්ෂන් එක!</b> <tg-emoji emoji-id=\"5431376038628160877\">🔥</tg-emoji>" 
-            : "<tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji> <b>දැන් නිකුත් වූ විශේෂ අන්තර්ගතය!</b> <tg-emoji emoji-id=\"5370835848520631627\">🔥</tg-emoji>";
+            ? "🔥 <b>දැන් නිකුත් වූ විශේෂ කලෙක්ෂන් එක!</b> 🔥" 
+            : "🔥 <b>දැන් නිකුත් වූ විශේෂ අන්තර්ගතය!</b> 🔥";
 
         await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
-            caption: `${headerText}\n\n` +
-                     `<tg-emoji emoji-id=\"5469731513291418723\">✨</tg-emoji> <b>${pending.caption}</b>\n\n` +
-                     `<tg-emoji emoji-id=\"5370835848520631631\">📁</tg-emoji> <b>අන්තර්ගතය:</b> ගොනු <code>${pending.videoMsgIds.length}</code> ක් ඇතුළත් වේ.\n\n` +
-                     `<tg-emoji emoji-id=\"5406899432098627038\">👇</tg-emoji> <b>නරඹන්න පහත බොත්තම ක්ලික් කරන්න:</b>`,
+            caption: `${headerText}\n━━━━━━━━━━━━━━━━━━━━\n\n` +
+                     `✨ <b>${pending.caption}</b>\n\n` +
+                     `📁 <b>අන්තර්ගතය:</b> ගොනු <code>${pending.videoMsgIds.length}</code> ක් ඇතුළත් වේ.\n\n` +
+                     `👇 <b>නරඹන්න පහත බොත්තම ක්ලික් කරන්න:</b>`,
             parse_mode: 'HTML',
             has_spoiler: pending.hasSpoiler,
             reply_markup: {
