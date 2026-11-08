@@ -16,7 +16,7 @@ const CHAT_GROUP_LINK = 'https://t.me/wallokaya_chat';
 
 const SUB_ADMINS = process.env.SUB_ADMINS ? process.env.SUB_ADMINS.split(',') : [];
 
-// --- Language Dictionary (Clean & Error-Free) ---
+// --- Language Dictionary ---
 const langs = {
     si: {
         welcome: "✨ <b>𝐖𝐀𝐋 𝐋𝐎𝐊𝐀𝐘𝐀 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋</b> 👑\n━━━━━━━━━━━━━━━━━━━━\n\n👋 <b>ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.</b>\n\nමම ඔබේ වීඩියෝ ලබා දෙන ස්වයංක්‍රීය බොට් එකයි. 🎬\n\n👉 <b>වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණෙන්න.</b> 💎\n\n━━━━━━━━━━━━━━━━━━━━\n📊 <b>පද්ධති තත්ත්වය:</b> 🟢 <i>Online & Active</i>\n⚡ <b>වේගය:</b> <i>Ultra Fast</i>",
@@ -28,7 +28,7 @@ const langs = {
         subRequired: "⚠️ <b>අවධානයයි! වීඩියෝව ලබා ගැනීමට පහත පියවර සම්පූර්ණ කරන්න.</b>\n━━━━━━━━━━━━━━━━━━━━\n\nවීඩියෝව ඩවුන්ලෝඩ් කර ගැනීමට නම් ඔබ අපගේ ප්‍රධාන චැනල් එකේ සහ චැට් ගෲප් එකේ සාමාජිකයෙකු විය යුතුය.\n\n👇 පහත බොත්තම් භාවිතයෙන් Join වී <b>\"🔄 නැවත Verify කරන්න\"</b> ක්ලික් කරන්න.",
         joinChannel: "📢 Join Channel",
         checkSub: "🔄 Check Subscription",
-        linkExpired: "❌ <b>සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත, භාවිත කර ඇත හෝ වැරදිය.</b>",
+        linkExpired: "❌ <b>සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.</b>",
         warningText: "━━━━━━━━━━━━━━━━━━━━\n⚠️ <b>අවධානයට:</b>\n━━━━━━━━━━━━━━━━━━━━\nමෙම අන්තර්ගතය ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත! ⏳",
         protectedNote: "\n\n🔒 <i>(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි වේ.)</i>",
         clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n🔓 <b>රෙඩි ටු අන්ලොක් (READY TO UNLOCK)</b>\n━━━━━━━━━━━━━━━━━━━━\n\nඅන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න: 🔥",
@@ -40,7 +40,7 @@ const langs = {
         subSuccess: "✅ ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.",
         guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>වීඩියෝ ලබාගන්නා ආකාරය (GUIDE)</b> 💡\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ මුලින්ම <b>\"▶️ Watch Ad & Get Content\"</b> බොත්තම ඔබන්න. 👉\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න. ⏱️\n3️⃣ කාලය අවසන් වූ පසු මතුවන <b>\"🚀 Get Video\"</b> බොත්තම ඔබන්න. 🔥\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත! 🎬",
         supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>සහාය සහ උදව් (SUPPORT)</b>\n━━━━━━━━━━━━━━━━━━━━\n\nගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
-        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>භාෂාව තෝරන්න (LANGUAGE SELECTION)</b>\n━━━━━━━━━━━━━━━━━━━━\n\nਕරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language: ✨",
+        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>භාෂාව තෝරන්න (LANGUAGE SELECTION)</b>\n━━━━━━━━━━━━━━━━━━━━\n\nકරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language: ✨",
         
         appTitle: "වීඩියෝව සූදානම් වෙමින් පවතී",
         appInstruction: "පහත බොත්තම ඔබා දැන්වීම නරඹා, තත්පර <span class=\"text-sky-400 font-semibold\">5ක්</span> රැඳී සිටින්න.",
@@ -64,7 +64,7 @@ const langs = {
         subRequired: "⚠️ <b>Attention! Complete the steps below.</b>\n━━━━━━━━━━━━━━━━━━━━\n\nYou must join our main channel and chat group to get this video.\n\n👇 Join using the buttons below and click <b>\"🔄 Check Again\"</b>.",
         joinChannel: "📢 Join Channel",
         checkSub: "🔄 Check Again",
-        linkExpired: "❌ <b>Sorry, this link has expired, already used or is invalid.</b>",
+        linkExpired: "❌ <b>Sorry, this link has expired or is invalid.</b>",
         warningText: "━━━━━━━━━━━━━━━━━━━━\n⚠️ <b>ATTENTION:</b>\n━━━━━━━━━━━━━━━━━━━━\nThis content will automatically disappear from your chat! ⏳",
         protectedNote: "\n\n🔒 <i>(This content is protected against forwarding or downloading)</i>",
         clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n🔓 <b>READY TO UNLOCK</b>\n━━━━━━━━━━━━━━━━━━━━\n\nClick the button below to get the content: 🔥",
@@ -119,14 +119,13 @@ mongoose.connect(MONGO_URI)
   })
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// Mongoose Schemas
+// Mongoose Schemas (Single-Use isUsed flag removed)
 const fileSchema = new mongoose.Schema({
     token: { type: String, required: true, unique: true },
     fileMsgId: { type: Number },      
     fileMsgIds: { type: [Number] },   
     views: { type: Number, default: 0 },
     clicks: { type: Number, default: 0 },
-    isUsed: { type: Boolean, default: false },
     protectContent: { type: Boolean, default: false },
     reactions: {
         peach: { type: Number, default: 0 },
@@ -230,9 +229,9 @@ function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, t
                         reply_markup: {
                             inline_keyboard: [
                                 [
-                                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}` },
-                                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}` },
-                                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}` }
+                                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
                                 ],
                                 [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]
                             ]
@@ -295,15 +294,9 @@ async function restoreActiveSessions() {
     }
 }
 
-// Helper Function to handle Video Delivery with Visual Progress Updates
+// Helper Function to handle Video Delivery (Reusable Links Enabled)
 async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     const t = langs[lang];
-    
-    if (fileDoc.isUsed) {
-        return ctx.reply("❌ <b>මෙම ලින්ක් එක දැනටමත් භාවිත කර ඇත! එය තවදුරටත් වලංගු නොවේ.</b>", { parse_mode: 'HTML' });
-    }
-
-    await FileModel.updateOne({ token }, { $set: { isUsed: true } });
 
     let msgIdsArray = fileDoc.fileMsgId ? [fileDoc.fileMsgId] : (fileDoc.fileMsgIds || []);
     const isProtected = fileDoc.protectContent === true;
@@ -349,9 +342,9 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}` },
-                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}` },
-                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}` }
+                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
                 ],
                 [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]
             ]
@@ -422,12 +415,12 @@ bot.start(async (ctx) => {
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
+                    [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
                     [
-                        { text: t.howToUseBtn, callback_data: "how_to_use" }, 
-                        { text: t.supportBtn, callback_data: "support_info" }
+                        { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
+                        { text: t.supportBtn, callback_data: "support_info", style: "primary" }
                     ],
-                    [{ text: t.langBtn, callback_data: "change_language" }]
+                    [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
                 ]
             }
         });
@@ -472,7 +465,7 @@ bot.start(async (ctx) => {
             const token = payload.replace("getvideo_", "");
             const fileDoc = await FileModel.findOne({ token });
             
-            if (!fileDoc || fileDoc.isUsed) {
+            if (!fileDoc) {
                 return ctx.reply(t.linkExpired, { parse_mode: 'HTML' });
             }
 
@@ -482,7 +475,7 @@ bot.start(async (ctx) => {
         }
 
         const fileDoc = await FileModel.findOneAndUpdate({ token: payload }, { $inc: { clicks: 1 } }, { new: true });
-        if (!fileDoc || fileDoc.isUsed) return ctx.reply(t.linkExpired, { parse_mode: 'HTML' });
+        if (!fileDoc) return ctx.reply(t.linkExpired, { parse_mode: 'HTML' });
 
         const hostUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${hostUrl}/miniapp?token=${payload}&uid=${userId}`;
@@ -493,8 +486,8 @@ bot.start(async (ctx) => {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: t.watchAdText, web_app: { url: miniAppUrl } }],
-                        [{ text: t.guideText, callback_data: "how_to_use" }]
+                        [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
+                        [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
                     ]
                 }
             }
@@ -534,9 +527,9 @@ bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
         await ctx.editMessageReplyMarkup({
             inline_keyboard: [
                 [
-                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}` },
-                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}` },
-                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}` }
+                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
                 ],
                 [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]
             ]
@@ -556,14 +549,14 @@ bot.action('how_to_use', async (ctx) => {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main" }]
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
             ]
         }
     }).catch(() => ctx.reply(t.guideContent, {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main" }]
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
             ]
         }
     }));
@@ -578,14 +571,14 @@ bot.action('support_info', async (ctx) => {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main" }]
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
             ]
         }
     }).catch(() => ctx.reply(t.supportMsg, {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main" }]
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
             ]
         }
     }));
@@ -601,10 +594,10 @@ bot.action('change_language', async (ctx) => {
         reply_markup: { 
             inline_keyboard: [
                 [
-                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si" }, 
-                    { text: "🇬🇧 English", callback_data: "set_lang_en" }
+                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si", style: "success" }, 
+                    { text: "🇬🇧 English", callback_data: "set_lang_en", style: "primary" }
                 ],
-                [{ text: t.backBtn, callback_data: "back_to_main" }]
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
             ] 
         }
     }).catch(() => {});
@@ -619,12 +612,12 @@ bot.action('back_to_main', async (ctx) => {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
+                [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
                 [
-                    { text: t.howToUseBtn, callback_data: "how_to_use" }, 
-                    { text: t.supportBtn, callback_data: "support_info" }
+                    { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
+                    { text: t.supportBtn, callback_data: "support_info", style: "primary" }
                 ],
-                [{ text: t.langBtn, callback_data: "change_language" }]
+                [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
             ]
         }
     }).catch(() => {});
@@ -639,7 +632,7 @@ bot.action('set_lang_si', async (ctx) => {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main" }]
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
             ]
         }
     }).catch(() => {});
@@ -654,7 +647,7 @@ bot.action('set_lang_en', async (ctx) => {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main" }]
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
             ]
         }
     }).catch(() => {});
@@ -677,8 +670,8 @@ app.get('/miniapp', async (req, res) => {
     
     try {
         const fileCheck = await FileModel.findOne({ token });
-        if (!fileCheck || fileCheck.isUsed) {
-            return res.send(`<!DOCTYPE html><html><body style="background:#09090b;color:#f87171;text-align:center;padding-top:80px;font-family:sans-serif;"><h2>❌ Link has expired or already used!</h2></body></html>`);
+        if (!fileCheck) {
+            return res.send(`<!DOCTYPE html><html><body style="background:#09090b;color:#f87171;text-align:center;padding-top:80px;font-family:sans-serif;"><h2>❌ Link has expired or is invalid!</h2></body></html>`);
         }
 
         const user = await UserModel.findOne({ userId: userId.toString() });
@@ -1061,10 +1054,10 @@ bot.command('language', async (ctx) => {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si" },
-                    { text: "🇬🇧 English", callback_data: "set_lang_en" }
+                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si", style: "success" },
+                    { text: "🇬🇧 English", callback_data: "set_lang_en", style: "primary" }
                 ],
-                [{ text: t.backBtn, callback_data: "back_to_main" }]
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
             ]
         }
     });
@@ -1196,7 +1189,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
             const token = payload.replace("getvideo_", "");
             const fileDoc = await FileModel.findOne({ token });
 
-            if (!fileDoc || fileDoc.isUsed) {
+            if (!fileDoc) {
                 return ctx.editMessageText(t.linkExpired, { parse_mode: 'HTML' });
             }
 
@@ -1207,7 +1200,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
         }
 
         const fileDoc = await FileModel.findOne({ token: payload });
-        if (!fileDoc || fileDoc.isUsed) {
+        if (!fileDoc) {
             return ctx.editMessageText(t.linkExpired, { parse_mode: 'HTML' });
         }
 
@@ -1220,8 +1213,8 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: t.watchAdText, web_app: { url: miniAppUrl } }],
-                        [{ text: t.guideText, callback_data: "how_to_use" }]
+                        [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
+                        [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
                     ]
                 }
             }
@@ -1302,10 +1295,10 @@ async function promptProtectContent(ctx) {
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🔒 ඔව් (Yes)", callback_data: "toggle_protect_yes" },
-                        { text: "🔓 නැහැ (No)", callback_data: "toggle_protect_no" }
+                        { text: "🔒 ඔව් (Yes)", callback_data: "toggle_protect_yes", style: "success" },
+                        { text: "🔓 නැහැ (No)", callback_data: "toggle_protect_no", style: "primary" }
                     ],
-                    [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload" }]
+                    [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload", style: "danger" }]
                 ]
             }
         }
@@ -1324,13 +1317,13 @@ bot.action('toggle_protect_yes', async (ctx) => {
         "✅ <b>සැකසීම් සාර්ථකයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
         "🔒 Blur Mode: <code>ON</code>\n" +
         "🛡️ Protect Content: <code>ON (Block)</code>\n\n" +
-        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බොත්තම ඔබන්න.",
+        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බටන් එක ඔබන්න.",
         { 
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: "✅ Done & Publish", callback_data: "done_upload" }],
-                    [{ text: "❌ Cancel", callback_data: "cancel_upload" }]
+                    [{ text: "✅ Done & Publish", callback_data: "done_upload", style: "success" }],
+                    [{ text: "❌ Cancel", callback_data: "cancel_upload", style: "danger" }]
                 ]
             }
         }
@@ -1349,13 +1342,13 @@ bot.action('toggle_protect_no', async (ctx) => {
         "✅ <b>සැකසීම් සාර්ථකයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
         "🔒 Blur Mode: <code>ස්ථාපිතයි</code>\n" +
         "🛡️ Protect Content: <code>OFF (Allow)</code>\n\n" +
-        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බොත්තම ඔබන්න.",
+        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බටන් එක ඔබන්න.",
         { 
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: "✅ Done & Publish", callback_data: "done_upload" }],
-                    [{ text: "❌ Cancel", callback_data: "cancel_upload" }]
+                    [{ text: "✅ Done & Publish", callback_data: "done_upload", style: "success" }],
+                    [{ text: "❌ Cancel", callback_data: "cancel_upload", style: "danger" }]
                 ]
             }
         }
@@ -1380,8 +1373,8 @@ bot.on('photo', async (ctx) => {
                     reply_markup: {
                         inline_keyboard: [
                             [
-                                { text: "✅ Done", callback_data: "done_upload" },
-                                { text: "❌ Cancel", callback_data: "cancel_upload" }
+                                { text: "✅ Done", callback_data: "done_upload", style: "success" },
+                                { text: "❌ Cancel", callback_data: "cancel_upload", style: "danger" }
                             ]
                         ]
                     }
@@ -1412,10 +1405,10 @@ bot.on('photo', async (ctx) => {
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🔒 Blur කරන්න", callback_data: "toggle_spoiler_yes" },
-                        { text: "🔓 එපා", callback_data: "toggle_spoiler_no" }
+                        { text: "🔒 Blur කරන්න", callback_data: "toggle_spoiler_yes", style: "success" },
+                        { text: "🔓 එපා", callback_data: "toggle_spoiler_no", style: "primary" }
                     ],
-                    [{ text: "❌ සම්පූර්ණයෙන්ම Cancel කරන්න", callback_data: "cancel_upload" }]
+                    [{ text: "❌ සම්පූර්ණයෙන්ම Cancel කරන්න", callback_data: "cancel_upload", style: "danger" }]
                 ]
             }
         }
@@ -1443,8 +1436,8 @@ bot.on(['video', 'document'], async (ctx) => {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            { text: "✅ Done", callback_data: "done_upload" },
-                            { text: "❌ Cancel", callback_data: "cancel_upload" }
+                            { text: "✅ Done", callback_data: "done_upload", style: "success" },
+                            { text: "❌ Cancel", callback_data: "cancel_upload", style: "danger" }
                         ]
                     ]
                 }
@@ -1472,7 +1465,6 @@ async function finalizeUpload(ctx) {
             fileMsgIds: pending.videoMsgIds,
             views: 0,
             clicks: 0,
-            isUsed: false,
             protectContent: pending.protectContent
         });
 
@@ -1495,8 +1487,8 @@ async function finalizeUpload(ctx) {
             has_spoiler: pending.hasSpoiler,
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: buttonText, url: shareLink }],
-                    [{ text: "📢 Join Backup Channel", url: `https://t.me/+bCed3QPGYqQ3MWY9` }]
+                    [{ text: buttonText, url: shareLink, style: "success" }],
+                    [{ text: "📢 Join Backup Channel", url: `https://t.me/+bCed3QPGYqQ3MWY9`, style: "primary" }]
                 ]
             }
         });
@@ -1520,10 +1512,10 @@ app.listen(PORT, async () => {
     
     try {
         await bot.telegram.setMyCommands([
-            { command: 'start', description: 'Start the bot' },
-            { command: 'language', description: 'Change language' },
-            { command: 'cancel', description: 'Cancel current upload' },
-            { command: 'done', description: 'Finish upload and publish' },
+            { command: 'start', description: 'Start the bot / බොට් ආරම්භ කරන්න' },
+            { command: 'language', description: 'Change language / භාෂාව මාරු කරන්න' },
+            { command: 'cancel', description: 'Cancel current upload / අප්‌ලෝඩ් කිරීම අවලංගු කරන්න' },
+            { command: 'done', description: 'Finish upload and publish / අවසන් කර ප්‍රකාශයට පත් කරන්න' },
             { command: 'stats', description: 'Bot Statistics (Admin only)' },
             { command: 'maintenance', description: 'Toggle Maintenance (Admin only)' }
         ]);
