@@ -2,6 +2,7 @@ const { Telegraf } = require('telegraf');
 const mongoose = require('mongoose');
 const http = require('http');
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -13,45 +14,41 @@ const MONGO_URI = process.env.MONGO_URI;
 const REQUIRED_CHANNEL = process.env.REQUIRED_CHANNEL || "@wal_lokaya1"; 
 const CHAT_GROUP_LINK = 'https://t.me/wallokaya_chat';
 
-// --- Language Dictionary ---
+const SUB_ADMINS = process.env.SUB_ADMINS ? process.env.SUB_ADMINS.split(',') : [];
+
+// --- Language Dictionary (Clean & Error-Free) ---
 const langs = {
     si: {
         welcome: "✨ <b>𝐖𝐀𝐋 𝐋𝐎𝐊𝐀𝐘𝐀 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋</b> 👑\n━━━━━━━━━━━━━━━━━━━━\n\n👋 <b>ආයුබෝවන්! සාදරයෙන් පිළිගනිමු.</b>\n\nමම ඔබේ වීඩියෝ ලබා දෙන ස්වයංක්‍රීය බොට් එකයි. 🎬\n\n👉 <b>වීඩියෝ ලබා ගැනීමට අපේ ප්‍රධාන චැනල් එකේ ඇති ලින්ක් එකක් භාවිතා කර බොට් වෙත පැමිණෙන්න.</b> 💎\n\n━━━━━━━━━━━━━━━━━━━━\n📊 <b>පද්ධති තත්ත්වය:</b> 🟢 <i>Online & Active</i>\n⚡ <b>වේගය:</b> <i>Ultra Fast</i>",
-        channelBtn: "📢 𝐎𝐮𝐫 𝐂𝐡𝐚𝐧𝐧𝐞𝐥",
-        howToUseBtn: "ℹ️ 𝐇𝐨𝐰 𝐭𝐨 𝐔𝐬𝐞",
-        supportBtn: "📞 𝐒𝐮𝐩𝐩𝐨𝐫𝐭",
-        langBtn: "🌐 𝐋𝐚𝐧𝐠𝐮𝐚𝐠𝐞 / භාෂාව",
-        backBtn: "⬅️ 𝐁𝐚𝐜𝐤 𝐭𝐨 𝐌𝐞𝐧𝐮",
-        subRequired: "⚠️ <b>අවධානයෙයි! වීඩියෝව ලබා ගැනීමට පහත පියවර සම්පූර්ණ කරන්න.</b>\n━━━━━━━━━━━━━━━━━━━━\n\nවීඩියෝව Download කර ගැනීමට නම් ඔබ අපගේ ප්‍රධාන චැනල් එකේ සහ චැට් ගෲප් එකේ සාමාජිකයෙකු විය යුතුය.\n\n👇 පහත බටන් භාවිතයෙන් Join වී <b>\"🔄 නැවත Verify කරන්න\"</b> බොත්තම ක්ලික් කරන්න.",
-        joinChannel: "📢 𝐉𝐨𝐢𝐧 𝐂𝐡𝐚𝐧𝐧𝐞𝐥",
-        checkSub: "🔄 𝐂𝐡𝐞𝐜𝐤 𝐒𝐮𝐛𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧",
-        linkExpired: "❌ <b>සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.</b>",
-        warningText: "━━━━━━━━━━━━━━━━━━━━\n⚠️ <b>𝐀𝐓𝐓𝐄𝐍𝐓𝐈𝐎𝐍 / අවධානයට:</b>\n━━━━━━━━━━━━━━━━━━━━\nමෙම අන්තර්ගතය ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත! ⏳",
+        channelBtn: "📢 Our Channel",
+        howToUseBtn: "ℹ️ How to Use",
+        supportBtn: "📞 Support",
+        langBtn: "🌐 Language / භාෂාව",
+        backBtn: "⬅️ Back to Menu",
+        subRequired: "⚠️ <b>අවධානයයි! වීඩියෝව ලබා ගැනීමට පහත පියවර සම්පූර්ණ කරන්න.</b>\n━━━━━━━━━━━━━━━━━━━━\n\nවීඩියෝව ඩවුන්ලෝඩ් කර ගැනීමට නම් ඔබ අපගේ ප්‍රධාන චැනල් එකේ සහ චැට් ගෲප් එකේ සාමාජිකයෙකු විය යුතුය.\n\n👇 පහත බොත්තම් භාවිතයෙන් Join වී <b>\"🔄 නැවත Verify කරන්න\"</b> ක්ලික් කරන්න.",
+        joinChannel: "📢 Join Channel",
+        checkSub: "🔄 Check Subscription",
+        linkExpired: "❌ <b>සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත, භාවිත කර ඇත හෝ වැරදිය.</b>",
+        warningText: "━━━━━━━━━━━━━━━━━━━━\n⚠️ <b>අවධානයට:</b>\n━━━━━━━━━━━━━━━━━━━━\nමෙම අන්තර්ගතය ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත! ⏳",
         protectedNote: "\n\n🔒 <i>(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි වේ.)</i>",
-        clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n🔓 <b>𝐑𝐄𝐀𝐃𝐘 𝐓𝐎 𝐔𝐍𝐋𝐎𝐂𝐊</b>\n━━━━━━━━━━━━━━━━━━━━\n\nඅන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න: 🔥",
+        clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n🔓 <b>රෙඩි ටු අන්ලොක් (READY TO UNLOCK)</b>\n━━━━━━━━━━━━━━━━━━━━\n\nඅන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න: 🔥",
         viewsCount: "📊 මෙතෙක් නැරඹුම් වාර:",
-        watchAdText: "▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭",
-        guideText: "❓ 𝐇𝐨𝐰 𝐭𝐨 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨? (𝐆𝐮𝐢𝐝𝐞)",
+        watchAdText: "▶️ Watch Ad & Get Content",
+        guideText: "❓ How to Get Video? (Guide)",
         systemError: "❌ පද්ධතියේ දෝෂයක් සිදු විය.",
         notSubbedAlert: "❌ ඔබ අවශ්‍ය සියලුම නාලිකා/ගෲප් සඳහා Join වී නැත!",
         subSuccess: "✅ ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.",
-        guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐂𝐎𝐍𝐓𝐄𝐍𝐓</b> 💡\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ මුලින්ම <b>\"▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\"</b> බොත්තම ඔබන්න. 👉\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න. ⏱️\n3️⃣ කාලය අවසන් වූ පසු මතුවන <b>\"🚀 𝐆𝐞𝐭 𝐕𝐢ඩියෝ\"</b> බොත්තම ඔබන්න. 🔥\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත! 🎬",
-        supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>𝐒𝐔𝐏𝐏𝐎𝐑𝐓 & 𝐇𝐄𝐋𝐏</b>\n━━━━━━━━━━━━━━━━━━━━\n\nගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
-        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>𝐋𝐀𝐍𝐆𝐔𝐀𝐆𝐄 𝐒𝐄𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n━━━━━━━━━━━━━━━━━━━━\n\nකරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language: ✨",
+        guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>වීඩියෝ ලබාගන්නා ආකාරය (GUIDE)</b> 💡\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ මුලින්ම <b>\"▶️ Watch Ad & Get Content\"</b> බොත්තම ඔබන්න. 👉\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න. ⏱️\n3️⃣ කාලය අවසන් වූ පසු මතුවන <b>\"🚀 Get Video\"</b> බොත්තම ඔබන්න. 🔥\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත! 🎬",
+        supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>සහාය සහ උදව් (SUPPORT)</b>\n━━━━━━━━━━━━━━━━━━━━\n\nගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
+        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>භාෂාව තෝරන්න (LANGUAGE SELECTION)</b>\n━━━━━━━━━━━━━━━━━━━━\n\nਕරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language: ✨",
         
-        // Mini App Dictionary (SI)
         appTitle: "වීඩියෝව සූදානම් වෙමින් පවතී",
         appInstruction: "පහත බොත්තම ඔබා දැන්වීම නරඹා, තත්පර <span class=\"text-sky-400 font-semibold\">5ක්</span> රැඳී සිටින්න.",
         appAdBtn: "🔗 දැන්වීම විවෘත කරන්න",
-        appAdBtnWatching: "⏳ දැන්වීම නරඹමින් පවතී...",
-        appAdBtnAgain: "🔗 නැවත දැන්වීම විවෘත කරන්න",
-        appStatusWatching: "දැන්වීම නරඹමින් පවතී...",
-        appStatusWarning: "⚠️ කරුණාකර දැන්වීම සම්පූර්ණයෙන්ම තත්පර 5ක් නරඹන්න!",
         appStatusWait: "තත්පර කිහිපයක් රැඳී සිටින්න...",
         appSuccessMsg: "✔ නැරඹීම සාර්ථකයි! දැන් වීඩියෝව ලබාගත හැක.",
         appGetVideoBtn: "🚀 වීඩියෝව ලබා ගන්න",
         
-        // Age Verification SI
         ageTitle: "වයස තහවුරු කිරීම අවශ්‍යයි",
         ageDesc: "මෙම Mini App එක තුළ වැඩිහිටි අන්තර්ගතයන් අඩංගු වේ. ඇතුළු වීමට ඔබේ වයස අවුරුදු 18 හෝ ඊට වැඩි විය යුතුය.",
         ageUnderBtn: "මගේ වයස 18ට අඩුයි",
@@ -59,41 +56,35 @@ const langs = {
     },
     en: {
         welcome: "✨ <b>𝐖𝐀𝐋 𝐋𝐎𝐊𝐀𝐘𝐀 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋</b> 👑\n━━━━━━━━━━━━━━━━━━━━\n\n👋 <b>Hello! Welcome.</b>\n\nI am your automated bot that provides videos and movies. 🎬\n\n👉 <b>Please use a link from our main channel to access content through the bot.</b> 💎\n\n━━━━━━━━━━━━━━━━━━━━\n📊 <b>System Status:</b> 🟢 <i>Online & Active</i>\n⚡ <b>Speed:</b> <i>Ultra Fast</i>",
-        channelBtn: "📢 𝐎𝐮𝐫 𝐂𝐡𝐚𝐧𝐧𝐞𝐥",
-        howToUseBtn: "ℹ️ 𝐇𝐨𝐰 𝐭𝐨 𝐔𝐬𝐞",
-        supportBtn: "📞 𝐒𝐮𝐩𝐩𝐨𝐫𝐭",
-        langBtn: "🌐 𝐋𝐚𝐧𝐠𝐮𝐚𝐠𝐞",
-        backBtn: "⬅️ 𝐁𝐚𝐜𝐤 𝐭𝐨 𝐌𝐞𝐧𝐮",
+        channelBtn: "📢 Our Channel",
+        howToUseBtn: "ℹ️ How to Use",
+        supportBtn: "📞 Support",
+        langBtn: "🌐 Language",
+        backBtn: "⬅️ Back to Menu",
         subRequired: "⚠️ <b>Attention! Complete the steps below.</b>\n━━━━━━━━━━━━━━━━━━━━\n\nYou must join our main channel and chat group to get this video.\n\n👇 Join using the buttons below and click <b>\"🔄 Check Again\"</b>.",
         joinChannel: "📢 Join Channel",
         checkSub: "🔄 Check Again",
-        linkExpired: "❌ <b>Sorry, this link has expired or is invalid.</b>",
-        warningText: "━━━━━━━━━━━━━━━━━━━━\n⚠️ <b>𝐀𝐓𝐓𝐄𝐍𝐓𝐈𝐎𝐍:</b>\n━━━━━━━━━━━━━━━━━━━━\nThis content will automatically disappear from your chat! ⏳",
+        linkExpired: "❌ <b>Sorry, this link has expired, already used or is invalid.</b>",
+        warningText: "━━━━━━━━━━━━━━━━━━━━\n⚠️ <b>ATTENTION:</b>\n━━━━━━━━━━━━━━━━━━━━\nThis content will automatically disappear from your chat! ⏳",
         protectedNote: "\n\n🔒 <i>(This content is protected against forwarding or downloading)</i>",
-        clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n🔓 <b>𝐑𝐄𝐀𝐃𝐘 𝐓𝐎 𝐔𝐍𝐋𝐎𝐂𝐊</b>\n━━━━━━━━━━━━━━━━━━━━\n\nClick the button below to get the content: 🔥",
+        clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n🔓 <b>READY TO UNLOCK</b>\n━━━━━━━━━━━━━━━━━━━━\n\nClick the button below to get the content: 🔥",
         viewsCount: "📊 Total Views so far:",
-        watchAdText: "▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭",
-        guideText: "❓ 𝐇𝐨𝐰 𝐭𝐨 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨? (𝐆𝐮𝐢𝐝𝐞)",
+        watchAdText: "▶️ Watch Ad & Get Content",
+        guideText: "❓ How to Get Video? (Guide)",
         systemError: "❌ A system error occurred.",
         notSubbedAlert: "❌ You have not joined all required channels/groups yet!",
         subSuccess: "✅ Thank you! You can now access the content.",
-        guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>𝐇𝐎𝐖 𝐓𝐎 𝐆𝐄𝐓 𝐂𝐎𝐍𝐓𝐄𝐍𝐓</b> 💡\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ First click the <b>\"▶️ 𝐖𝐚𝐭𝐜𝐡 𝐀𝐝 & 𝐆𝐞𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\"</b> button. 👉\n2️⃣ Click on the ad on the opened page and wait for 5 seconds. ⏱️\n3️⃣ Once time is up, click the <b>\"🚀 𝐆𝐞𝐭 𝐕𝐢𝐝𝐞𝐨\"</b> button that appears. 🔥\n4️⃣ Then you will automatically be redirected to the bot to receive your content! 🎬",
-        supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>𝐒𝐔𝐏𝐏𝐎𝐑𝐓 & 𝐇𝐄𝐋𝐏</b>\n━━━━━━━━━━━━━━━━━━━━\n\nFor inquiries, please contact our main channel.",
-        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>𝐋𝐀𝐍𝐆𝐔𝐀𝐆𝐄 𝐒𝐄𝐋𝐄𝐂𝐓𝐈𝐎𝐍</b>\n━━━━━━━━━━━━━━━━━━━━\n\nPlease select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න: ✨",
+        guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>HOW TO GET CONTENT</b> 💡\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ First click the <b>\"▶️ Watch Ad & Get Content\"</b> button. 👉\n2️⃣ Click on the ad on the opened page and wait for 5 seconds. ⏱️\n3️⃣ Once time is up, click the <b>\"🚀 Get Video\"</b> button that appears. 🔥\n4️⃣ Then you will automatically be redirected to the bot to receive your content! 🎬",
+        supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>SUPPORT & HELP</b>\n━━━━━━━━━━━━━━━━━━━━\n\nFor inquiries, please contact our main channel.",
+        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>LANGUAGE SELECTION</b>\n━━━━━━━━━━━━━━━━━━━━\n\nPlease select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න: ✨",
         
-        // Mini App Dictionary (EN)
         appTitle: "Video is getting ready",
         appInstruction: "Click the button below, view the ad, and wait for <span class=\"text-sky-400 font-semibold\">5 seconds</span>.",
         appAdBtn: "🔗 Open Ad",
-        appAdBtnWatching: "⏳ Watching Ad...",
-        appAdBtnAgain: "🔗 Open Ad Again",
-        appStatusWatching: "Watching ad...",
-        appStatusWarning: "⚠️ Please watch the ad completely for 5 seconds!",
         appStatusWait: "Please wait a few seconds...",
         appSuccessMsg: "✔ Watching successful! You can now get the video.",
         appGetVideoBtn: "🚀 Get Video",
         
-        // Age Verification EN
         ageTitle: "Age Verification Required",
         ageDesc: "This mini app contains adult content. You must be at least 18 years old to enter.",
         ageUnderBtn: "I am under 18",
@@ -128,13 +119,14 @@ mongoose.connect(MONGO_URI)
   })
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// Mongoose Schema for Files
+// Mongoose Schemas
 const fileSchema = new mongoose.Schema({
     token: { type: String, required: true, unique: true },
     fileMsgId: { type: Number },      
     fileMsgIds: { type: [Number] },   
     views: { type: Number, default: 0 },
     clicks: { type: Number, default: 0 },
+    isUsed: { type: Boolean, default: false },
     protectContent: { type: Boolean, default: false },
     reactions: {
         peach: { type: Number, default: 0 },
@@ -143,10 +135,8 @@ const fileSchema = new mongoose.Schema({
     },
     reactedUsers: { type: [String], default: [] }
 });
-
 const FileModel = mongoose.model('File', fileSchema);
 
-// Mongoose Schema for Users
 const userSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     joinedAt: { type: Date, default: Date.now },
@@ -155,7 +145,6 @@ const userSchema = new mongoose.Schema({
 });
 const UserModel = mongoose.model('User', userSchema);
 
-// Mongoose Schema for Active Video Delivery Sessions
 const sessionSchema = new mongoose.Schema({
     chatId: { type: String, required: true },
     sentVideoIds: { type: [Number], required: true },
@@ -167,14 +156,13 @@ const sessionSchema = new mongoose.Schema({
 });
 const SessionModel = mongoose.model('Session', sessionSchema);
 
-// Mongoose Schema for Settings
 const settingSchema = new mongoose.Schema({
     key: { type: String, required: true, unique: true },
     value: { type: Boolean, default: false }
 });
 const SettingModel = mongoose.model('Setting', settingSchema);
 
-// Membership Check Function for both Channel & Chat Group
+// Membership Check Function
 async function checkMembership(ctx, userId) {
     let isChannelMember = true;
     let isGroupMember = true;
@@ -206,10 +194,8 @@ async function checkMembership(ctx, userId) {
     };
 }
 
-// Active Timers In Memory
 const activeTimers = new Map();
 
-// Helper to generate Reaction Rating/Heat Bar text
 function getReactionHeatBar(reactions) {
     const total = (reactions.peach || 0) + (reactions.banana || 0) + (reactions.hot || 0);
     if (total === 0) return `[░░░░░░░░░░] 0% Reactions`;
@@ -232,7 +218,7 @@ function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, t
                 const reactions = fileDoc ? (fileDoc.reactions || { peach: 0, banana: 0, hot: 0 }) : { peach: 0, banana: 0, hot: 0 };
                 const heatBarText = getReactionHeatBar(reactions);
 
-                let updatedWarningText = t.warningText + `\n\n📊 <b>𝐂𝐎𝐍𝐓𝐄𝐍𝐓 𝐑𝐀𝐓𝐈𝐍𝐆:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> விනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
+                let updatedWarningText = t.warningText + `\n\n📊 <b>CONTENT RATING:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
                 
                 await bot.telegram.editMessageText(
                     chatId, 
@@ -244,10 +230,11 @@ function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, t
                         reply_markup: {
                             inline_keyboard: [
                                 [
-                                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
-                                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
-                                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
-                                ]
+                                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}` },
+                                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}` },
+                                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}` }
+                                ],
+                                [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]
                             ]
                         }
                     }
@@ -311,11 +298,17 @@ async function restoreActiveSessions() {
 // Helper Function to handle Video Delivery with Visual Progress Updates
 async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     const t = langs[lang];
+    
+    if (fileDoc.isUsed) {
+        return ctx.reply("❌ <b>මෙම ලින්ක් එක දැනටමත් භාවිත කර ඇත! එය තවදුරටත් වලංගු නොවේ.</b>", { parse_mode: 'HTML' });
+    }
+
+    await FileModel.updateOne({ token }, { $set: { isUsed: true } });
+
     let msgIdsArray = fileDoc.fileMsgId ? [fileDoc.fileMsgId] : (fileDoc.fileMsgIds || []);
     const isProtected = fileDoc.protectContent === true;
     let sentVideoIds = [];
 
-    // Animated Loading Message
     const statusMsg = await ctx.reply(`⚡ <b>අන්තර්ගතය සූදානම් වෙමින් පවතී...</b>\n\n${renderProgressBar(30)}`, { parse_mode: 'HTML' });
 
     for (let i = 0; i < msgIdsArray.length; i++) {
@@ -342,24 +335,25 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     await ctx.telegram.deleteMessage(ctx.chat.id, statusMsg.message_id).catch(() => {});
 
     if (sentVideoIds.length === 0) {
-        return ctx.reply("❌ <b>සමාවන්න, මෙම වීඩියෝව Database එකෙන් මකා දමා ඇත හෝ ලබා ගත නොහැක.</b>", { parse_mode: 'HTML' });
+        return ctx.reply("❌ <b>සමාවන්න, මෙම වීඩියෝව ඩේටාබේස් එකෙන් මකා දමා ඇත හෝ ලබා ගත නොහැක.</b>", { parse_mode: 'HTML' });
     }
 
     let remainingMinutes = 30;
     const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
     const heatBarText = getReactionHeatBar(reactions);
 
-    let warningText = t.warningText + `\n\n📊 <b>𝐂𝐎𝐍𝐓𝐄𝐍𝐓 𝐑𝐀𝐓𝐈𝐍𝐆:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
+    let warningText = t.warningText + `\n\n📊 <b>CONTENT RATING:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
 
     const warningMsg = await ctx.reply(warningText, {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
-                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
-                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
-                ]
+                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}` },
+                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}` },
+                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}` }
+                ],
+                [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]
             ]
         }
     });
@@ -386,6 +380,26 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     );
 }
 
+// Report Broken Link Action
+bot.action(/^report_link_(.+)$/, async (ctx) => {
+    const token = ctx.match[1];
+    const ADMIN_ID = process.env.ADMIN_ID;
+    const userId = ctx.from.id;
+    const username = ctx.from.username ? `@${ctx.from.username}` : `User ID: ${userId}`;
+
+    await ctx.answerCbQuery("🚨 ඇඩ්මින් වෙත වාර්තා කරන ලදී. ස්තුතියි!", { show_alert: true });
+
+    if (ADMIN_ID) {
+        try {
+            await ctx.telegram.sendMessage(
+                ADMIN_ID,
+                `🚨 <b>Broken Link Reported!</b>\n━━━━━━━━━━━━━━━━━━━━\n👤 Reported by: ${username}\n🔑 Token: <code>${token}</code>`,
+                { parse_mode: 'HTML' }
+            );
+        } catch (e) {}
+    }
+});
+
 // Bot Start & Handlers
 bot.start(async (ctx) => {
     const userId = ctx.from.id;
@@ -408,12 +422,12 @@ bot.start(async (ctx) => {
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
+                    [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
                     [
-                        { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
-                        { text: t.supportBtn, callback_data: "support_info", style: "primary" }
+                        { text: t.howToUseBtn, callback_data: "how_to_use" }, 
+                        { text: t.supportBtn, callback_data: "support_info" }
                     ],
-                    [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
+                    [{ text: t.langBtn, callback_data: "change_language" }]
                 ]
             }
         });
@@ -438,13 +452,13 @@ bot.start(async (ctx) => {
         } else if (!membership.isChannelMember) {
             missingMessage = "ඔබ අපගේ **Main Channel** එකට Join වී නොමැත.";
         } else if (!membership.isGroupMember) {
-            missingMessage = "ඔබ අපගේ **Kama Lokaya Chat Group** එකට Join වී නොමැත.";
+            missingMessage = "ඔබ අපගේ **Chat Group** එකට Join වී නොමැත.";
         }
 
         return ctx.replyWithHTML(
-            `⚠️ <b>අවධානයෙයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `⚠️ <b>අවධානයයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n` +
             `${missingMessage}\n\n` +
-            `වීඩියෝව Download කර ගැනීමට පහත බටන් එකෙන් Join වී **"නැවත Verify කරන්න"** බටන් එක ක්ලික් කරන්න.`,
+            `වීඩියෝව ලබා ගැනීමට පහත බොත්තම් භාවිතයෙන් Join වී <b>"නැවත Verify කරන්න"</b> ක්ලික් කරන්න.`,
             {
                 reply_markup: {
                     inline_keyboard: buttons
@@ -456,18 +470,19 @@ bot.start(async (ctx) => {
     try {
         if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
-            const fileDoc = await FileModel.findOneAndUpdate({ token }, { $inc: { views: 1 } }, { new: true });
+            const fileDoc = await FileModel.findOne({ token });
             
-            if (!fileDoc) {
+            if (!fileDoc || fileDoc.isUsed) {
                 return ctx.reply(t.linkExpired, { parse_mode: 'HTML' });
             }
 
+            await FileModel.updateOne({ token }, { $inc: { views: 1 } });
             await deliverVideosAndSetupTimer(ctx, fileDoc, token, lang);
             return;
         }
 
         const fileDoc = await FileModel.findOneAndUpdate({ token: payload }, { $inc: { clicks: 1 } }, { new: true });
-        if (!fileDoc) return ctx.reply(t.linkExpired, { parse_mode: 'HTML' });
+        if (!fileDoc || fileDoc.isUsed) return ctx.reply(t.linkExpired, { parse_mode: 'HTML' });
 
         const hostUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${hostUrl}/miniapp?token=${payload}&uid=${userId}`;
@@ -478,8 +493,8 @@ bot.start(async (ctx) => {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
-                        [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
+                        [{ text: t.watchAdText, web_app: { url: miniAppUrl } }],
+                        [{ text: t.guideText, callback_data: "how_to_use" }]
                     ]
                 }
             }
@@ -519,10 +534,11 @@ bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
         await ctx.editMessageReplyMarkup({
             inline_keyboard: [
                 [
-                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
-                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
-                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
-                ]
+                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}` },
+                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}` },
+                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}` }
+                ],
+                [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]
             ]
         });
     } catch (err) {
@@ -540,14 +556,14 @@ bot.action('how_to_use', async (ctx) => {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+                [{ text: t.backBtn, callback_data: "back_to_main" }]
             ]
         }
     }).catch(() => ctx.reply(t.guideContent, {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+                [{ text: t.backBtn, callback_data: "back_to_main" }]
             ]
         }
     }));
@@ -562,14 +578,14 @@ bot.action('support_info', async (ctx) => {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+                [{ text: t.backBtn, callback_data: "back_to_main" }]
             ]
         }
     }).catch(() => ctx.reply(t.supportMsg, {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+                [{ text: t.backBtn, callback_data: "back_to_main" }]
             ]
         }
     }));
@@ -585,10 +601,10 @@ bot.action('change_language', async (ctx) => {
         reply_markup: { 
             inline_keyboard: [
                 [
-                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si", style: "success" }, 
-                    { text: "🇬🇧 English", callback_data: "set_lang_en", style: "primary" }
+                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si" }, 
+                    { text: "🇬🇧 English", callback_data: "set_lang_en" }
                 ],
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+                [{ text: t.backBtn, callback_data: "back_to_main" }]
             ] 
         }
     }).catch(() => {});
@@ -603,12 +619,12 @@ bot.action('back_to_main', async (ctx) => {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
+                [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }],
                 [
-                    { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
-                    { text: t.supportBtn, callback_data: "support_info", style: "primary" }
+                    { text: t.howToUseBtn, callback_data: "how_to_use" }, 
+                    { text: t.supportBtn, callback_data: "support_info" }
                 ],
-                [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
+                [{ text: t.langBtn, callback_data: "change_language" }]
             ]
         }
     }).catch(() => {});
@@ -623,7 +639,7 @@ bot.action('set_lang_si', async (ctx) => {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+                [{ text: t.backBtn, callback_data: "back_to_main" }]
             ]
         }
     }).catch(() => {});
@@ -638,21 +654,33 @@ bot.action('set_lang_en', async (ctx) => {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+                [{ text: t.backBtn, callback_data: "back_to_main" }]
             ]
         }
     }).catch(() => {});
 });
 
-// Express App setup with Glassmorphism & Sleek Animated Mini App UI
+// Express App setup
 const app = express();
 app.use(express.urlencoded({ extended: true }));
+
+const limiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 20,
+    message: "Too many requests from this IP, please try again later."
+});
+app.use(limiter);
 
 app.get('/miniapp', async (req, res) => {
     const token = req.query.token || '';
     const userId = req.query.uid || '';
     
     try {
+        const fileCheck = await FileModel.findOne({ token });
+        if (!fileCheck || fileCheck.isUsed) {
+            return res.send(`<!DOCTYPE html><html><body style="background:#09090b;color:#f87171;text-align:center;padding-top:80px;font-family:sans-serif;"><h2>❌ Link has expired or already used!</h2></body></html>`);
+        }
+
         const user = await UserModel.findOne({ userId: userId.toString() });
         const lang = (user && user.language) ? user.language : 'si';
         const t = langs[lang] || langs.si;
@@ -727,11 +755,9 @@ app.get('/miniapp', async (req, res) => {
 </head>
 <body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-5 select-none font-sans relative overflow-hidden">
     
-    <!-- Background Animated Glow Blobs -->
     <div class="absolute -top-20 -left-20 w-64 h-64 bg-sky-600/30 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-600/30 rounded-full blur-3xl pointer-events-none"></div>
 
-    <!-- Age Verification Modal -->
     <div id="age-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-xl hidden">
         <div class="w-full max-w-sm rounded-3xl bg-slate-900/90 border border-slate-800/80 p-7 text-center shadow-2xl relative overflow-hidden backdrop-blur-2xl">
             <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-2xl font-black shadow-inner">
@@ -758,14 +784,12 @@ app.get('/miniapp', async (req, res) => {
         </div>
     </div>
 
-    <!-- Main Card -->
     <div id="main-card" class="bg-slate-900/60 backdrop-blur-2xl border border-white/10 p-7 rounded-3xl shadow-2xl max-w-sm w-full text-center relative overflow-hidden transition-all duration-500">
         
         <div id="warning-banner" class="hidden mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-400 text-xs font-semibold animate-pulse">
             ${warningText}
         </div>
 
-        <!-- Progress Steps -->
         <div class="flex items-center justify-center gap-2 mb-5">
             <div id="step-1-dot" class="flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-500/30">1</div>
             <div class="w-6 h-0.5 bg-slate-700"></div>
@@ -784,7 +808,6 @@ app.get('/miniapp', async (req, res) => {
             ${instructionText}
         </p>
 
-        <!-- Ad Button 1 -->
         <div class="mb-3" id="ad-box-1">
             <a href="${adLink1}" target="_blank" id="ad-btn-1" onclick="openAd(1)" class="glow-effect flex items-center justify-between w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm active:scale-95">
                 <span>⭐ Watch Ad 1</span>
@@ -792,7 +815,6 @@ app.get('/miniapp', async (req, res) => {
             </a>
         </div>
 
-        <!-- Ad Button 2 -->
         <div class="mb-5" id="ad-box-2">
             <a href="${adLink2}" target="_blank" id="ad-btn-2" onclick="openAd(2)" class="flex items-center justify-between w-full bg-slate-800/80 text-slate-500 font-bold py-3.5 px-4 rounded-2xl transition-all text-sm pointer-events-none border border-slate-700/50">
                 <span>⭐ Watch Ad 2</span>
@@ -800,7 +822,6 @@ app.get('/miniapp', async (req, res) => {
             </a>
         </div>
 
-        <!-- Timer Box -->
         <div id="timer-box" class="my-5 hidden">
             <div class="relative w-20 h-20 mx-auto flex items-center justify-center bg-slate-800/80 border border-sky-500/30 rounded-full mb-3 shadow-inner">
                 <div id="countdown" class="text-3xl font-black text-sky-400">5</div>
@@ -812,7 +833,6 @@ app.get('/miniapp', async (req, res) => {
             </div>
         </div>
 
-        <!-- Success Box -->
         <div id="success-box" class="hidden">
             <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-4">
                 <p class="text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5">
@@ -824,7 +844,6 @@ app.get('/miniapp', async (req, res) => {
             </button>
         </div>
 
-        <!-- Footer Stats -->
         <div class="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-around text-center">
             <div>
                 <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Total Users</p>
@@ -991,7 +1010,7 @@ bot.use(async (ctx, next) => {
             const userId = ctx.from ? ctx.from.id.toString() : '';
             const ADMIN_ID = process.env.ADMIN_ID;
             
-            if (ADMIN_ID && userId === ADMIN_ID) {
+            if (ADMIN_ID && (userId === ADMIN_ID || SUB_ADMINS.includes(userId))) {
                 return next();
             }
 
@@ -1042,10 +1061,10 @@ bot.command('language', async (ctx) => {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si", style: "success" },
-                    { text: "🇬🇧 English", callback_data: "set_lang_en", style: "primary" }
+                    { text: "🇱🇰 සිංහල", callback_data: "set_lang_si" },
+                    { text: "🇬🇧 English", callback_data: "set_lang_en" }
                 ],
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+                [{ text: t.backBtn, callback_data: "back_to_main" }]
             ]
         }
     });
@@ -1175,23 +1194,20 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
     try {
         if (payload.startsWith("getvideo_")) {
             const token = payload.replace("getvideo_", "");
-            const fileDoc = await FileModel.findOneAndUpdate(
-                { token: token }, 
-                { $inc: { views: 1 } }, 
-                { new: true }
-            );
+            const fileDoc = await FileModel.findOne({ token });
 
-            if (!fileDoc) {
+            if (!fileDoc || fileDoc.isUsed) {
                 return ctx.editMessageText(t.linkExpired, { parse_mode: 'HTML' });
             }
 
+            await FileModel.updateOne({ token }, { $inc: { views: 1 } });
             await ctx.deleteMessage();
             await deliverVideosAndSetupTimer(ctx, fileDoc, token, lang);
             return;
         }
 
         const fileDoc = await FileModel.findOne({ token: payload });
-        if (!fileDoc) {
+        if (!fileDoc || fileDoc.isUsed) {
             return ctx.editMessageText(t.linkExpired, { parse_mode: 'HTML' });
         }
 
@@ -1204,8 +1220,8 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
-                        [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
+                        [{ text: t.watchAdText, web_app: { url: miniAppUrl } }],
+                        [{ text: t.guideText, callback_data: "how_to_use" }]
                     ]
                 }
             }
@@ -1218,10 +1234,14 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
 // Upload Workflow Actions
 const pendingUploads = new Map();
 
+function isAdminOrSubAdmin(userId) {
+    const ADMIN_ID = process.env.ADMIN_ID;
+    return userId === ADMIN_ID || SUB_ADMINS.includes(userId);
+}
+
 bot.command('cancel', async (ctx) => {
     const userId = ctx.from.id.toString();
-    const ADMIN_ID = process.env.ADMIN_ID;
-    if (ADMIN_ID && userId !== ADMIN_ID) return;
+    if (!isAdminOrSubAdmin(userId)) return;
 
     const pending = pendingUploads.get(userId);
     if (!pending) {
@@ -1282,10 +1302,10 @@ async function promptProtectContent(ctx) {
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🔒 ඔව් (Yes)", callback_data: "toggle_protect_yes", style: "success" },
-                        { text: "🔓 නැහැ (No)", callback_data: "toggle_protect_no", style: "primary" }
+                        { text: "🔒 ඔව් (Yes)", callback_data: "toggle_protect_yes" },
+                        { text: "🔓 නැහැ (No)", callback_data: "toggle_protect_no" }
                     ],
-                    [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload", style: "danger" }]
+                    [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload" }]
                 ]
             }
         }
@@ -1304,13 +1324,13 @@ bot.action('toggle_protect_yes', async (ctx) => {
         "✅ <b>සැකසීම් සාර්ථකයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
         "🔒 Blur Mode: <code>ON</code>\n" +
         "🛡️ Protect Content: <code>ON (Block)</code>\n\n" +
-        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බටන් එක ඔබන්න.",
+        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බොත්තම ඔබන්න.",
         { 
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: "✅ Done & Publish", callback_data: "done_upload", style: "success" }],
-                    [{ text: "❌ Cancel", callback_data: "cancel_upload", style: "danger" }]
+                    [{ text: "✅ Done & Publish", callback_data: "done_upload" }],
+                    [{ text: "❌ Cancel", callback_data: "cancel_upload" }]
                 ]
             }
         }
@@ -1329,13 +1349,13 @@ bot.action('toggle_protect_no', async (ctx) => {
         "✅ <b>සැකසීම් සාර්ථකයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
         "🔒 Blur Mode: <code>ස්ථාපිතයි</code>\n" +
         "🛡️ Protect Content: <code>OFF (Allow)</code>\n\n" +
-        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බටන් එක ඔබන්න.",
+        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බොත්තම ඔබන්න.",
         { 
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: "✅ Done & Publish", callback_data: "done_upload", style: "success" }],
-                    [{ text: "❌ Cancel", callback_data: "cancel_upload", style: "danger" }]
+                    [{ text: "✅ Done & Publish", callback_data: "done_upload" }],
+                    [{ text: "❌ Cancel", callback_data: "cancel_upload" }]
                 ]
             }
         }
@@ -1344,8 +1364,7 @@ bot.action('toggle_protect_no', async (ctx) => {
 
 bot.on('photo', async (ctx) => {
     const userId = ctx.from.id.toString();
-    const ADMIN_ID = process.env.ADMIN_ID;
-    if (ADMIN_ID && userId !== ADMIN_ID) return;
+    if (!isAdminOrSubAdmin(userId)) return;
 
     const pending = pendingUploads.get(userId);
     if (pending && pending.photoFileId && pending.hasSpoiler !== undefined) {
@@ -1361,8 +1380,8 @@ bot.on('photo', async (ctx) => {
                     reply_markup: {
                         inline_keyboard: [
                             [
-                                { text: "✅ Done", callback_data: "done_upload", style: "success" },
-                                { text: "❌ Cancel", callback_data: "cancel_upload", style: "danger" }
+                                { text: "✅ Done", callback_data: "done_upload" },
+                                { text: "❌ Cancel", callback_data: "cancel_upload" }
                             ]
                         ]
                     }
@@ -1393,10 +1412,10 @@ bot.on('photo', async (ctx) => {
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🔒 Blur කරන්න", callback_data: "toggle_spoiler_yes", style: "success" },
-                        { text: "🔓 එපා", callback_data: "toggle_spoiler_no", style: "primary" }
+                        { text: "🔒 Blur කරන්න", callback_data: "toggle_spoiler_yes" },
+                        { text: "🔓 එපා", callback_data: "toggle_spoiler_no" }
                     ],
-                    [{ text: "❌ සම්පූර්ණයෙන්ම Cancel කරන්න", callback_data: "cancel_upload", style: "danger" }]
+                    [{ text: "❌ සම්පූර්ණයෙන්ම Cancel කරන්න", callback_data: "cancel_upload" }]
                 ]
             }
         }
@@ -1405,8 +1424,7 @@ bot.on('photo', async (ctx) => {
 
 bot.on(['video', 'document'], async (ctx) => {
     const userId = ctx.from.id.toString();
-    const ADMIN_ID = process.env.ADMIN_ID;
-    if (ADMIN_ID && userId !== ADMIN_ID) return;
+    if (!isAdminOrSubAdmin(userId)) return;
 
     const pending = pendingUploads.get(userId);
     if (!pending) {
@@ -1425,8 +1443,8 @@ bot.on(['video', 'document'], async (ctx) => {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            { text: "✅ Done", callback_data: "done_upload", style: "success" },
-                            { text: "❌ Cancel", callback_data: "cancel_upload", style: "danger" }
+                            { text: "✅ Done", callback_data: "done_upload" },
+                            { text: "❌ Cancel", callback_data: "cancel_upload" }
                         ]
                     ]
                 }
@@ -1443,7 +1461,7 @@ async function finalizeUpload(ctx) {
 
     const pending = pendingUploads.get(userId);
     if (!pending || pending.videoMsgIds.length === 0) {
-        return ctx.reply("⚠️ කරුණාකර මුලින්ම Thumbnail එකක් සහ අන්තර්ගතයක් (වීඩියෝ/ፎටෝ) එකක් හෝ කිහිපයක් එවන්න.", { parse_mode: 'HTML' });
+        return ctx.reply("⚠️ කරුණාකර මුලින්ම Thumbnail එකක් සහ අන්තර්ගතයක් (වීඩියෝ/ඡායාරූප) එකක් හෝ කිහිපයක් එවන්න.", { parse_mode: 'HTML' });
     }
 
     try {
@@ -1454,6 +1472,7 @@ async function finalizeUpload(ctx) {
             fileMsgIds: pending.videoMsgIds,
             views: 0,
             clicks: 0,
+            isUsed: false,
             protectContent: pending.protectContent
         });
 
@@ -1476,8 +1495,8 @@ async function finalizeUpload(ctx) {
             has_spoiler: pending.hasSpoiler,
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: buttonText, url: shareLink, style: "success" }],
-                    [{ text: "📢 Join Backup Channel", url: `https://t.me/+bCed3QPGYqQ3MWY9`, style: "primary" }]
+                    [{ text: buttonText, url: shareLink }],
+                    [{ text: "📢 Join Backup Channel", url: `https://t.me/+bCed3QPGYqQ3MWY9` }]
                 ]
             }
         });
@@ -1491,8 +1510,7 @@ async function finalizeUpload(ctx) {
 
 bot.command('done', async (ctx) => {
     const userId = ctx.from.id.toString();
-    const ADMIN_ID = process.env.ADMIN_ID;
-    if (ADMIN_ID && userId !== ADMIN_ID) return;
+    if (!isAdminOrSubAdmin(userId)) return;
     await finalizeUpload(ctx);
 });
 
@@ -1502,10 +1520,10 @@ app.listen(PORT, async () => {
     
     try {
         await bot.telegram.setMyCommands([
-            { command: 'start', description: 'Start the bot / බොට් ආරම්භ කරන්න' },
-            { command: 'language', description: 'Change language / භාෂාව මාරු කරන්න' },
-            { command: 'cancel', description: 'Cancel current upload / අප්‌ලෝඩ් කිරීම අවලංගු කරන්න' },
-            { command: 'done', description: 'Finish upload and publish / අවසන් කර ප්‍රකාශයට පත් කරන්න' },
+            { command: 'start', description: 'Start the bot' },
+            { command: 'language', description: 'Change language' },
+            { command: 'cancel', description: 'Cancel current upload' },
+            { command: 'done', description: 'Finish upload and publish' },
             { command: 'stats', description: 'Bot Statistics (Admin only)' },
             { command: 'maintenance', description: 'Toggle Maintenance (Admin only)' }
         ]);
