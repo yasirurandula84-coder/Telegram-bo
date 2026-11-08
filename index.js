@@ -233,7 +233,10 @@ function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, t
                     [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]
                 ];
 
+                // Check if user is VIP before adding Buy VIP button in periodic update
+                // (Since we don't have ctx here directly, we can check via Session or query user if needed, but let's keep it safe)
                 if (isProtected) {
+                    // isProtected is already false for VIP users, so if isProtected is true, they are not VIP.
                     keyboardRows.splice(1, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
                 }
 
@@ -314,7 +317,8 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
     const heatBarText = getReactionHeatBar(reactions);
 
-    let warningText = t.warningText + `\n\n📊 <b>CONTENT RATING:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? (t.protectedNote + (lang === 'si' ? t.vipPromoSi : t.vipPromoEn)) : "");
+    // If user is VIP, do NOT add vipPromoSi / vipPromoEn text
+    let warningText = t.warningText + `\n\n📊 <b>CONTENT RATING:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? (t.protectedNote + (isVipUser ? "" : (lang === 'si' ? t.vipPromoSi : t.vipPromoEn))) : "");
 
     let inlineKeyboard = [
         [
@@ -324,7 +328,8 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
         ]
     ];
 
-    if (isProtected) {
+    // Only show Buy VIP button if user is NOT VIP
+    if (isProtected && !isVipUser) {
         inlineKeyboard.push([{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
     }
 
@@ -394,6 +399,40 @@ bot.on('successful_payment', async (ctx) => {
     }
 });
 
+// Listener for users sending "VIP" text message in chat to claim free access (First 3 Users Competition)
+bot.hears(/^(vip|\/vip)$/i, async (ctx) => {
+    const userId = ctx.from.id.toString();
+    try {
+        let user = await UserModel.findOne({ userId });
+        if (!user) {
+            user = await UserModel.create({ userId, joinedAt: new Date(), status: 'active', isVip: false });
+        }
+
+        if (user.isVip) {
+            return ctx.reply("✨ ඔබ දැනටමත් **VIP** සාමාජිකයෙකි!", { parse_mode: 'HTML' });
+        }
+
+        const currentVipCount = await UserModel.countDocuments({ isVip: true });
+
+        if (currentVipCount < 3) {
+            await UserModel.updateOne({ userId }, { $set: { isVip: true } });
+            return ctx.reply(
+                "🎉 <b>සුභ පැතුම්! ඔබ මුලින්ම \"VIP\" මැසේජ් කර ජයග්‍රහණය කළ වාසනාවන්තයන් 3 දෙනා අතරට පැමිණියෙහිය!</b>\n\n" +
+                "⭐ ඔබට සම්පූර්ණයෙන්ම නොමිලේ **FREE VIP ACCESS** හිමි විය! දැන් ඔබට ඕනෑම වීඩියෝවක් ඩවුන්ලෝඩ් කරගත හැක. 🎬",
+                { parse_mode: 'HTML' }
+            );
+        } else {
+            return ctx.reply(
+                "❌ <b>සමාවන්න! පළමු වාසනාවන්තයන් 3 දෙනාගේ කෝටාව දැනටමත් අවසන් වී ඇත!</b>\n\n" +
+                "⭐ ඔබට අවශ්‍ය නම් පහත කමාන්ඩ් එක භාවිතයෙන් Stars 100ක් ගෙවා VIP ලබාගත හැක:\n👉 /vip",
+                { parse_mode: 'HTML' }
+            );
+        }
+    } catch (e) {
+        console.error("VIP text trigger error:", e);
+    }
+});
+
 // Admin Manual VIP Commands (/addvip සහ /removevip)
 bot.command('addvip', async (ctx) => {
     const userId = ctx.from.id.toString();
@@ -423,7 +462,6 @@ bot.command('addvip', async (ctx) => {
 
         await ctx.reply(`✅ <b>සාර්ථකයි!</b> User ID <code>${targetUserId}</code> සඳහා <b>VIP Access</b> ලබා දෙන ලදී.`, { parse_mode: 'HTML' });
 
-        // Try to notify the user
         try {
             await ctx.telegram.sendMessage(
                 targetUserId,
@@ -508,21 +546,27 @@ bot.start(async (ctx) => {
 
     const lang = await getUserLang(userId);
     const t = langs[lang];
+    const userDoc = await UserModel.findOne({ userId: userIdStr });
+    const isVipUser = userDoc ? userDoc.isVip : false;
 
     if (!payload) {
+        let welcomeKeyboard = [
+            [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
+            [
+                { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
+                { text: t.supportBtn, callback_data: "support_info", style: "primary" }
+            ],
+            [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
+        ];
+
+        // Only show Get VIP button if user is NOT VIP
+        if (!isVipUser) {
+            welcomeKeyboard.splice(2, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
+        }
+
         return ctx.reply(t.welcome, {
             parse_mode: 'HTML',
-            reply_markup: {
-                inline_keyboard: [
-                    [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
-                    [
-                        { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
-                        { text: t.supportBtn, callback_data: "support_info", style: "primary" }
-                    ],
-                    [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }],
-                    [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
-                ]
-            }
+            reply_markup: { inline_keyboard: welcomeKeyboard }
         });
     }
 
@@ -569,17 +613,21 @@ bot.start(async (ctx) => {
         const hostUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${hostUrl}/miniapp?token=${payload}&uid=${userId}`;
 
+        let startKeyboard = [
+            [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
+            [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
+        ];
+
+        // Only show Get VIP button if user is NOT VIP
+        if (!isVipUser) {
+            startKeyboard.splice(1, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
+        }
+
         await ctx.reply(
             `${t.clickBtnText}\n\n📊 <b>නැරඹුම් වාර (Views):</b> <code>${fileDoc.views}</code>`,
             {
                 parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
-                        [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }],
-                        [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
-                    ]
-                }
+                reply_markup: { inline_keyboard: startKeyboard }
             }
         );
     } catch (error) {
@@ -632,7 +680,8 @@ bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
         await ctx.answerCbQuery("🎉 ඔබේ ප්‍රතිචාරය සාර්ථකව එකතු විය!", { show_alert: true });
 
         const userDoc = await UserModel.findOne({ userId });
-        const isProtected = userDoc ? !userDoc.isVip && fileDoc.protectContent : fileDoc.protectContent;
+        const isVipUser = userDoc ? userDoc.isVip : false;
+        const isProtected = isVipUser ? false : fileDoc.protectContent;
 
         let inlineKeyboard = [
             [
@@ -645,7 +694,8 @@ bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
         const lang = userDoc ? userDoc.language : 'si';
         const t = langs[lang] || langs.si;
 
-        if (isProtected) {
+        // Only show Get VIP button if user is NOT VIP
+        if (isProtected && !isVipUser) {
             inlineKeyboard.push([{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
         }
 
@@ -726,19 +776,25 @@ bot.action('back_to_main', async (ctx) => {
     const userId = ctx.from.id.toString();
     const lang = await getUserLang(userId);
     const t = langs[lang];
+    const userDoc = await UserModel.findOne({ userId });
+    const isVipUser = userDoc ? userDoc.isVip : false;
+
+    let mainKeyboard = [
+        [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
+        [
+            { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
+            { text: t.supportBtn, callback_data: "support_info", style: "primary" }
+        ],
+        [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
+    ];
+
+    if (!isVipUser) {
+        mainKeyboard.splice(2, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
+    }
+
     await ctx.editMessageText(t.welcome, {
         parse_mode: 'HTML',
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
-                [
-                    { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
-                    { text: t.supportBtn, callback_data: "support_info", style: "primary" }
-                ],
-                [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }],
-                [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
-            ]
-        }
+        reply_markup: { inline_keyboard: mainKeyboard }
     }).catch(() => {});
 });
 
@@ -1315,7 +1371,6 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
             }
 
             await FileModel.updateOne({ token }, { $inc: { views: 1 } });
-            await ctx.deleteMessage();
             await deliverVideosAndSetupTimer(ctx, fileDoc, token, lang);
             return;
         }
@@ -1328,17 +1383,23 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
         const renderUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
         const miniAppUrl = `${renderUrl}/miniapp?token=${payload}&uid=${userId}`;
 
+        const userDoc = await UserModel.findOne({ userId: userId.toString() });
+        const isVipUser = userDoc ? userDoc.isVip : false;
+
+        let checkSubKeyboard = [
+            [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
+            [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
+        ];
+
+        if (!isVipUser) {
+            checkSubKeyboard.splice(1, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
+        }
+
         await ctx.editMessageText(
             `${t.clickBtnText}\n\n📊 <b>නැරඹුම් වාර (Views):</b> <code>${fileDoc.views}</code>`,
             {
                 parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
-                        [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }],
-                        [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
-                    ]
-                }
+                reply_markup: { inline_keyboard: checkSubKeyboard }
             }
         );
     } catch (error) {
