@@ -394,6 +394,84 @@ bot.on('successful_payment', async (ctx) => {
     }
 });
 
+// Admin Manual VIP Commands (/addvip සහ /removevip)
+bot.command('addvip', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const ADMIN_ID = process.env.ADMIN_ID;
+
+    if (ADMIN_ID && userId !== ADMIN_ID && !SUB_ADMINS.includes(userId)) {
+        return ctx.reply("❌ මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.", { parse_mode: 'HTML' });
+    }
+
+    const args = ctx.message.text.split(' ');
+    const targetUserId = args[1];
+
+    if (!targetUserId) {
+        return ctx.reply("⚠️ <b>භාවිතා කරන ආකාරය:</b>\n<code>/addvip USER_ID</code>", { parse_mode: 'HTML' });
+    }
+
+    try {
+        const result = await UserModel.findOneAndUpdate(
+            { userId: targetUserId.toString() },
+            { $set: { isVip: true } },
+            { new: true }
+        );
+
+        if (!result) {
+            return ctx.reply(`❌ User ID <code>${targetUserId}</code> හමු නොවීය. (ඔහු මීට පෙර බොට් එක Start කර තිබිය යුතුය).`, { parse_mode: 'HTML' });
+        }
+
+        await ctx.reply(`✅ <b>සාර්ථකයි!</b> User ID <code>${targetUserId}</code> සඳහා <b>VIP Access</b> ලබා දෙන ලදී.`, { parse_mode: 'HTML' });
+
+        // Try to notify the user
+        try {
+            await ctx.telegram.sendMessage(
+                targetUserId,
+                "🎉 <b>සුභ පැතුම්! ඇඩ්මින් විසින් ඔබට VIP Access ලබා දෙන ලදී.</b>\n\n✨ දැන් ඔබට ඕනෑම වීඩියෝවක් ඩවුන්ලෝඩ් (Save) කරගත හැක!",
+                { parse_mode: 'HTML' }
+            );
+        } catch (e) {}
+
+    } catch (e) {
+        console.error("AddVIP Error:", e);
+        ctx.reply("❌ දෝෂයක් ඇති විය.");
+    }
+});
+
+bot.command('removevip', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const ADMIN_ID = process.env.ADMIN_ID;
+
+    if (ADMIN_ID && userId !== ADMIN_ID && !SUB_ADMINS.includes(userId)) {
+        return ctx.reply("❌ මෙම විධානය භාවිතා කළ හැක්කේ ඇඩ්මින්ට පමණි.", { parse_mode: 'HTML' });
+    }
+
+    const args = ctx.message.text.split(' ');
+    const targetUserId = args[1];
+
+    if (!targetUserId) {
+        return ctx.reply("⚠️ <b>භාවිතා කරන ආකාරය:</b>\n<code>/removevip USER_ID</code>", { parse_mode: 'HTML' });
+    }
+
+    try {
+        const result = await UserModel.findOneAndUpdate(
+            { userId: targetUserId.toString() },
+            { $set: { isVip: false } },
+            { new: true }
+        );
+
+        if (!result) {
+            return ctx.reply(`❌ User ID <code>${targetUserId}</code> හමු නොවීය.`, { parse_mode: 'HTML' });
+        }
+
+        await ctx.reply(`✅ <b>සාර්ථකයි!</b> User ID <code>${targetUserId}</code> ගේ <b>VIP Access</b> ඉවත් කරන ලදී.`, { parse_mode: 'HTML' });
+
+    } catch (e) {
+        console.error("RemoveVIP Error:", e);
+        ctx.reply("❌ දෝෂයක් ඇති විය.");
+    }
+});
+
 // Report Broken Link Action
 bot.action(/^report_link_(.+)$/, async (ctx) => {
     const token = ctx.match[1];
@@ -464,7 +542,7 @@ bot.start(async (ctx) => {
 
         return ctx.replyWithHTML(
             `⚠️ <b>අවධානයෙයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `වීඩියෝව ලබා ගැනීමට අවශ්‍ය සියලුම නාලිකා සඳහා Join වී **"නැවත Verify කරන්න"** ක්ලික් කරන්න.`,
+            `වීඩියෝව ලබා ගැනීමට අවශ්‍ය සියලුම නාලිකා සඳහා Join වී <b>"නැවත Verify කරන්න"</b> ක්ලික් කරන්න.`,
             {
                 reply_markup: { inline_keyboard: buttons }
             }
@@ -1559,6 +1637,8 @@ app.listen(PORT, async () => {
         await bot.telegram.setMyCommands([
             { command: 'start', description: 'Start the bot / බොට් ආරම්භ කරන්න' },
             { command: 'vip', description: 'Buy VIP access (100 Stars) / VIP මිලදී ගන්න' },
+            { command: 'addvip', description: 'Add VIP to user (Admin only) / VIP දෙන්න' },
+            { command: 'removevip', description: 'Remove VIP from user (Admin only) / VIP ඉවත් කරන්න' },
             { command: 'language', description: 'Change language / භාෂාව මාරු කරන්න' },
             { command: 'cancel', description: 'Cancel current upload / අප්‌ලෝඩ් කිරීම අවලංගු කරන්න' },
             { command: 'done', description: 'Finish upload and publish / අවසන් කර ප්‍රකාශයට පත් කරන්න' },
