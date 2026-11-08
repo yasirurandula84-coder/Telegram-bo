@@ -233,10 +233,7 @@ function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, t
                     [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]
                 ];
 
-                // Check if user is VIP before adding Buy VIP button in periodic update
-                // (Since we don't have ctx here directly, we can check via Session or query user if needed, but let's keep it safe)
                 if (isProtected) {
-                    // isProtected is already false for VIP users, so if isProtected is true, they are not VIP.
                     keyboardRows.splice(1, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
                 }
 
@@ -317,7 +314,6 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
     const heatBarText = getReactionHeatBar(reactions);
 
-    // If user is VIP, do NOT add vipPromoSi / vipPromoEn text
     let warningText = t.warningText + `\n\n📊 <b>CONTENT RATING:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? (t.protectedNote + (isVipUser ? "" : (lang === 'si' ? t.vipPromoSi : t.vipPromoEn))) : "");
 
     let inlineKeyboard = [
@@ -328,7 +324,6 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
         ]
     ];
 
-    // Only show Buy VIP button if user is NOT VIP
     if (isProtected && !isVipUser) {
         inlineKeyboard.push([{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
     }
@@ -559,7 +554,6 @@ bot.start(async (ctx) => {
             [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
         ];
 
-        // Only show Get VIP button if user is NOT VIP
         if (!isVipUser) {
             welcomeKeyboard.splice(2, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
         }
@@ -618,7 +612,6 @@ bot.start(async (ctx) => {
             [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
         ];
 
-        // Only show Get VIP button if user is NOT VIP
         if (!isVipUser) {
             startKeyboard.splice(1, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
         }
@@ -694,7 +687,6 @@ bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
         const lang = userDoc ? userDoc.language : 'si';
         const t = langs[lang] || langs.si;
 
-        // Only show Get VIP button if user is NOT VIP
         if (isProtected && !isVipUser) {
             inlineKeyboard.push([{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
         }
@@ -1661,6 +1653,7 @@ async function finalizeUpload(ctx) {
             ? "🔥 <b>දැන් නිකුත් වූ විශේෂ කලෙක්ෂන් එක!</b> 🔥" 
             : "🔥 <b>දැන් නිකුත් වූ විශේෂ අන්තර්ගතය!</b> 🔥";
 
+        // Channel post buttons (VIP button completely removed)
         await ctx.telegram.sendPhoto(MAIN_CHANNEL_ID, pending.photoFileId, {
             caption: `${headerText}\n━━━━━━━━━━━━━━━━━━━━\n\n` +
                      `✨ <b>${pending.caption}</b>\n\n` +
@@ -1671,7 +1664,6 @@ async function finalizeUpload(ctx) {
             reply_markup: {
                 inline_keyboard: [
                     [{ text: buttonText, url: shareLink, style: "success" }],
-                    [{ text: "⭐ Buy VIP (Download Anywhere)", url: `https://t.me/${botUsername}?start=vip`, style: "success" }],
                     [{ text: "📢 Join Backup Channel", url: `https://t.me/+bCed3QPGYqQ3MWY9`, style: "primary" }]
                 ]
             }
