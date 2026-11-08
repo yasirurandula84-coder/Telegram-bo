@@ -31,6 +31,8 @@ const langs = {
         linkExpired: "❌ <b>සමාවන්න, මෙම ලින්ක් එක කල් ඉකුත් වී ඇත හෝ වැරදිය.</b>",
         warningText: "━━━━━━━━━━━━━━━━━━━━\n⚠️ <b>අවධානයට:</b>\n━━━━━━━━━━━━━━━━━━━━\nමෙම අන්තර්ගතය ස්වයංක්‍රීයව ඔබේ චැට් එකෙන් මැකී යනු ඇත! ⏳",
         protectedNote: "\n\n🔒 <i>(මෙම අන්තර්ගතය ෆෝවර්ඩ් කිරීමට හෝ ඩවුන්ලෝඩ් කිරීමට නොහැකි වේ.)</i>",
+        vipPromoSi: "\n\n⭐ <b>ඔබට මේ වගේ වීඩියෝ save කරගන්න අවශ්‍ය නම් අපේ VIP membership එක ලබාගන්න. Lifetime access තියෙනවා.</b>",
+        getVipBtn: "⭐ Get VIP Access",
         clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n🔓 <b>රෙඩි ටු අන්ලොක් (READY TO UNLOCK)</b>\n━━━━━━━━━━━━━━━━━━━━\n\nඅන්තර්ගතය ලබා ගැනීමට පහත බොත්තම ඔබන්න: 🔥",
         viewsCount: "📊 මෙතෙක් නැරඹුම් වාර:",
         watchAdText: "▶️ Watch Ad & Get Content",
@@ -40,7 +42,7 @@ const langs = {
         subSuccess: "✅ ස්තූතියි! දැන් ඔබට අන්තර්ගතය ලබාගත හැක.",
         guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>වීඩියෝ ලබාගන්නා ආකාරය (GUIDE)</b> 💡\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ මුලින්ම <b>\"▶️ Watch Ad & Get Content\"</b> බොත්තම ඔබන්න. 👉\n2️⃣ විවෘත වන පිටුවේ ඇති දැන්වීම මත ක්ලික් කර තත්පර 5ක් රැඳී සිටින්න. ⏱️\n3️⃣ කාලය අවසන් වූ පසු මතුවන <b>\"🚀 Get Video\"</b> බොත්තම ඔබන්න. 🔥\n4️⃣ එවිට ස්වයංක්‍රීයව බොට් වෙත පැමිණ ඔබට අවශ්‍ය අන්තර්ගතය ලැබෙනු ඇත! 🎬",
         supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>සහාය සහ උදව් (SUPPORT)</b>\n━━━━━━━━━━━━━━━━━━━━\n\nගැටළු සඳහා අපගේ ප්‍රධාන චැනල් එක හා සම්බන්ධ වන්න.",
-        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>භාෂාව තෝරන්න (LANGUAGE SELECTION)</b>\n━━━━━━━━━━━━━━━━━━━━\n\nકරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language: ✨",
+        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>භාෂාව තෝරන්න (LANGUAGE SELECTION)</b>\n━━━━━━━━━━━━━━━━━━━━\n\nකරුණාකර ඔබේ භාෂාව තෝරන්න / Please select your language: ✨",
         
         appTitle: "වීඩියෝව සූදානම් වෙමින් පවතී",
         appInstruction: "පහත බොත්තම ඔබා දැන්වීම නරඹා, තත්පර <span class=\"text-sky-400 font-semibold\">5ක්</span> රැඳී සිටින්න.",
@@ -67,6 +69,8 @@ const langs = {
         linkExpired: "❌ <b>Sorry, this link has expired or is invalid.</b>",
         warningText: "━━━━━━━━━━━━━━━━━━━━\n⚠️ <b>ATTENTION:</b>\n━━━━━━━━━━━━━━━━━━━━\nThis content will automatically disappear from your chat! ⏳",
         protectedNote: "\n\n🔒 <i>(This content is protected against forwarding or downloading)</i>",
+        vipPromoEn: "\n\n⭐ <b>If you want to save videos like this, get our VIP membership. Lifetime access available.</b>",
+        getVipBtn: "⭐ Get VIP Access",
         clickBtnText: "━━━━━━━━━━━━━━━━━━━━\n🔓 <b>READY TO UNLOCK</b>\n━━━━━━━━━━━━━━━━━━━━\n\nClick the button below to get the content: 🔥",
         viewsCount: "📊 Total Views so far:",
         watchAdText: "▶️ Watch Ad & Get Content",
@@ -119,7 +123,7 @@ mongoose.connect(MONGO_URI)
   })
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// Mongoose Schemas (Single-Use isUsed flag removed)
+// Mongoose Schemas
 const fileSchema = new mongoose.Schema({
     token: { type: String, required: true, unique: true },
     fileMsgId: { type: Number },      
@@ -140,7 +144,8 @@ const userSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     joinedAt: { type: Date, default: Date.now },
     status: { type: String, default: 'active' },
-    language: { type: String, default: 'si' }
+    language: { type: String, default: 'si' },
+    isVip: { type: Boolean, default: false }
 });
 const UserModel = mongoose.model('User', userSchema);
 
@@ -219,6 +224,19 @@ function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, t
 
                 let updatedWarningText = t.warningText + `\n\n📊 <b>CONTENT RATING:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
                 
+                let keyboardRows = [
+                    [
+                        { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                        { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                        { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
+                    ],
+                    [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]
+                ];
+
+                if (isProtected) {
+                    keyboardRows.splice(1, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
+                }
+
                 await bot.telegram.editMessageText(
                     chatId, 
                     warningMsgId, 
@@ -226,16 +244,7 @@ function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, t
                     updatedWarningText, 
                     {
                         parse_mode: 'HTML',
-                        reply_markup: {
-                            inline_keyboard: [
-                                [
-                                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
-                                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
-                                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
-                                ],
-                                [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]
-                            ]
-                        }
+                        reply_markup: { inline_keyboard: keyboardRows }
                     }
                 ).catch(() => {});
             } catch (e) {}
@@ -259,47 +268,17 @@ function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, t
     activeTimers.set(sessionId.toString(), { updateInterval, deleteTimeout });
 }
 
-// Restore Active Video Timers after Bot Restart
-async function restoreActiveSessions() {
-    try {
-        const sessions = await SessionModel.find({});
-        const now = new Date();
-
-        for (const session of sessions) {
-            const elapsedMinutes = (now - new Date(session.createdAt)) / (1000 * 60);
-            const remainingMinutes = Math.ceil(30 - elapsedMinutes);
-
-            if (remainingMinutes <= 0) {
-                for (let msgId of session.sentVideoIds) {
-                    await bot.telegram.deleteMessage(session.chatId, msgId).catch(() => {});
-                }
-                await bot.telegram.deleteMessage(session.chatId, session.warningMsgId).catch(() => {});
-                await SessionModel.deleteOne({ _id: session._id }).catch(() => {});
-            } else {
-                startVideoSessionTimer(
-                    session._id,
-                    session.chatId,
-                    session.sentVideoIds,
-                    session.warningMsgId,
-                    session.token,
-                    session.isProtected,
-                    session.lang,
-                    remainingMinutes
-                );
-            }
-        }
-        console.log(`Restored ${sessions.length} video sessions after restart.`);
-    } catch (err) {
-        console.error("Error restoring sessions:", err);
-    }
-}
-
-// Helper Function to handle Video Delivery (Reusable Links Enabled)
+// Helper Function to handle Video Delivery
 async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     const t = langs[lang];
+    const userId = ctx.from.id.toString();
+
+    const userDoc = await UserModel.findOne({ userId });
+    const isVipUser = userDoc ? userDoc.isVip : false;
+
+    const isProtected = isVipUser ? false : (fileDoc.protectContent === true);
 
     let msgIdsArray = fileDoc.fileMsgId ? [fileDoc.fileMsgId] : (fileDoc.fileMsgIds || []);
-    const isProtected = fileDoc.protectContent === true;
     let sentVideoIds = [];
 
     const statusMsg = await ctx.reply(`⚡ <b>අන්තර්ගතය සූදානම් වෙමින් පවතී...</b>\n\n${renderProgressBar(30)}`, { parse_mode: 'HTML' });
@@ -335,20 +314,25 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
     const heatBarText = getReactionHeatBar(reactions);
 
-    let warningText = t.warningText + `\n\n📊 <b>CONTENT RATING:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
+    let warningText = t.warningText + `\n\n📊 <b>CONTENT RATING:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? (t.protectedNote + (lang === 'si' ? t.vipPromoSi : t.vipPromoEn)) : "");
+
+    let inlineKeyboard = [
+        [
+            { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+            { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+            { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
+        ]
+    ];
+
+    if (isProtected) {
+        inlineKeyboard.push([{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
+    }
+
+    inlineKeyboard.push([{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]);
 
     const warningMsg = await ctx.reply(warningText, {
         parse_mode: 'HTML',
-        reply_markup: {
-            inline_keyboard: [
-                [
-                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
-                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
-                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
-                ],
-                [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]
-            ]
-        }
+        reply_markup: { inline_keyboard: inlineKeyboard }
     });
 
     const sessionDoc = await SessionModel.create({
@@ -372,6 +356,43 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
         30
     );
 }
+
+// Telegram Stars Payment Handlers
+bot.command('vip', async (ctx) => {
+    try {
+        await ctx.replyWithInvoice({
+            title: '⭐ VIP Unlimited Download Access',
+            description: 'මෙම පහසුකම හරහා ඔබට සියලුම වීඩියෝස් ඩවුන්ලෝඩ් (Save) කරගත හැකි විශේෂ VIP අවසරය ලැබේ!',
+            payload: 'vip_100_stars_payload',
+            currency: 'XTR',
+            prices: [{ label: 'VIP Lifetime Access', amount: 100 }],
+            provider_token: ''
+        });
+    } catch (e) {
+        console.error("VIP Invoice Error:", e);
+        ctx.reply("❌ ඉන්වොයිසිය සකස් කිරීමේදී දෝෂයක් ඇති විය.");
+    }
+});
+
+bot.on('pre_checkout_query', async (ctx) => {
+    try {
+        await ctx.answerPreCheckoutQuery(true);
+    } catch (e) {}
+});
+
+bot.on('successful_payment', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    try {
+        await UserModel.updateOne({ userId }, { $set: { isVip: true } }, { upsert: true });
+        await ctx.reply(
+            "🎉 <b>සුභ පැතුම්! ඔබ සාර්ථකව Stars 100ක් ගෙවා VIP සාමාජිකයෙකු බවට පත් විය!</b>\n\n" +
+            "✨ දැන් ඔබට ඕනෑම වීඩියෝවක් කිසිදු සීමාවකින් තොරව ඔබේ දුරකථනයට ඩවුන්ලෝඩ් (Save) කරගත හැක! 🎬",
+            { parse_mode: 'HTML' }
+        );
+    } catch (e) {
+        console.error("Payment update error:", e);
+    }
+});
 
 // Report Broken Link Action
 bot.action(/^report_link_(.+)$/, async (ctx) => {
@@ -402,7 +423,7 @@ bot.start(async (ctx) => {
     try {
         await UserModel.updateOne(
             { userId: userIdStr }, 
-            { $setOnInsert: { joinedAt: new Date() },$set: { status: 'active' } }, 
+            { $setOnInsert: { joinedAt: new Date(), isVip: false }, $set: { status: 'active' } }, 
             { upsert: true }
         );
     } catch (err) {}
@@ -420,6 +441,7 @@ bot.start(async (ctx) => {
                         { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
                         { text: t.supportBtn, callback_data: "support_info", style: "primary" }
                     ],
+                    [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }],
                     [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
                 ]
             }
@@ -440,22 +462,11 @@ bot.start(async (ctx) => {
 
         buttons.push([{ text: '🔄 නැවත Verify කරන්න', callback_data: `check_sub_${payload}` }]);
 
-        if (!membership.isChannelMember && !membership.isGroupMember) {
-            missingMessage = "ඔබ අපගේ **Main Channel** එකට සහ **Chat Group** එකට Join වී නොමැත.";
-        } else if (!membership.isChannelMember) {
-            missingMessage = "ඔබ අපගේ **Main Channel** එකට Join වී නොමැත.";
-        } else if (!membership.isGroupMember) {
-            missingMessage = "ඔබ අපගේ **Chat Group** එකට Join වී නොමැත.";
-        }
-
         return ctx.replyWithHTML(
-            `⚠️ <b>අවධානයයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `${missingMessage}\n\n` +
-            `වීඩියෝව ලබා ගැනීමට පහත බොත්තම් භාවිතයෙන් Join වී <b>"නැවත Verify කරන්න"</b> ක්ලික් කරන්න.`,
+            `⚠️ <b>අවධානයෙයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `වීඩියෝව ලබා ගැනීමට අවශ්‍ය සියලුම නාලිකා සඳහා Join වී **"නැවත Verify කරන්න"** ක්ලික් කරන්න.`,
             {
-                reply_markup: {
-                    inline_keyboard: buttons
-                }
+                reply_markup: { inline_keyboard: buttons }
             }
         );
     }
@@ -487,6 +498,7 @@ bot.start(async (ctx) => {
                 reply_markup: {
                     inline_keyboard: [
                         [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
+                        [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }],
                         [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
                     ]
                 }
@@ -495,6 +507,23 @@ bot.start(async (ctx) => {
     } catch (error) {
         console.error("Start command error:", error);
         ctx.reply(t.systemError, { parse_mode: 'HTML' });
+    }
+});
+
+// Buy VIP Action Button
+bot.action('buy_vip', async (ctx) => {
+    await ctx.answerCbQuery();
+    try {
+        await ctx.replyWithInvoice({
+            title: '⭐ VIP Unlimited Download Access',
+            description: 'මෙම පහසුකම හරහා ඔබට සියලුම වීඩියෝස් ඩවුන්ලෝඩ් (Save) කරගත හැකි විශේෂ VIP අවසරය ලැබේ!',
+            payload: 'vip_100_stars_payload',
+            currency: 'XTR',
+            prices: [{ label: 'VIP Lifetime Access', amount: 100 }],
+            provider_token: ''
+        });
+    } catch (e) {
+        ctx.reply("❌ ඉන්වොයිසිය සකස් කිරීමේදී දෝෂයක් ඇති විය.");
     }
 });
 
@@ -524,16 +553,27 @@ bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
         const reactions = updatedFile.reactions || { peach: 0, banana: 0, hot: 0 };
         await ctx.answerCbQuery("🎉 ඔබේ ප්‍රතිචාරය සාර්ථකව එකතු විය!", { show_alert: true });
 
-        await ctx.editMessageReplyMarkup({
-            inline_keyboard: [
-                [
-                    { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
-                    { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
-                    { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
-                ],
-                [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]
+        const userDoc = await UserModel.findOne({ userId });
+        const isProtected = userDoc ? !userDoc.isVip && fileDoc.protectContent : fileDoc.protectContent;
+
+        let inlineKeyboard = [
+            [
+                { text: `🍑 ${reactions.peach || 0}`, callback_data: `react_peach_${token}`, style: "primary" },
+                { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
+                { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
             ]
-        });
+        ];
+
+        const lang = userDoc ? userDoc.language : 'si';
+        const t = langs[lang] || langs.si;
+
+        if (isProtected) {
+            inlineKeyboard.push([{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
+        }
+
+        inlineKeyboard.push([{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]);
+
+        await ctx.editMessageReplyMarkup({ inline_keyboard: inlineKeyboard });
     } catch (err) {
         console.error("Reaction Error:", err);
     }
@@ -617,6 +657,7 @@ bot.action('back_to_main', async (ctx) => {
                     { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
                     { text: t.supportBtn, callback_data: "support_info", style: "primary" }
                 ],
+                [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }],
                 [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
             ]
         }
@@ -1075,6 +1116,7 @@ bot.command('stats', async (ctx) => {
     try {
         const totalUsers = await UserModel.countDocuments({});
         const activeUsers = await UserModel.countDocuments({ status: 'active' });
+        const vipUsers = await UserModel.countDocuments({ isVip: true });
         const blockedUsers = await UserModel.countDocuments({ status: 'blocked' });
 
         const now = new Date();
@@ -1098,6 +1140,7 @@ bot.command('stats', async (ctx) => {
         await ctx.reply(
             `📊 <b>බොට් හි සංඛ්‍යාලේඛන (Analytics Dashboard)</b> 📈\n━━━━━━━━━━━━━━━━━━━━\n\n` +
             `👥 මුළු යුසර්ස්ලා (Total Users): <code>${totalUsers}</code>\n` +
+            `⭐ VIP සාමාජිකයන් (VIP Users): <code>${vipUsers}</code>\n` +
             `🟢 සක්‍රීය පරිශීලකයන් (Active): <code>${activeUsers}</code>\n` +
             `🔴 බ්ලොක් කළ අය (Blocked): <code>${blockedUsers}</code>\n` +
             `📅 මෙම මාසයේ අලුත් යුසර්ස්ලා: <code>${monthlyUsers}</code>\n` +
@@ -1214,6 +1257,7 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
                 reply_markup: {
                     inline_keyboard: [
                         [{ text: t.watchAdText, web_app: { url: miniAppUrl }, style: "success" }],
+                        [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }],
                         [{ text: t.guideText, callback_data: "how_to_use", style: "primary" }]
                     ]
                 }
@@ -1488,6 +1532,7 @@ async function finalizeUpload(ctx) {
             reply_markup: {
                 inline_keyboard: [
                     [{ text: buttonText, url: shareLink, style: "success" }],
+                    [{ text: "⭐ Buy VIP (Download Anywhere)", url: `https://t.me/${botUsername}?start=vip`, style: "success" }],
                     [{ text: "📢 Join Backup Channel", url: `https://t.me/+bCed3QPGYqQ3MWY9`, style: "primary" }]
                 ]
             }
@@ -1513,6 +1558,7 @@ app.listen(PORT, async () => {
     try {
         await bot.telegram.setMyCommands([
             { command: 'start', description: 'Start the bot / බොට් ආරම්භ කරන්න' },
+            { command: 'vip', description: 'Buy VIP access (100 Stars) / VIP මිලදී ගන්න' },
             { command: 'language', description: 'Change language / භාෂාව මාරු කරන්න' },
             { command: 'cancel', description: 'Cancel current upload / අප්‌ලෝඩ් කිරීම අවලංගු කරන්න' },
             { command: 'done', description: 'Finish upload and publish / අවසන් කර ප්‍රකාශයට පත් කරන්න' },
