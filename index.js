@@ -1651,7 +1651,8 @@ async function promptProtectContent(ctx) {
             }
         }
     );
-});
+}
+
 
 bot.action('toggle_protect_yes', async (ctx) => {
     const userId = ctx.from.id.toString();
@@ -1865,6 +1866,8 @@ bot.command('done', async (ctx) => {
     if (!isAdminOrSubAdmin(userId)) return;
     await finalizeUpload(ctx);
 });
+
+// ... (ඔබේ ඉතිරි කෝඩ් එක මෙතැනට වෙන්න ඕන)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
