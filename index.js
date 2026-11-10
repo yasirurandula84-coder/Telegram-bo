@@ -375,8 +375,8 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
 bot.command('vip', async (ctx) => {
     try {
         await ctx.replyWithInvoice({
-            title: '⭐ VIP Unlimited Download Access',
-            description: 'මෙම පහසුකම හරහා ඔබට සියලුම වීඩියෝස් ඩවුන්ලෝඩ් (Save) කරගත හැකි විශේෂ VIP අවසරය ලැබේ!',
+            title: '⭐ VIP Channel & Unlimited Download Access',
+            description: 'මෙම පහසුකම හරහා ඔබට අපගේ VIP CHANNEL එකට JOIN වීමට සහ සියලුම වීඩියෝස් ඩවුන්ලෝඩ් (Save) කරගත හැකි විශේෂ VIP අවසරය ලැබේ!',
             payload: 'vip_100_stars_payload',
             currency: 'XTR',
             prices: [{ label: 'VIP Lifetime Access', amount: 100 }],
