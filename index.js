@@ -1708,14 +1708,16 @@ bot.on('photo', async (ctx) => {
     if (!isAdminOrSubAdmin(userId)) return;
 
     const pending = pendingUploads.get(userId);
-    if (pending && pending.photoFileId && pending.hasSpoiler !== undefined) {
+    
+    // Check if user is sending the caption / video title after thumbnail
+    if (pending && pending.photoFileId && pending.hasSpoiler !== undefined && !pending.waitingForCaption) {
         try {
             const forwarded = await ctx.telegram.forwardMessage(DB_CHANNEL_ID, ctx.chat.id, ctx.message.message_id);
             pending.videoMsgIds.push(forwarded.message_id);
             pendingUploads.set(userId, pending);
 
             await ctx.reply(
-                `✅ ඡායාරූපය එකතු විය! (මුළු ගණන: <code>${pending.videoMsgIds.length}</code>). තවත් ඇත්නම් එවන්න, අවසන් වූ පසු /done හෝ බටන් එක ඔබන්න.`,
+                `✅ අන්තර්ගතය එකතු විය! (මුළු ගණන: <code>${pending.videoMsgIds.length}</code>). තවත් ඇත්නම් එවන්න, අවසන් වූ පසු /done හෝ බටන් එක ඔබන්න.`,
                 {
                     parse_mode: 'HTML',
                     reply_markup: {
@@ -1734,6 +1736,18 @@ bot.on('photo', async (ctx) => {
         return;
     }
 
+    if (pending && pending.waitingForCaption) {
+        pending.caption = ctx.message.caption || ctx.message.text || "";
+        pending.waitingForCaption = false;
+        pendingUploads.set(userId, pending);
+
+        return ctx.reply(
+            "✅ <b>වීඩියෝ මාතෘකාව (Title) සාර්ථකව ලබා ගන්නා ලදී!</b>\n\n" +
+            "දැන් අදාළ වීඩියෝව හෝ ගොනුව (Video / Document) එවන්න:",
+            { parse_mode: 'HTML' }
+        );
+    }
+
     const photo = ctx.message.photo;
     const largestPhoto = photo[photo.length - 1].file_id;
 
@@ -1743,7 +1757,8 @@ bot.on('photo', async (ctx) => {
         videoMsgIds: [],
         hasSpoiler: true,
         isVipContent: false,
-        protectContent: false
+        protectContent: false,
+        waitingForCaption: false
     });
 
     await ctx.reply(
@@ -1762,6 +1777,25 @@ bot.on('photo', async (ctx) => {
             }
         }
     );
+});
+
+bot.on('text', async (ctx, next) => {
+    const userId = ctx.from.id.toString();
+    if (!isAdminOrSubAdmin(userId)) return next();
+
+    const pending = pendingUploads.get(userId);
+    if (pending && pending.waitingForCaption) {
+        pending.caption = ctx.message.text;
+        pending.waitingForCaption = false;
+        pendingUploads.set(userId, pending);
+
+        return ctx.reply(
+            "✅ <b>වීඩියෝ මාතෘකාව (Title) සාර්ථකව එකතු විය!</b>\n\n" +
+            "දැන් අදාළ වීඩියෝව හෝ ගොනුව (Video / Document) එවන්න:",
+            { parse_mode: 'HTML' }
+        );
+    }
+    return next();
 });
 
 bot.on(['video', 'document'], async (ctx) => {
@@ -1827,9 +1861,10 @@ async function finalizeUpload(ctx) {
 
         const buttonText = pending.videoMsgIds.length > 1 ? "▶️ View Full Collection" : "▶️ View Content";
         
+        // Updated Header Text with Emojis & Custom Formatting
         const headerText = pending.isVipContent
-            ? "⭐ <b>[VIP EXCLUSIVE] දැන් නිකුත් වූ විශේෂ VIP අන්තර්ගතය!</b> ⭐"
-            : (pending.videoMsgIds.length > 1 ? "🔥 <b>දැන් නිකුත් වූ විශේෂ කලෙක්ෂන් එක!</b> 🔥" : "🔥 <b>දැන් නිකුත් වූ විශේෂ අන්තර්ගතය!</b> 🔥");
+            ? "⭐ <b>[ NEW VIP VIDEO ] 🎬✨\n━━━━━━━━━━━━━━━━━━━━</b>"
+            : (pending.videoMsgIds.length > 1 ? "🔥 <b>[ NEW COLLECTION ] 🎬💎\n━━━━━━━━━━━━━━━━━━━━</b>" : "🔥 <b>[ NEW VIDEO ] 🎬🚀\n━━━━━━━━━━━━━━━━━━━━</b>");
 
         let channelKeyboard = [
             [{ text: buttonText, url: shareLink, style: "success" }]
@@ -1841,11 +1876,13 @@ async function finalizeUpload(ctx) {
             channelKeyboard.push([{ text: "⭐ VIP Channel", url: VIP_CHANNEL_LINK }]);
         }
 
+        const titleDisplay = pending.caption ? `📢 <b>Title:</b> <i>${pending.caption}</i>\n\n` : "";
+
         await ctx.telegram.sendPhoto(targetChannel, pending.photoFileId, {
-            caption: `${headerText}\n━━━━━━━━━━━━━━━━━━━━\n\n` +
-                     `✨ <b>${pending.caption}</b>\n\n` +
-                     `📁 <b>අන්තර්ගතය:</b> ගොනු <code>${pending.videoMsgIds.length}</code> ක් ඇතුළත් වේ.\n\n` +
-                     `👇 <b>නරඹන්න පහත බොත්තම ක්ලික් කරන්න:</b>`,
+            caption: `${headerText}\n\n` +
+                     `${titleDisplay}` +
+                     `📁 <b>Files:</b> <code>${pending.videoMsgIds.length}</code> Files Included\n\n` +
+                     `👇 <b>Click the button below to watch:</b>`,
             parse_mode: 'HTML',
             has_spoiler: pending.hasSpoiler,
             reply_markup: {
@@ -1863,6 +1900,14 @@ async function finalizeUpload(ctx) {
 bot.command('done', async (ctx) => {
     const userId = ctx.from.id.toString();
     if (!isAdminOrSubAdmin(userId)) return;
+    
+    const pending = pendingUploads.get(userId);
+    if (pending && !pending.caption) {
+        pending.waitingForCaption = true;
+        pendingUploads.set(userId, pending);
+        return ctx.reply("✏️ <b>කරුණාකර මෙම වීඩියෝව සඳහා දැමීමට අවශ්‍ය මාතෘකාව (Video Title / Text) දැන් ටයිප් කර එවන්න:</b>", { parse_mode: 'HTML' });
+    }
+
     await finalizeUpload(ctx);
 });
 
