@@ -1975,12 +1975,11 @@ bot.command('done', async (ctx) => {
     await finalizeUpload(ctx);
 });
 
-const PORT = process.env.PORT || 3000;
+// SINGLE PORT DECLARATION (Fixed Error)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
     
-    // Attempt to set commands with robust error handling
     try {
         await bot.telegram.setMyCommands([
             { command: 'start', description: 'Start the bot' },
@@ -1994,7 +1993,6 @@ app.listen(PORT, async () => {
 
     bot.launch();
 });
-
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
