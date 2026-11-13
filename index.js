@@ -82,7 +82,7 @@ const langs = {
         subSuccess: "✅ Thank you! You can now access the content.",
         guideContent: "━━━━━━━━━━━━━━━━━━━━\n📖 <b>HOW TO GET CONTENT</b> 💡\n━━━━━━━━━━━━━━━━━━━━\n\n1️⃣ First click the <b>\"▶️ Watch Ad & Get Content\"</b> button. 👉\n2️⃣ Click on the ad on the opened page and wait for 5 seconds. ⏱️\n3️⃣ Once time is up, click the <b>\"🚀 Get Video\"</b> button that appears. 🔥\n4️⃣ Then you will automatically be redirected to the bot to receive your content! 🎬",
         supportMsg: "━━━━━━━━━━━━━━━━━━━━\n📞 <b>SUPPORT & HELP</b>\n━━━━━━━━━━━━━━━━━━━━\n\nFor inquiries, please contact our main channel.",
-        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>LANGUAGE SELECTION</b>\n━━━━━━━━━━━━━━━━━━━━\n\nPlease select your language / කරුණාකර ඔබේ භාෂාව තෝරන්න: ✨",
+        langSelect: "━━━━━━━━━━━━━━━━━━━━\n🌐 <b>LANGUAGE SELECTION</b>\n━━━━━━━━━━━━━━━━━━━━\n\nPlease select your language: ✨",
         
         appTitle: "Video is getting ready",
         appInstruction: "Click the button below, view the ad, and wait for <span class=\"text-sky-400 font-semibold\">5 seconds</span>.",
@@ -225,7 +225,8 @@ function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, t
                 const reactions = fileDoc ? (fileDoc.reactions || { peach: 0, banana: 0, hot: 0 }) : { peach: 0, banana: 0, hot: 0 };
                 const heatBarText = getReactionHeatBar(reactions);
 
-                let updatedWarningText = t.warningText + `\n\n📊 <b>CONTENT RATING:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? t.protectedNote : "");
+                let timeRemainingText = lang === 'en' ? `⏳ <b>Time Remaining:</b> <code>${remainingMinutes}</code> mins` : `⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි`;
+                let updatedWarningText = t.warningText + `\n\n📊 <b>CONTENT RATING:</b>\n${heatBarText}\n\n` + timeRemainingText + (isProtected ? t.protectedNote : "");
                 
                 let keyboardRows = [
                     [
@@ -233,11 +234,11 @@ function startVideoSessionTimer(sessionId, chatId, sentVideoIds, warningMsgId, t
                         { text: `🍌 ${reactions.banana || 0}`, callback_data: `react_banana_${token}`, style: "success" },
                         { text: `🥵 ${reactions.hot || 0}`, callback_data: `react_hot_${token}`, style: "danger" }
                     ],
-                    [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]
+                    [{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}`, style: "danger" }]
                 ];
 
                 if (isProtected) {
-                    keyboardRows.splice(1, 0, [{ text: t.getVipBtn, callback_data: "buy_vip" }]);
+                    keyboardRows.splice(1, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
                 }
 
                 await bot.telegram.editMessageText(
@@ -280,11 +281,12 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     const isVipUser = userDoc ? userDoc.isVip : false;
 
     if (fileDoc.isVipContent && !isVipUser) {
-        return ctx.reply(t.vipOnlyAlert || "⭐ <b>මෙම අන්තර්ගතය VIP සාමාජිකයන්ට පමණි!</b>", {
+        let vipAlert = lang === 'en' ? "⭐ <b>This content is for VIP members only!</b>" : "⭐ <b>මෙම අන්තර්ගතය VIP සාමාජිකයන්ට පමණි!</b>";
+        return ctx.reply(vipAlert, {
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: t.getVipBtn, callback_data: "buy_vip" }]
+                    [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]
                 ]
             }
         });
@@ -295,7 +297,8 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     let msgIdsArray = fileDoc.fileMsgId ? [fileDoc.fileMsgId] : (fileDoc.fileMsgIds || []);
     let sentVideoIds = [];
 
-    const statusMsg = await ctx.reply(`⚡ <b>අන්තර්ගතය සූදානම් වෙමින් පවතී...</b>\n\n${renderProgressBar(30)}`, { parse_mode: 'HTML' });
+    let preparingText = lang === 'en' ? `⚡ <b>Content is getting ready...</b>\n\n${renderProgressBar(30)}` : `⚡ <b>අන්තර්ගතය සූදානම් වෙමින් පවතී...</b>\n\n${renderProgressBar(30)}`;
+    const statusMsg = await ctx.reply(preparingText, { parse_mode: 'HTML' });
 
     for (let i = 0; i < msgIdsArray.length; i++) {
         let id = msgIdsArray[i];
@@ -304,11 +307,12 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
             sentVideoIds.push(sentMsg.message_id);
             
             let progress = Math.round(((i + 1) / msgIdsArray.length) * 100);
+            let receivingText = lang === 'en' ? `⚡ <b>Receiving content...</b>\n\n${renderProgressBar(progress)}` : `⚡ <b>අන්තර්ගතය ලැබෙමින් පවතී...</b>\n\n${renderProgressBar(progress)}`;
             await ctx.telegram.editMessageText(
                 ctx.chat.id,
                 statusMsg.message_id,
                 null,
-                `⚡ <b>අන්තර්ගතය ලැබෙමින් පවතී...</b>\n\n${renderProgressBar(progress)}`,
+                receivingText,
                 { parse_mode: 'HTML' }
             ).catch(() => {});
 
@@ -321,14 +325,16 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     await ctx.telegram.deleteMessage(ctx.chat.id, statusMsg.message_id).catch(() => {});
 
     if (sentVideoIds.length === 0) {
-        return ctx.reply("❌ <b>සමාවන්න, මෙම වීඩියෝව ඩේටාබේස් එකෙන් මකා දමා ඇත හෝ ලබා ගත නොහැක.</b>", { parse_mode: 'HTML' });
+        let missingMsg = lang === 'en' ? "❌ <b>Sorry, this video has been deleted from the database or is unavailable.</b>" : "❌ <b>සමාවන්න, මෙම වීඩියෝව ඩේටාබේස් එකෙන් මකා දමා ඇත හෝ ලබා ගත නොහැක.</b>";
+        return ctx.reply(missingMsg, { parse_mode: 'HTML' });
     }
 
     let remainingMinutes = 30;
     const reactions = fileDoc.reactions || { peach: 0, banana: 0, hot: 0 };
     const heatBarText = getReactionHeatBar(reactions);
 
-    let warningText = t.warningText + `\n\n📊 <b>CONTENT RATING:</b>\n${heatBarText}\n\n⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි` + (isProtected ? (t.protectedNote + (isVipUser ? "" : (lang === 'si' ? t.vipPromoSi : t.vipPromoEn))) : "");
+    let timeRemainingText = lang === 'en' ? `⏳ <b>Time Remaining:</b> <code>${remainingMinutes}</code> mins` : `⏳ <b>ඉතිරි කාලය:</b> විනාඩි <code>${remainingMinutes}</code> යි`;
+    let warningText = t.warningText + `\n\n📊 <b>CONTENT RATING:</b>\n${heatBarText}\n\n` + timeRemainingText + (isProtected ? (t.protectedNote + (isVipUser ? "" : (lang === 'si' ? t.vipPromoSi : t.vipPromoEn))) : "");
 
     let inlineKeyboard = [
         [
@@ -339,10 +345,10 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
     ];
 
     if (isProtected && !isVipUser) {
-        inlineKeyboard.push([{ text: t.getVipBtn, callback_data: "buy_vip" }]);
+        inlineKeyboard.push([{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
     }
 
-    inlineKeyboard.push([{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]);
+    inlineKeyboard.push([{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}`, style: "danger" }]);
 
     const warningMsg = await ctx.reply(warningText, {
         parse_mode: 'HTML',
@@ -373,10 +379,17 @@ async function deliverVideosAndSetupTimer(ctx, fileDoc, token, lang) {
 
 // Telegram Stars Payment Handlers
 bot.command('vip', async (ctx) => {
+    const userId = ctx.from.id.toString();
+    const lang = await getUserLang(userId);
+    const invoiceDesc = lang === 'en' 
+        ? 'Through this facility, you get special VIP access to join our VIP CHANNEL and download (save) all videos!'
+        : 'මෙම පහසුකම හරහා ඔබට අපගේ VIP CHANNEL එකට JOIN වීමට සහ සියලුම වීඩියෝස් ඩවුන්ලෝඩ් (Save) කරගත හැකි විශේෂ VIP අවසරය ලැබේ!';
+    const errorMsg = lang === 'en' ? '❌ Error generating invoice.' : '❌ ඉන්වොයිසිය සකස් කිරීමේදී දෝෂයක් ඇති විය.';
+
     try {
         await ctx.replyWithInvoice({
             title: '⭐ VIP Channel & Unlimited Download Access',
-            description: 'මෙම පහසුකම හරහා ඔබට අපගේ VIP CHANNEL එකට JOIN වීමට සහ සියලුම වීඩියෝස් ඩවුන්ලෝඩ් (Save) කරගත හැකි විශේෂ VIP අවසරය ලැබේ!',
+            description: invoiceDesc,
             payload: 'vip_100_stars_payload',
             currency: 'XTR',
             prices: [{ label: 'VIP Lifetime Access', amount: 100 }],
@@ -384,7 +397,7 @@ bot.command('vip', async (ctx) => {
         });
     } catch (e) {
         console.error("VIP Invoice Error:", e);
-        ctx.reply("❌ ඉන්වොයිසිය සකස් කිරීමේදී දෝෂයක් ඇති විය.");
+        ctx.reply(errorMsg);
     }
 });
 
@@ -397,16 +410,21 @@ bot.on('pre_checkout_query', async (ctx) => {
 // ⭐ Successful Payment Handler: Sends congratulations message with Join VIP Channel button
 bot.on('successful_payment', async (ctx) => {
     const userId = ctx.from.id.toString();
+    const lang = await getUserLang(userId);
     try {
         await UserModel.updateOne({ userId }, { $set: { isVip: true } }, { upsert: true });
+        
+        let successMsg = lang === 'en'
+            ? "🎉 <b>Congratulations! You successfully paid 100 Stars and became a VIP member!</b>\n\n✨ Now you can join our special VIP channel through the button below! 🎬"
+            : "🎉 <b>සුභ පැතුම්! ඔබ සාර්ථකව Stars 100ක් ගෙවා VIP සාමාජිකයෙකු බවට පත් විය!</b>\n\n✨ දැන් ඔබට පහත බොත්තම හරහා අපගේ විශේෂ VIP චැනල් එකට සම්බන්ධ විය හැක! 🎬";
+
         await ctx.reply(
-            "🎉 <b>සුභ පැතුම්! ඔබ සාර්ථකව Stars 100ක් ගෙවා VIP සාමාජිකයෙකු බවට පත් විය!</b>\n\n" +
-            "✨ දැන් ඔබට පහත බොත්තම හරහා අපගේ විශේෂ VIP චැනල් එකට සම්බන්ධ විය හැක! 🎬",
+            successMsg,
             {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: "⭐ Join VIP Channel", url: VIP_CHANNEL_LINK }]
+                        [{ text: "⭐ Join VIP Channel", url: VIP_CHANNEL_LINK, style: "success" }]
                     ]
                 }
             }
@@ -419,6 +437,7 @@ bot.on('successful_payment', async (ctx) => {
 // Listener for users sending "VIP" text message in chat to claim free access
 bot.hears(/^(vip|\/vip)$/i, async (ctx) => {
     const userId = ctx.from.id.toString();
+    const lang = await getUserLang(userId);
     try {
         let user = await UserModel.findOne({ userId });
         if (!user) {
@@ -426,11 +445,12 @@ bot.hears(/^(vip|\/vip)$/i, async (ctx) => {
         }
 
         if (user.isVip) {
-            return ctx.reply("✨ ඔබ දැනටමත් **VIP** සාමාජිකයෙකි!\n\n👇 VIP චැනල් එකට මෙතැනින් යන්න:", {
+            let alreadyVip = lang === 'en' ? "✨ You are already a **VIP** member!\n\n👇 Go to the VIP channel from here:" : "✨ ඔබ දැනටමත් **VIP** සාමාජිකයෙකි!\n\n👇 VIP චැනල් එකට මෙතැනින් යන්න:";
+            return ctx.reply(alreadyVip, {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: "⭐ Join VIP Channel", url: VIP_CHANNEL_LINK }]
+                        [{ text: "⭐ Join VIP Channel", url: VIP_CHANNEL_LINK, style: "success" }]
                     ]
                 }
             });
@@ -440,27 +460,33 @@ bot.hears(/^(vip|\/vip)$/i, async (ctx) => {
 
         if (currentVipCount < 3) {
             await UserModel.updateOne({ userId }, { $set: { isVip: true } });
+            let freeVipMsg = lang === 'en'
+                ? "🎉 <b>Congratulations! You are among the first 3 lucky users who messaged \"VIP\" and won!</b>\n\n⭐ You got **FREE VIP ACCESS** completely free! Join the VIP channel from the link below. 🎬"
+                : "🎉 <b>සුභ පැතුම්! ඔබ මුලින්ම \"VIP\" මැසේජ් කර ජයග්‍රහණය කළ වාසනාවන්තයන් 3 දෙනා අතරට පැමිණියෙහිය!</b>\n\n⭐ ඔබට සම්පූර්ණයෙන්ම නොමිලේ **FREE VIP ACCESS** හිමි විය! පහත ලින්ක් එකෙන් VIP චැනල් එකට සම්බන්ධ වන්න. 🎬";
+
             return ctx.reply(
-                "🎉 <b>සුභ පැතුම්! ඔබ මුලින්ම \"VIP\" මැසේජ් කර ජයග්‍රහණය කළ වාසනාවන්තයන් 3 දෙනා අතරට පැමිණියෙහිය!</b>\n\n" +
-                "⭐ ඔබට සම්පූර්ණයෙන්ම නොමිලේ **FREE VIP ACCESS** හිමි විය! පහත ලින්ක් එකෙන් VIP චැනල් එකට සම්බන්ධ වන්න. 🎬",
+                freeVipMsg,
                 {
                     parse_mode: 'HTML',
                     reply_markup: {
                         inline_keyboard: [
-                            [{ text: "⭐ Join VIP Channel", url: VIP_CHANNEL_LINK }]
+                            [{ text: "⭐ Join VIP Channel", url: VIP_CHANNEL_LINK, style: "success" }]
                         ]
                     }
                 }
             );
         } else {
+            let quotaOverMsg = lang === 'en'
+                ? "❌ <b>Sorry! The quota for the first 3 lucky users has already ended!</b>\n\n⭐ If you want, you can get VIP by paying 100 Stars by clicking the button below:"
+                : "❌ <b>සමාවන්න! පළමු වාසනාවන්තයන් 3 දෙනාගේ කෝටාව දැනටමත් අවසන් වී ඇත!</b>\n\n⭐ ඔබට අවශ්‍ය නම් පහත බොත්තම ඔබා Stars 100ක් ගෙවා VIP ලබාගත හැක:";
+
             return ctx.reply(
-                "❌ <b>සමාවන්න! පළමු වාසනාවන්තයන් 3 දෙනාගේ කෝටාව දැනටමත් අවසන් වී ඇත!</b>\n\n" +
-                "⭐ ඔබට අවශ්‍ය නම් පහත බොත්තම ඔබා Stars 100ක් ගෙවා VIP ලබාගත හැක:",
+                quotaOverMsg,
                 {
                     parse_mode: 'HTML',
                     reply_markup: {
                         inline_keyboard: [
-                            [{ text: "⭐ Get VIP Access", callback_data: "buy_vip" }]
+                            [{ text: "⭐ Get VIP Access", callback_data: "buy_vip", style: "success" }]
                         ]
                     }
                 }
@@ -482,7 +508,7 @@ bot.command('addvip', async (ctx) => {
     const targetUserId = args[1];
 
     if (!targetUserId) {
-        return ctx.reply("⚠️ <b>භාවිතා කරන ආකාරය:</b>\n<code>/addvip USER_ID</code>", { parse_mode: 'HTML' });
+        return ctx.reply("⚠️ <b>How to use / භාවිතා කරන ආකාරය:</b>\n<code>/addvip USER_ID</code>", { parse_mode: 'HTML' });
     }
 
     try {
@@ -493,20 +519,20 @@ bot.command('addvip', async (ctx) => {
         );
 
         if (!result) {
-            return ctx.reply(`❌ User ID <code>${targetUserId}</code> හමු නොවීය.`, { parse_mode: 'HTML' });
+            return ctx.reply(`❌ User ID <code>${targetUserId}</code> not found / හමු නොවීය.`, { parse_mode: 'HTML' });
         }
 
-        await ctx.reply(`✅ <b>සාර්ථකයි!</b> User ID <code>${targetUserId}</code> සඳහා <b>VIP Access</b> ලබා දෙන ලදී.`, { parse_mode: 'HTML' });
+        await ctx.reply(`✅ <b>Success / සාර්ථකයි!</b> VIP Access granted to User ID <code>${targetUserId}</code>.`, { parse_mode: 'HTML' });
 
         try {
             await ctx.telegram.sendMessage(
                 targetUserId,
-                "🎉 <b>සුභ පැතුම්! ඇඩ්මින් විසින් ඔබට VIP Access ලබා දෙන ලදී.</b>\n\n✨ දැන් ඔබට පහත බොත්තම හරහා VIP චැනල් එකට සම්බන්ධ විය හැක!",
+                "🎉 <b>Congratulations! Admin has granted you VIP Access.</b>\n\n✨ Now you can join the VIP channel through the button below!",
                 {
                     parse_mode: 'HTML',
                     reply_markup: {
                         inline_keyboard: [
-                            [{ text: "⭐ Join VIP Channel", url: VIP_CHANNEL_LINK }]
+                            [{ text: "⭐ Join VIP Channel", url: VIP_CHANNEL_LINK, style: "success" }]
                         ]
                     }
                 }
@@ -528,7 +554,7 @@ bot.command('removevip', async (ctx) => {
     const targetUserId = args[1];
 
     if (!targetUserId) {
-        return ctx.reply("⚠️ <b>භාවිතා කරන ආකාරය:</b>\n<code>/removevip USER_ID</code>", { parse_mode: 'HTML' });
+        return ctx.reply("⚠️ <b>How to use / භාවිතා කරන ආකාරය:</b>\n<code>/removevip USER_ID</code>", { parse_mode: 'HTML' });
     }
 
     try {
@@ -539,10 +565,10 @@ bot.command('removevip', async (ctx) => {
         );
 
         if (!result) {
-            return ctx.reply(`❌ User ID <code>${targetUserId}</code> හමු නොවීය.`, { parse_mode: 'HTML' });
+            return ctx.reply(`❌ User ID <code>${targetUserId}</code> not found / හමු නොවීය.`, { parse_mode: 'HTML' });
         }
 
-        await ctx.reply(`✅ <b>සාර්ථකයි!</b> User ID <code>${targetUserId}</code> ගේ <b>VIP Access</b> ඉවත් කරන ලදී.`, { parse_mode: 'HTML' });
+        await ctx.reply(`✅ <b>Success / සාර්ථකයි!</b> VIP Access removed from User ID <code>${targetUserId}</code>.`, { parse_mode: 'HTML' });
 
     } catch (e) {
         console.error("RemoveVIP Error:", e);
@@ -556,7 +582,7 @@ bot.action(/^report_link_(.+)$/, async (ctx) => {
     const userId = ctx.from.id;
     const username = ctx.from.username ? `@${ctx.from.username}` : `User ID: ${userId}`;
 
-    await ctx.answerCbQuery("🚨 ඇඩ්මින් වෙත වාර්තා කරන ලදී. ස්තුතියි!", { show_alert: true });
+    await ctx.answerCbQuery("🚨 Reported to Admin. Thank you! / ඇඩ්මින් වෙත වාර්තා කරන ලදී. ස්තුතියි!", { show_alert: true });
 
     if (ADMIN_ID) {
         try {
@@ -593,13 +619,13 @@ bot.start(async (ctx) => {
             [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
             [
                 { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
-                { text: t.supportBtn, callback_data: "support_info", style: "primary" }
+                { text: t.supportBtn, callback_data: "support_info", style: "danger" }
             ],
             [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
         ];
 
         if (!isVipUser) {
-            welcomeKeyboard.splice(2, 0, [{ text: t.getVipBtn, callback_data: "buy_vip" }]);
+            welcomeKeyboard.splice(2, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
         }
 
         return ctx.reply(t.welcome, {
@@ -613,21 +639,24 @@ bot.start(async (ctx) => {
         const buttons = [];
 
         if (!membership.isChannelMember) {
-            buttons.push([{ text: '📢 Main Channel එකට Join වන්න', url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}` }]);
+            let channelBtnText = lang === 'en' ? '📢 Join Main Channel' : '📢 Main Channel එකට Join වන්න';
+            buttons.push([{ text: channelBtnText, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }]);
         }
         if (!membership.isGroupMember) {
-            buttons.push([{ text: '💬 Chat Group එකට Join වන්න', url: CHAT_GROUP_LINK }]);
+            let groupBtnText = lang === 'en' ? '💬 Join Chat Group' : '💬 Chat Group එකට Join වන්න';
+            buttons.push([{ text: groupBtnText, url: CHAT_GROUP_LINK, style: "success" }]);
         }
 
-        buttons.push([{ text: '🔄 නැවත Verify කරන්න', callback_data: `check_sub_${payload}` }]);
+        let verifyBtnText = lang === 'en' ? '🔄 Verify Again' : '🔄 නැවත Verify කරන්න';
+        buttons.push([{ text: verifyBtnText, callback_data: `check_sub_${payload}`, style: "danger" }]);
 
-        return ctx.replyWithHTML(
-            `⚠️ <b>අවධානයෙයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `වීඩියෝව ලබා ගැනීමට අවශ්‍ය සියලුම නාලිකා සඳහා Join වී <b>"නැවත Verify කරන්න"</b> ක්ලික් කරන්න.`,
-            {
-                reply_markup: { inline_keyboard: buttons }
-            }
-        );
+        let subReqText = lang === 'en'
+            ? `⚠️ <b>Attention!</b>\n━━━━━━━━━━━━━━━━━━━━\n\nPlease join all required channels to get the video and click <b>"Verify Again"</b>.`
+            : `⚠️ <b>අවධානයෙයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\nවීඩියෝව ලබා ගැනීමට අවශ්‍ය සියලුම නාලිකා සඳහා Join වී <b>"නැවත Verify කරන්න"</b> ක්ලික් කරන්න.`;
+
+        return ctx.replyWithHTML(subReqText, {
+            reply_markup: { inline_keyboard: buttons }
+        });
     }
 
     try {
@@ -649,11 +678,12 @@ bot.start(async (ctx) => {
 
         if (fileDoc.isVipContent) {
             if (!isVipUser) {
-                return ctx.reply(t.vipOnlyAlert || "⭐ <b>මෙම අන්තර්ගතය VIP සාමාජිකයන්ට පමණි!</b>", {
+                let vipOnlyMsg = lang === 'en' ? "⭐ <b>This content is for VIP members only!</b>" : "⭐ <b>මෙම අන්තර්ගතය VIP සාමාජිකයන්ට පමණි!</b>";
+                return ctx.reply(vipOnlyMsg, {
                     parse_mode: 'HTML',
                     reply_markup: {
                         inline_keyboard: [
-                            [{ text: t.getVipBtn, callback_data: "buy_vip" }]
+                            [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]
                         ]
                     }
                 });
@@ -675,11 +705,13 @@ bot.start(async (ctx) => {
         ];
 
         if (!isVipUser) {
-            startKeyboard.splice(1, 0, [{ text: t.getVipBtn, callback_data: "buy_vip" }]);
+            startKeyboard.splice(1, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
         }
 
+        let viewsLabel = lang === 'en' ? "📊 Total Views:" : "📊 නැරඹුම් වාර (Views):";
+
         await ctx.reply(
-            `${t.clickBtnText}\n\n📊 <b>නැරඹුම් වාර (Views):</b> <code>${fileDoc.views}</code>`,
+            `${t.clickBtnText}\n\n${viewsLabel} <code>${fileDoc.views}</code>`,
             {
                 parse_mode: 'HTML',
                 reply_markup: { inline_keyboard: startKeyboard }
@@ -694,37 +726,52 @@ bot.start(async (ctx) => {
 // Buy VIP Action Button
 bot.action('buy_vip', async (ctx) => {
     await ctx.answerCbQuery();
+    const userId = ctx.from.id.toString();
+    const lang = await getUserLang(userId);
+
+    let vipPrompt = lang === 'en'
+        ? "⭐ <b>To get VIP membership:</b>\n\nClick the button below and pay 100 Telegram Stars to get VIP membership!"
+        : "⭐ <b>VIP සාමාජිකත්වය ලබා ගැනීම සඳහා:</b>\n\nපහත බොත්තම ඔබා Telegram Stars 100ක් ගෙවා VIP සාමාජිකත්වය ලබා ගන්න!";
+    let btnText = lang === 'en' ? "💳 Pay via Telegram Stars (/vip)" : "💳 Telegram Stars හරහා ගෙවීමට (/vip)";
+    let errorMsg = lang === 'en' ? "❌ An error occurred." : "❌ දෝෂයක් ඇති විය.";
+
     try {
         await ctx.reply(
-            "⭐ <b>VIP සාමාජිකත්වය ලබා ගැනීම සඳහා:</b>\n\n" +
-            "පහත බොත්තම ඔබා Telegram Stars 100ක් ගෙවා VIP සාමාජිකත්වය ලබා ගන්න!",
+            vipPrompt,
             {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: "💳 Telegram Stars හරහා ගෙවීමට (/vip)", callback_data: "pay_stars" }]
+                        [{ text: btnText, callback_data: "pay_stars", style: "success" }]
                     ]
                 }
             }
         );
     } catch (e) {
-        ctx.reply("❌ දෝෂයක් ඇති විය.");
+        ctx.reply(errorMsg);
     }
 });
 
 bot.action('pay_stars', async (ctx) => {
     await ctx.answerCbQuery();
+    const userId = ctx.from.id.toString();
+    const lang = await getUserLang(userId);
+    const invoiceDesc = lang === 'en'
+        ? 'Through this facility, you get special VIP access to download (save) all videos!'
+        : 'මෙම පහසුකම හරහා ඔබට සියලුම වීඩියෝස් ඩවුන්ලෝඩ් (Save) කරගත හැකි විශේෂ VIP අවසරය ලැබේ!';
+    const errorMsg = lang === 'en' ? '❌ Error generating invoice.' : '❌ ඉන්වොයිසිය සකස් කිරීමේදී දෝෂයක් ඇති විය.';
+
     try {
         await ctx.replyWithInvoice({
             title: '⭐ VIP Unlimited Download Access',
-            description: 'මෙම පහසුකම හරහා ඔබට සියලුම වීඩියෝස් ඩවුන්ලෝඩ් (Save) කරගත හැකි විශේෂ VIP අවසරය ලැබේ!',
+            description: invoiceDesc,
             payload: 'vip_100_stars_payload',
             currency: 'XTR',
             prices: [{ label: 'VIP Lifetime Access', amount: 100 }],
             provider_token: ''
         });
     } catch (e) {
-        ctx.reply("❌ ඉන්වොයිසිය සකස් කිරීමේදී දෝෂයක් ඇති විය.");
+        ctx.reply(errorMsg);
     }
 });
 
@@ -733,13 +780,15 @@ bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
     const type = ctx.match[1];
     const token = ctx.match[2];
     const userId = ctx.from.id.toString();
+    const lang = await getUserLang(userId);
 
     try {
         const fileDoc = await FileModel.findOne({ token });
-        if (!fileDoc) return ctx.answerCbQuery("❌ Link Expired!");
+        if (!fileDoc) return ctx.answerCbQuery(lang === 'en' ? "❌ Link Expired!" : "❌ ලින්ක් එක කල් ඉකුත් වී ඇත!");
 
         if (fileDoc.reactedUsers && fileDoc.reactedUsers.includes(userId)) {
-            return ctx.answerCbQuery("⚠️ ඔබ දැනටමත් මෙම වීඩියෝවට ප්‍රතිචාරයක් දක්වා ඇත!", { show_alert: true });
+            let alreadyReacted = lang === 'en' ? "⚠️ You have already reacted to this video!" : "⚠️ ඔබ දැනටමත් මෙම වීඩියෝවට ප්‍රතිචාරයක් දක්වා ඇත!";
+            return ctx.answerCbQuery(alreadyReacted, { show_alert: true });
         }
 
         const updatedFile = await FileModel.findOneAndUpdate(
@@ -752,7 +801,8 @@ bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
         );
 
         const reactions = updatedFile.reactions || { peach: 0, banana: 0, hot: 0 };
-        await ctx.answerCbQuery("🎉 ඔබේ ප්‍රතිචාරය සාර්ථකව එකතු විය!", { show_alert: true });
+        let successReaction = lang === 'en' ? "🎉 Your reaction was successfully added!" : "🎉 ඔබේ ප්‍රතිචාරය සාර්ථකව එකතු විය!";
+        await ctx.answerCbQuery(successReaction, { show_alert: true });
 
         const userDoc = await UserModel.findOne({ userId });
         const isVipUser = userDoc ? userDoc.isVip : false;
@@ -766,14 +816,13 @@ bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
             ]
         ];
 
-        const lang = userDoc ? userDoc.language : 'si';
         const t = langs[lang] || langs.si;
 
         if (isProtected && !isVipUser) {
-            inlineKeyboard.push([{ text: t.getVipBtn, callback_data: "buy_vip" }]);
+            inlineKeyboard.push([{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
         }
 
-        inlineKeyboard.push([{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}` }]);
+        inlineKeyboard.push([{ text: "🚨 Report Broken Link", callback_data: `report_link_${token}`, style: "danger" }]);
 
         await ctx.editMessageReplyMarkup({ inline_keyboard: inlineKeyboard });
     } catch (err) {
@@ -781,49 +830,37 @@ bot.action(/^react_(peach|banana|hot)_(.+)$/, async (ctx) => {
     }
 });
 
-// Interactive Menu Handlers
+// Interactive Menu Handlers with editMessageText and Balanced Colors
 bot.action('how_to_use', async (ctx) => {
     await ctx.answerCbQuery();
     const userId = ctx.from.id.toString();
     const lang = await getUserLang(userId);
     const t = langs[lang];
+    
     await ctx.editMessageText(t.guideContent, {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "danger" }]
             ]
         }
-    }).catch(() => ctx.reply(t.guideContent, {
-        parse_mode: 'HTML',
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
-            ]
-        }
-    }));
+    }).catch(() => {});
 });
 
 bot.action('support_info', async (ctx) => {
+    await ctx.answerCbQuery();
     const userId = ctx.from.id.toString();
     const lang = await getUserLang(userId);
     const t = langs[lang];
-    await ctx.answerCbQuery();
+
     await ctx.editMessageText(t.supportMsg, {
         parse_mode: 'HTML',
         reply_markup: {
             inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "danger" }]
             ]
         }
-    }).catch(() => ctx.reply(t.supportMsg, {
-        parse_mode: 'HTML',
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
-            ]
-        }
-    }));
+    }).catch(() => {});
 });
 
 bot.action('change_language', async (ctx) => {
@@ -831,6 +868,7 @@ bot.action('change_language', async (ctx) => {
     const userId = ctx.from.id.toString();
     const lang = await getUserLang(userId);
     const t = langs[lang];
+
     await ctx.editMessageText(t.langSelect, {
         parse_mode: 'HTML',
         reply_markup: { 
@@ -839,7 +877,7 @@ bot.action('change_language', async (ctx) => {
                     { text: "🇱🇰 සිංහල", callback_data: "set_lang_si", style: "success" }, 
                     { text: "🇬🇧 English", callback_data: "set_lang_en", style: "primary" }
                 ],
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "danger" }]
             ] 
         }
     }).catch(() => {});
@@ -857,13 +895,13 @@ bot.action('back_to_main', async (ctx) => {
         [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
         [
             { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
-            { text: t.supportBtn, callback_data: "support_info", style: "primary" }
+            { text: t.supportBtn, callback_data: "support_info", style: "danger" }
         ],
         [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
     ];
 
     if (!isVipUser) {
-        mainKeyboard.splice(2, 0, [{ text: t.getVipBtn, callback_data: "buy_vip" }]);
+        mainKeyboard.splice(2, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
     }
 
     await ctx.editMessageText(t.welcome, {
@@ -877,13 +915,25 @@ bot.action('set_lang_si', async (ctx) => {
     await UserModel.updateOne({ userId }, { $set: { language: 'si' } }, { upsert: true });
     await ctx.answerCbQuery("සිංහල භාෂාව තෝරන ලදී.", { show_alert: true });
     const t = langs['si'];
-    await ctx.editMessageText("✅ <b>භාෂාව සිංහල ලෙස වෙනස් කරන ලදී.</b>", {
+    const userDoc = await UserModel.findOne({ userId });
+    const isVipUser = userDoc ? userDoc.isVip : false;
+    
+    let mainKeyboard = [
+        [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
+        [
+            { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
+            { text: t.supportBtn, callback_data: "support_info", style: "danger" }
+        ],
+        [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
+    ];
+
+    if (!isVipUser) {
+        mainKeyboard.splice(2, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
+    }
+
+    await ctx.editMessageText(t.welcome, {
         parse_mode: 'HTML',
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
-            ]
-        }
+        reply_markup: { inline_keyboard: mainKeyboard }
     }).catch(() => {});
 });
 
@@ -892,13 +942,25 @@ bot.action('set_lang_en', async (ctx) => {
     await UserModel.updateOne({ userId }, { $set: { language: 'en' } }, { upsert: true });
     await ctx.answerCbQuery("Language set to English.", { show_alert: true });
     const t = langs['en'];
-    await ctx.editMessageText("✅ <b>Language changed to English.</b>", {
+    const userDoc = await UserModel.findOne({ userId });
+    const isVipUser = userDoc ? userDoc.isVip : false;
+    
+    let mainKeyboard = [
+        [{ text: t.channelBtn, url: `https://t.me/${REQUIRED_CHANNEL.replace('@', '')}`, style: "primary" }],
+        [
+            { text: t.howToUseBtn, callback_data: "how_to_use", style: "success" }, 
+            { text: t.supportBtn, callback_data: "support_info", style: "danger" }
+        ],
+        [{ text: t.langBtn, callback_data: "change_language", style: "primary" }]
+    ];
+
+    if (!isVipUser) {
+        mainKeyboard.splice(2, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
+    }
+
+    await ctx.editMessageText(t.welcome, {
         parse_mode: 'HTML',
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
-            ]
-        }
+        reply_markup: { inline_keyboard: mainKeyboard }
     }).catch(() => {});
 });
 
@@ -1256,10 +1318,14 @@ bot.use(async (ctx, next) => {
                 return next();
             }
 
+            const lang = await getUserLang(userId);
             if (ctx.callbackQuery) {
-                return ctx.answerCbQuery("🛠️ Bot is under maintenance!", { show_alert: true });
+                return ctx.answerCbQuery(lang === 'en' ? "🛠️ Bot is under maintenance!" : "🛠️ බොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!", { show_alert: true });
             }
-            return ctx.reply("🛠️ <b>බොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!</b>\n━━━━━━━━━━━━━━━━━━━━\n\nකරුණාකර මද වේලාවකින් නැවත උත්සාහ කරන්න.", { parse_mode: 'HTML' });
+            let maintMsg = lang === 'en'
+                ? "🛠️ <b>Bot is under maintenance!</b>\n━━━━━━━━━━━━━━━━━━━━\n\nPlease try again in a little while."
+                : "🛠️ <b>බොට් නඩත්තු කටයුතු සිදු කරමින් පවතී!</b>\n━━━━━━━━━━━━━━━━━━━━\n\nකරුණාකර මද වේලාවකින් නැවත උත්සාහ කරන්න.";
+            return ctx.reply(maintMsg, { parse_mode: 'HTML' });
         }
     } catch (err) {
         console.error("Maintenance check error:", err);
@@ -1282,7 +1348,7 @@ bot.command('maintenance', async (ctx) => {
             await setting.save();
         }
 
-        const statusText = setting.value ? "🔴 <b>සක්‍රීය කරන ලදී (Enabled)</b>" : "🟢 <b>අක්‍රීය කරන ලදී (Disabled)</b>";
+        const statusText = setting.value ? "🔴 <b>Enabled / සක්‍රීය කරන ලදී</b>" : "🟢 <b>Disabled / අක්‍රීය කරන ලදී</b>";
         await ctx.reply(`🛠 <b>Maintenance Mode Status:</b>\n━━━━━━━━━━━━━━━━━━━━\n\n${statusText}`, { parse_mode: 'HTML' });
     } catch (error) {
         console.error("Maintenance toggle error:", error);
@@ -1303,7 +1369,7 @@ bot.command('language', async (ctx) => {
                     { text: "🇱🇰 සිංහල", callback_data: "set_lang_si", style: "success" },
                     { text: "🇬🇧 English", callback_data: "set_lang_en", style: "primary" }
                 ],
-                [{ text: t.backBtn, callback_data: "back_to_main", style: "primary" }]
+                [{ text: t.backBtn, callback_data: "back_to_main", style: "danger" }]
             ]
         }
     });
@@ -1341,16 +1407,16 @@ bot.command('stats', async (ctx) => {
         const conversionRate = totalClicks > 0 ? ((totalViews / totalClicks) * 100).toFixed(1) : 0;
 
         await ctx.reply(
-            `📊 <b>බොට් හි සංඛ්‍යාලේඛන (Analytics Dashboard)</b> 📈\n━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `👥 මුළු යුසර්ස්ලා (Total Users): <code>${totalUsers}</code>\n` +
-            `⭐ VIP සාමාජිකයන් (VIP Users): <code>${vipUsers}</code>\n` +
-            `🟢 සක්‍රීය පරිශීලකයන් (Active): <code>${activeUsers}</code>\n` +
-            `🔴 බ්ලොක් කළ අය (Blocked): <code>${blockedUsers}</code>\n` +
-            `📅 මෙම මාසයේ අලුත් යුසර්ස්ලා: <code>${monthlyUsers}</code>\n` +
-            `📁 ගබඩා කර ඇති අන්තර්ගතයන්: <code>${totalFiles}</code>\n` +
-            `🔗 මුළු ලින්ක් ක්ලික්ස් (Total Clicks): <code>${totalClicks}</code>\n` +
-            `👁️ මුළු නැරඹුම් (Total Views): <code>${totalViews}</code>\n` +
-            `📈 ඇඩ් සාර්ථකත්ව අනුපාතය (Conversion): <code>${conversionRate}%</code>`,
+            `📊 <b>Bot Analytics Dashboard / සංඛ්‍යාලේඛන</b> 📈\n━━━━━━━━━━━━━━━━━━━━\n\n` +
+            `👥 Total Users: <code>${totalUsers}</code>\n` +
+            `⭐ VIP Users: <code>${vipUsers}</code>\n` +
+            `🟢 Active Users: <code>${activeUsers}</code>\n` +
+            `🔴 Blocked Users: <code>${blockedUsers}</code>\n` +
+            `📅 New Users This Month: <code>${monthlyUsers}</code>\n` +
+            `📁 Stored Contents: <code>${totalFiles}</code>\n` +
+            `🔗 Total Clicks: <code>${totalClicks}</code>\n` +
+            `👁️ Total Views: <code>${totalViews}</code>\n` +
+            `📈 Conversion Rate: <code>${conversionRate}%</code>`,
             { parse_mode: 'HTML' }
         );
 
@@ -1366,10 +1432,10 @@ bot.command('broadcast', async (ctx) => {
 
     const repliedMessage = ctx.message.reply_to_message;
     if (!repliedMessage) {
-        return ctx.reply("❌ කරුණාකර ඔබ සියලු දෙනාටම බ්‍රෝඩ්කාස්ට් කිරීමට අවශ්‍ය පෝස්ට් එකට <b>Reply</b> කර <code>/broadcast</code> ලෙස යවන්න.", { parse_mode: 'HTML' });
+        return ctx.reply("❌ Please **Reply** to the post you want to broadcast and send <code>/broadcast</code>.", { parse_mode: 'HTML' });
     }
 
-    await ctx.reply("🚀 <b>සියලුම පරිශීලකයන් වෙත පෝස්ට් බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ කරන ලදී... කරුණාකර රැඳී සිටින්න.</b>", { parse_mode: 'HTML' });
+    await ctx.reply("🚀 <b>Broadcasting post to all users started... Please wait.</b>", { parse_mode: 'HTML' });
 
     setImmediate(async () => {
         try {
@@ -1402,15 +1468,15 @@ bot.command('broadcast', async (ctx) => {
             }
 
             await ctx.reply(
-                `📊 <b>Broadcast වාර්තාව (All Users):</b>\n━━━━━━━━━━━━━━━━━━━━\n\n` +
-                `✅ සාර්ථකයි: <code>${successCount}</code>\n` +
-                `🔴 බ්ලොක් කර ඇති අය: <code>${blockedCount}</code>\n` +
-                `⚠️ අනෙකුත් දෝෂ: <code>${failedCount}</code>`,
+                `📊 <b>Broadcast Report (All Users):</b>\n━━━━━━━━━━━━━━━━━━━━\n\n` +
+                `✅ Success: <code>${successCount}</code>\n` +
+                `🔴 Blocked: <code>${blockedCount}</code>\n` +
+                `⚠️ Other Errors: <code>${failedCount}</code>`,
                 { parse_mode: 'HTML' }
             );
         } catch (err) {
             console.error("Broadcast Execution Error:", err);
-            await ctx.reply("❌ බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.", { parse_mode: 'HTML' });
+            await ctx.reply("❌ An error occurred while broadcasting.", { parse_mode: 'HTML' });
         }
     });
 });
@@ -1422,10 +1488,10 @@ bot.command('vipbroadcast', async (ctx) => {
 
     const repliedMessage = ctx.message.reply_to_message;
     if (!repliedMessage) {
-        return ctx.reply("❌ කරුණාකර ඔබ VIP අයට පමණක් බ්‍රෝඩ්කාස්ට් කිරීමට අවශ්‍ය පෝස්ට් එකට <b>Reply</b> කර <code>/vipbroadcast</code> ලෙස යවන්න.", { parse_mode: 'HTML' });
+        return ctx.reply("❌ Please **Reply** to the post you want to broadcast to VIPs only and send <code>/vipbroadcast</code>.", { parse_mode: 'HTML' });
     }
 
-    await ctx.reply("🚀 <b>VIP සාමාජිකයන්ට පමණක් පෝස්ට් බ්‍රෝඩ්කාස්ට් කිරීම ආරම්භ කරන ලදී... කරුණාකර රැඳී සිටින්න.</b>", { parse_mode: 'HTML' });
+    await ctx.reply("🚀 <b>Broadcasting post to VIP members only started... Please wait.</b>", { parse_mode: 'HTML' });
 
     setImmediate(async () => {
         try {
@@ -1458,15 +1524,15 @@ bot.command('vipbroadcast', async (ctx) => {
             }
 
             await ctx.reply(
-                `📊 <b>VIP Broadcast වාර්තාව:</b>\n━━━━━━━━━━━━━━━━━━━━\n\n` +
-                `⭐ සාර්ථකව යැවුණු VIP ගණන: <code>${successCount}</code>\n` +
-                `🔴 බ්ලොක් කර ඇති අය: <code>${blockedCount}</code>\n` +
-                `⚠️ අනෙකුත් දෝෂ: <code>${failedCount}</code>`,
+                `📊 <b>VIP Broadcast Report:</b>\n━━━━━━━━━━━━━━━━━━━━\n\n` +
+                `⭐ Successfully sent to VIPs: <code>${successCount}</code>\n` +
+                `🔴 Blocked: <code>${blockedCount}</code>\n` +
+                `⚠️ Other Errors: <code>${failedCount}</code>`,
                 { parse_mode: 'HTML' }
             );
         } catch (err) {
             console.error("VIP Broadcast Execution Error:", err);
-            await ctx.reply("❌ බ්‍රෝඩ්කාස්ට් කිරීමේදී දෝෂයක් ඇති විය.", { parse_mode: 'HTML' });
+            await ctx.reply("❌ An error occurred while broadcasting.", { parse_mode: 'HTML' });
         }
     });
 });
@@ -1516,11 +1582,13 @@ bot.action(/^check_sub_(.+)$/, async (ctx) => {
         ];
 
         if (!isVipUser) {
-            checkSubKeyboard.splice(1, 0, [{ text: t.getVipBtn, callback_data: "buy_vip" }]);
+            checkSubKeyboard.splice(1, 0, [{ text: t.getVipBtn, callback_data: "buy_vip", style: "success" }]);
         }
 
+        let viewsLabel = lang === 'en' ? "📊 Total Views:" : "📊 නැරඹුම් වාර (Views):";
+
         await ctx.editMessageText(
-            `${t.clickBtnText}\n\n📊 <b>නැරඹුම් වාර (Views):</b> <code>${fileDoc.views}</code>`,
+            `${t.clickBtnText}\n\n${viewsLabel} <code>${fileDoc.views}</code>`,
             {
                 parse_mode: 'HTML',
                 reply_markup: { inline_keyboard: checkSubKeyboard }
@@ -1545,11 +1613,11 @@ bot.command('cancel', async (ctx) => {
 
     const pending = pendingUploads.get(userId);
     if (!pending) {
-        return ctx.reply("⚠️ දැනට ක්‍රියාත්මක වන අප්‌ලෝඩ් කිරීමක් හෝ සකස් කිරීමක් නොමැත.", { parse_mode: 'HTML' });
+        return ctx.reply("⚠️ No active upload or configuration currently in progress.", { parse_mode: 'HTML' });
     }
 
     pendingUploads.delete(userId);
-    await ctx.reply("❌ <b>අප්‌ලෝඩ් කිරීම සාර්ථකව අවලංගු (Cancel) කරන ලදී. සියලු දත්ත මකා දමන ලදී.</b>", { parse_mode: 'HTML' });
+    await ctx.reply("❌ <b>Upload successfully cancelled. All data cleared.</b>", { parse_mode: 'HTML' });
 });
 
 bot.action('cancel_upload', async (ctx) => {
@@ -1558,10 +1626,10 @@ bot.action('cancel_upload', async (ctx) => {
     
     if (pending) {
         pendingUploads.delete(userId);
-        await ctx.answerCbQuery("අප්‌ලෝඩ් කිරීම අවලංගු කරන ලදී.", { show_alert: true });
-        await ctx.editMessageText("❌ <b>අප්‌ලෝඩ් කිරීම සාර්ථකව අවලංගු (Cancel) කරන ලදී.</b>", { parse_mode: 'HTML' });
+        await ctx.answerCbQuery("Upload cancelled.", { show_alert: true });
+        await ctx.editMessageText("❌ <b>Upload successfully cancelled.</b>", { parse_mode: 'HTML' });
     } else {
-        await ctx.answerCbQuery("ක්‍රියාකාරී අප්‌ලෝඩ් එකක් හමු නොවීය.");
+        await ctx.answerCbQuery("No active upload found.");
     }
 });
 
@@ -1578,7 +1646,7 @@ bot.action('toggle_spoiler_yes', async (ctx) => {
         pending.hasSpoiler = true;
         pendingUploads.set(userId, pending);
     }
-    await ctx.answerCbQuery("🔒 Thumbnail එක Blur කිරීමට සකසන ලදී.", { show_alert: true });
+    await ctx.answerCbQuery("🔒 Thumbnail set to Blur.", { show_alert: true });
     await promptVipContent(ctx);
 });
 
@@ -1589,21 +1657,21 @@ bot.action('toggle_spoiler_no', async (ctx) => {
         pending.hasSpoiler = false;
         pendingUploads.set(userId, pending);
     }
-    await ctx.answerCbQuery("🔓 Thumbnail එක Blur නොකිරීමට සකසන ලදී.", { show_alert: true });
+    await ctx.answerCbQuery("🔓 Thumbnail set to Unblurred.", { show_alert: true });
     await promptVipContent(ctx);
 });
 
 async function promptVipContent(ctx) {
     await ctx.editMessageText(
         "⭐ <b>VIP Content Selection:</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
-        "මෙම අන්තර්ගතය **VIP අයට පමණක් (VIP Only)** වෙන් වූ එකක් ලෙස සකස් කර VIP චැනල් එකට පෝස්ට් කරන්න ඕනේද?",
+        "Do you want to set this content as **VIP Only** and post it to the VIP channel?",
         {
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "⭐ ඔව් (VIP Only - VIP Channel)", callback_data: "toggle_vip_yes", style: "success" },
-                        { text: "🔓 සාමාන්‍ය (Normal - Main Channel)", callback_data: "toggle_vip_no", style: "primary" }
+                        { text: "⭐ Yes (VIP Only - VIP Channel)", callback_data: "toggle_vip_yes", style: "success" },
+                        { text: "🔓 Normal (Main Channel)", callback_data: "toggle_vip_no", style: "primary" }
                     ],
                     [{ text: "❌ Cancel", callback_data: "cancel_upload", style: "danger" }]
                 ]
@@ -1619,7 +1687,7 @@ bot.action('toggle_vip_yes', async (ctx) => {
         pending.isVipContent = true;
         pendingUploads.set(userId, pending);
     }
-    await ctx.answerCbQuery("⭐ VIP Only සහ VIP චැනල් එකට පෝස්ට් කිරීමට සකසන ලදී.", { show_alert: true });
+    await ctx.answerCbQuery("⭐ Set as VIP Only and post to VIP channel.", { show_alert: true });
     await promptProtectContent(ctx);
 });
 
@@ -1630,23 +1698,23 @@ bot.action('toggle_vip_no', async (ctx) => {
         pending.isVipContent = false;
         pendingUploads.set(userId, pending);
     }
-    await ctx.answerCbQuery("🔓 සාමාන්‍ය අන්තර්ගතයක් ලෙස සකසන ලදී.", { show_alert: true });
+    await ctx.answerCbQuery("🔓 Set as normal content.", { show_alert: true });
     await promptProtectContent(ctx);
 });
 
 async function promptProtectContent(ctx) {
     await ctx.editMessageText(
         "🛡️ <b>Protect Content (Download / Forward Restriction):</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
-        "මෙම අන්තර්ගතය යූසර්ස්ලාට <b>Forward සහ Download කිරීමට නොහැකි වන සේ</b> ආරක්ෂා (Block) කරන්න ඕනේද?",
+        "Do you want to protect (block) this content from being <b>forwarded and downloaded</b> by users?",
         {
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🔒 ඔව් (Yes)", callback_data: "toggle_protect_yes", style: "success" },
-                        { text: "🔓 නැහැ (No)", callback_data: "toggle_protect_no", style: "primary" }
+                        { text: "🔒 Yes (Block)", callback_data: "toggle_protect_yes", style: "danger" },
+                        { text: "🔓 No (Allow)", callback_data: "toggle_protect_no", style: "success" }
                     ],
-                    [{ text: "❌ අප්‌ලෝඩ් එක Cancel කරන්න", callback_data: "cancel_upload", style: "danger" }]
+                    [{ text: "❌ Cancel Upload", callback_data: "cancel_upload", style: "danger" }]
                 ]
             }
         }
@@ -1660,12 +1728,12 @@ bot.action('toggle_protect_yes', async (ctx) => {
         pending.protectContent = true;
         pendingUploads.set(userId, pending);
     }
-    await ctx.answerCbQuery("🔒 Forward & Download බ්ලොක් කිරීමට සකසන ලදී.", { show_alert: true });
+    await ctx.answerCbQuery("🔒 Forward & Download blocked.", { show_alert: true });
     await ctx.editMessageText(
-        "✅ <b>සැකසීම් සාර්ථකයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
+        "✅ <b>Settings Saved Successfully!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
         "⭐ VIP Content: <code>" + (pending.isVipContent ? "YES (VIP Channel)" : "NO (Main Channel)") + "</code>\n" +
         "🛡️ Protect Content: <code>ON (Block)</code>\n\n" +
-        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බටන් එක ඔබන්න.",
+        "Now send the corresponding video, photo, or document. When finished, type <b>/done</b> or click the button below.",
         { 
             parse_mode: 'HTML',
             reply_markup: {
@@ -1685,12 +1753,12 @@ bot.action('toggle_protect_no', async (ctx) => {
         pending.protectContent = false;
         pendingUploads.set(userId, pending);
     }
-    await ctx.answerCbQuery("🔓 Forward & Download කිරීමට ඉඩ හරින ලදී.", { show_alert: true });
+    await ctx.answerCbQuery("🔓 Forward & Download allowed.", { show_alert: true });
     await ctx.editMessageText(
-        "✅ <b>සැකසීම් සාර්ථකයි!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
+        "✅ <b>Settings Saved Successfully!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
         "⭐ VIP Content: <code>" + (pending.isVipContent ? "YES (VIP Channel)" : "NO (Main Channel)") + "</code>\n" +
         "🛡️ Protect Content: <code>OFF (Allow)</code>\n\n" +
-        "දැන් අදාළ වීඩියෝව, ඡායාරූපය හෝ ලේඛනය එවන්න. අවසන් වූ පසු <b>/done</b> ටයිප් කරන්න හෝ පහත බටන් එක ඔබන්න.",
+        "Now send the corresponding video, photo, or document. When finished, type <b>/done</b> or click the button below.",
         { 
             parse_mode: 'HTML',
             reply_markup: {
@@ -1709,7 +1777,6 @@ bot.on('photo', async (ctx) => {
 
     const pending = pendingUploads.get(userId);
     
-    // Check if user is sending the caption / video title after thumbnail
     if (pending && pending.photoFileId && pending.hasSpoiler !== undefined && !pending.waitingForCaption) {
         try {
             const forwarded = await ctx.telegram.forwardMessage(DB_CHANNEL_ID, ctx.chat.id, ctx.message.message_id);
@@ -1717,7 +1784,7 @@ bot.on('photo', async (ctx) => {
             pendingUploads.set(userId, pending);
 
             await ctx.reply(
-                `✅ අන්තර්ගතය එකතු විය! (මුළු ගණන: <code>${pending.videoMsgIds.length}</code>). තවත් ඇත්නම් එවන්න, අවසන් වූ පසු /done හෝ බටන් එක ඔබන්න.`,
+                `✅ Content added! (Total: <code>${pending.videoMsgIds.length}</code>). Send more if any, or click /done or the button below when finished.`,
                 {
                     parse_mode: 'HTML',
                     reply_markup: {
@@ -1742,8 +1809,7 @@ bot.on('photo', async (ctx) => {
         pendingUploads.set(userId, pending);
 
         return ctx.reply(
-            "✅ <b>වීඩියෝ මාතෘකාව (Title) සාර්ථකව ලබා ගන්නා ලදී!</b>\n\n" +
-            "දැන් අදාළ වීඩියෝව හෝ ගොනුව (Video / Document) එවන්න:",
+            "✅ <b>Video title successfully received!</b>\n\nNow send the video or document file:",
             { parse_mode: 'HTML' }
         );
     }
@@ -1762,17 +1828,17 @@ bot.on('photo', async (ctx) => {
     });
 
     await ctx.reply(
-        "📸 <b>Thumbnail එක ලැබුණා!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
-        "දැන් තෝරන්න මේකේ Thumbnail එක <b>Blur (Spoiler)</b> කරන්න ඕනේද නැද්ද කියලා:",
+        "📸 <b>Thumbnail received!</b>\n━━━━━━━━━━━━━━━━━━━━\n\n" +
+        "Choose whether you want to **Blur (Spoiler)** this thumbnail or not:",
         {
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🔒 Blur කරන්න", callback_data: "toggle_spoiler_yes", style: "success" },
-                        { text: "🔓 එපා", callback_data: "toggle_spoiler_no", style: "primary" }
+                        { text: "🔒 Blur", callback_data: "toggle_spoiler_yes", style: "primary" },
+                        { text: "🔓 No Blur", callback_data: "toggle_spoiler_no", style: "success" }
                     ],
-                    [{ text: "❌ සම්පූර්ණයෙන්ම Cancel කරන්න", callback_data: "cancel_upload", style: "danger" }]
+                    [{ text: "❌ Cancel Completely", callback_data: "cancel_upload", style: "danger" }]
                 ]
             }
         }
@@ -1790,8 +1856,7 @@ bot.on('text', async (ctx, next) => {
         pendingUploads.set(userId, pending);
 
         return ctx.reply(
-            "✅ <b>වීඩියෝ මාතෘකාව (Title) සාර්ථකව එකතු විය!</b>\n\n" +
-            "දැන් අදාළ වීඩියෝව හෝ ගොනුව (Video / Document) එවන්න:",
+            "✅ <b>Video Title added successfully!</b>\n\nNow send the video or document file:",
             { parse_mode: 'HTML' }
         );
     }
@@ -1804,7 +1869,7 @@ bot.on(['video', 'document'], async (ctx) => {
 
     const pending = pendingUploads.get(userId);
     if (!pending) {
-        return ctx.reply("⚠️ මුලින්ම Thumbnail එකක් එවන්න.", { parse_mode: 'HTML' });
+        return ctx.reply("⚠️ Please send a thumbnail first.", { parse_mode: 'HTML' });
     }
 
     try {
@@ -1813,7 +1878,7 @@ bot.on(['video', 'document'], async (ctx) => {
         pendingUploads.set(userId, pending);
 
         await ctx.reply(
-            `✅ අන්තර්ගතය එකතු විය! (මුළු ගණන: <code>${pending.videoMsgIds.length}</code>). තවත් ඇත්නම් එවන්න, අවසන් වූ පසු <code>/done</code> හෝ පහත බොත්තම ඔබන්න.`,
+            `✅ Content added! (Total: <code>${pending.videoMsgIds.length}</code>). Send more if any, or type <code>/done</code> or click the button below.`,
             {
                 parse_mode: 'HTML',
                 reply_markup: {
@@ -1837,7 +1902,7 @@ async function finalizeUpload(ctx) {
 
     const pending = pendingUploads.get(userId);
     if (!pending || pending.videoMsgIds.length === 0) {
-        return ctx.reply("⚠️ කරුණාකර මුලින්ම Thumbnail එකක් සහ අන්තර්ගතයක් (වීඩියෝ/ඡායාරූප) එකක් හෝ කිහිපයක් එවන්න.", { parse_mode: 'HTML' });
+        return ctx.reply("⚠️ Please send a thumbnail and at least one piece of content (video/photo) first.", { parse_mode: 'HTML' });
     }
 
     try {
@@ -1857,11 +1922,10 @@ async function finalizeUpload(ctx) {
 
         const targetChannel = pending.isVipContent ? (process.env.VIP_CHANNEL_ID || VIP_CHANNEL_LINK) : MAIN_CHANNEL_ID;
 
-        await ctx.reply(`✅ <b>සාර්ථකව ගබඩා විය!</b> (ගොනු ගණන: <code>${pending.videoMsgIds.length}</code>)\n\n🚀 අදාළ චැනල් එකට පෝස්ට් යවන ලදී!`, { parse_mode: 'HTML' });
+        await ctx.reply(`✅ <b>Stored Successfully!</b> (Files count: <code>${pending.videoMsgIds.length}</code>)\n\n🚀 Post sent to target channel!`, { parse_mode: 'HTML' });
 
         const buttonText = pending.videoMsgIds.length > 1 ? "▶️ View Full Collection" : "▶️ View Content";
         
-        // Updated Header Text with Emojis & Custom Formatting
         const headerText = pending.isVipContent
             ? "⭐ <b>[ NEW VIP VIDEO ] 🎬✨\n━━━━━━━━━━━━━━━━━━━━</b>"
             : (pending.videoMsgIds.length > 1 ? "🔥 <b>[ NEW COLLECTION ] 🎬💎\n━━━━━━━━━━━━━━━━━━━━</b>" : "🔥 <b>[ NEW VIDEO ] 🎬🚀\n━━━━━━━━━━━━━━━━━━━━</b>");
@@ -1873,7 +1937,7 @@ async function finalizeUpload(ctx) {
         if (!pending.isVipContent) {
             channelKeyboard.push([{ text: "📢 Join Backup Channel", url: `https://t.me/+bCed3QPGYqQ3MWY9`, style: "primary" }]);
         } else {
-            channelKeyboard.push([{ text: "⭐ VIP Channel", url: VIP_CHANNEL_LINK }]);
+            channelKeyboard.push([{ text: "⭐ VIP Channel", url: VIP_CHANNEL_LINK, style: "success" }]);
         }
 
         const titleDisplay = pending.caption ? `📢 <b>Title:</b> <i>${pending.caption}</i>\n\n` : "";
@@ -1893,7 +1957,7 @@ async function finalizeUpload(ctx) {
         pendingUploads.delete(userId);
     } catch (error) {
         console.error(error);
-        ctx.reply("චැනල් එකට පෝස්ට් කිරීමේදී දෝෂයක් ඇති විය.");
+        ctx.reply("Error posting to channel.");
     }
 }
 
@@ -1905,7 +1969,7 @@ bot.command('done', async (ctx) => {
     if (pending && !pending.caption) {
         pending.waitingForCaption = true;
         pendingUploads.set(userId, pending);
-        return ctx.reply("✏️ <b>කරුණාකර මෙම වීඩියෝව සඳහා දැමීමට අවශ්‍ය මාතෘකාව (Video Title / Text) දැන් ටයිප් කර එවන්න:</b>", { parse_mode: 'HTML' });
+        return ctx.reply("✏️ <b>Please type and send the title/text for this video now:</b>", { parse_mode: 'HTML' });
     }
 
     await finalizeUpload(ctx);
@@ -1917,8 +1981,8 @@ app.listen(PORT, async () => {
     
     try {
         await bot.telegram.setMyCommands([
-            { command: 'start', description: 'Start the bot / බොට් ආරම්භ කරන්න' },
-            { command: 'vip', description: 'Buy VIP access (100 Stars) / VIP මිලදී ගන්න' },
+            { command: 'start', description: 'Start the bot' },
+            { command: 'vip', description: 'Buy VIP access (100 Stars)' },
             { command: 'language', description: 'Change language / භාෂාව මාරු කරන්න' }
         ]);
         console.log("Bot commands menu set successfully!");
@@ -1931,4 +1995,3 @@ app.listen(PORT, async () => {
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
-
