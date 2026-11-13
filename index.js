@@ -1976,9 +1976,11 @@ bot.command('done', async (ctx) => {
 });
 
 const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
     
+    // Attempt to set commands with robust error handling
     try {
         await bot.telegram.setMyCommands([
             { command: 'start', description: 'Start the bot' },
@@ -1987,11 +1989,12 @@ app.listen(PORT, async () => {
         ]);
         console.log("Bot commands menu set successfully!");
     } catch (err) {
-        console.error("Failed on startup:", err);
+        console.warn("⚠️ Warning: Could not set bot commands on startup (Telegram API 502 Bad Gateway). The bot will still run normally.", err.message);
     }
 
     bot.launch();
 });
+
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
