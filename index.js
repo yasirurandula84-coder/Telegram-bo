@@ -974,7 +974,6 @@ const limiter = rateLimit({
     message: "Too many requests from this IP, please try again later."
 });
 app.use(limiter);
-
 app.get('/miniapp', async (req, res) => {
     const token = req.query.token || '';
     const userId = req.query.uid || '';
@@ -982,7 +981,7 @@ app.get('/miniapp', async (req, res) => {
     try {
         const fileCheck = await FileModel.findOne({ token });
         if (!fileCheck) {
-            return res.send(`<!DOCTYPE html><html><body style="background:#09090b;color:#f87171;text-align:center;padding-top:80px;font-family:sans-serif;"><h2>❌ Link has expired or is invalid!</h2></body></html>`);
+            return res.send(`<!DOCTYPE html><html><body style="background:#030712;color:#f87171;text-align:center;padding-top:100px;font-family:sans-serif;"><h2>❌ Link has expired or is invalid!</h2></body></html>`);
         }
 
         const user = await UserModel.findOne({ userId: userId.toString() });
@@ -994,11 +993,10 @@ app.get('/miniapp', async (req, res) => {
             : "❌ නිවැරදිව තත්පර 5ක් දැන්වීම නරඹන්න!";
 
         const instructionText = lang === 'en'
-            ? "Please watch and complete both (02) ads below to get the video."
-            : "වීඩියෝව ලබා ගැනීමට පහත දැක්වෙන දැන්වීම් **දෙක (02)** නරඹා සම්පූර්ණ කරන්න.";
+            ? "Please watch and complete both (02) ads below to unlock your content securely."
+            : "ඔබගේ අන්තර්ගතය සුරක්ෂිතව ලබා ගැනීමට පහත දැන්වීම් **දෙක (02)** නරඹා සම්පූර්ණ කරන්න.";
 
         const totalUsers = await UserModel.countDocuments({});
-
         const allFiles = await FileModel.find({});
         let totalViews = 0;
         allFiles.forEach(file => {
@@ -1034,37 +1032,65 @@ app.get('/miniapp', async (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Unlocker</title>
+    <title>Wal Lokaya - Ultra v2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 20px rgba(14, 165, 233, 0.4); }
-            50% { box-shadow: 0 0 35px rgba(14, 165, 233, 0.8); }
+            0%, 100% { box-shadow: 0 0 25px rgba(56, 189, 248, 0.3); }
+            50% { box-shadow: 0 0 45px rgba(56, 189, 248, 0.6); }
         }
-        .glow-effect { animation: pulse-glow 2s infinite; }
+        .glow-effect { animation: pulse-glow 2.5s infinite; }
         
         @keyframes spin-slow {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .spinner-ring { animation: spin-slow 1.5s linear infinite; }
+        .spinner-ring { animation: spin-slow 2s linear infinite; }
 
         @keyframes success-glow {
-            0%, 100% { border-color: rgba(16, 185, 129, 0.5); box-shadow: 0 0 25px rgba(16, 185, 129, 0.3); }
-            50% { border-color: rgba(16, 185, 129, 0.9); box-shadow: 0 0 45px rgba(16, 185, 129, 0.6); }
+            0%, 100% { border-color: rgba(16, 185, 129, 0.6); box-shadow: 0 0 30px rgba(16, 185, 129, 0.4); }
+            50% { border-color: rgba(16, 185, 129, 1); box-shadow: 0 0 60px rgba(16, 185, 129, 0.7); }
         }
         .success-card { animation: success-glow 2s infinite; }
+
+        body {
+            background-color: #030712;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.12) 0px, transparent 50%);
+        }
     </style>
 </head>
-<body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white p-5 select-none font-sans relative overflow-hidden">
-    
-    <div class="absolute -top-20 -left-20 w-64 h-64 bg-sky-600/30 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-600/30 rounded-full blur-3xl pointer-events-none"></div>
+<body class="flex min-h-screen flex-col items-center justify-center p-4 text-slate-100 select-none font-sans relative overflow-x-hidden">
 
-    <div id="age-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-xl hidden">
-        <div class="w-full max-w-sm rounded-3xl bg-slate-900/90 border border-slate-800/80 p-7 text-center shadow-2xl relative overflow-hidden backdrop-blur-2xl">
-            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-2xl font-black shadow-inner">
+    <!-- Version 2.0 Welcome Update Modal -->
+    <div id="changelog-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-2xl hidden">
+        <div class="w-full max-w-sm rounded-[2.5rem] bg-slate-900/90 border border-slate-800 p-7 text-center shadow-2xl relative overflow-hidden backdrop-blur-3xl">
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-sky-500/20 rounded-full blur-2xl"></div>
+            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white text-2xl font-black shadow-lg shadow-sky-500/30">
+                ✨
+            </div>
+            <span class="inline-block px-3 py-1 bg-sky-500/10 border border-sky-500/20 text-sky-400 text-[10px] font-bold uppercase tracking-widest rounded-full mb-2">Version 2.0 Update</span>
+            <h2 class="text-xl font-extrabold text-white mb-2">${lang === 'en' ? 'Welcome to Ultra v2.0!' : 'Ultra v2.0 වෙත සාදරයෙන් පිළිගනිමු!'}</h2>
+            <p class="text-slate-400 text-xs mb-6 leading-relaxed">
+                ${lang === 'en' 
+                    ? 'Enjoy our brand new lightning-fast streaming UI, enhanced security, and smoother ad unlocking experience.' 
+                    : 'වඩාත් වේගවත් අලුත්ම ස්ට්‍රීමිං අතුරුමුහුණතක්, වැඩි දියුණු කළ ආරක්ෂාව සහ සුමට දැන්වීම් පද්ධතියක් සමඟින් අත්දැකීම විඳගන්න.'}
+            </p>
+            <button
+                onclick="closeChangelog()"
+                class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg shadow-sky-900/40 text-sm active:scale-95"
+            >
+                ${lang === 'en' ? 'Get Started 🚀' : 'ආරම්භ කරන්න 🚀'}
+            </button>
+        </div>
+    </div>
+
+    <!-- 18+ Age Verification Modal -->
+    <div id="age-modal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-2xl hidden">
+        <div class="w-full max-w-sm rounded-[2.5rem] bg-slate-900/90 border border-slate-800 p-7 text-center shadow-2xl relative overflow-hidden backdrop-blur-3xl">
+            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xl font-black shadow-inner">
                 18+
             </div>
             <h2 class="text-xl font-extrabold text-slate-100 mb-2">${t.ageTitle}</h2>
@@ -1088,44 +1114,57 @@ app.get('/miniapp', async (req, res) => {
         </div>
     </div>
 
-    <div id="main-card" class="bg-slate-900/60 backdrop-blur-2xl border border-white/10 p-7 rounded-3xl shadow-2xl max-w-sm w-full text-center relative overflow-hidden transition-all duration-500">
+    <!-- Main Container Card -->
+    <div id="main-card" class="bg-slate-900/70 backdrop-blur-3xl border border-white/10 p-6 sm:p-8 rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center relative overflow-hidden transition-all duration-500">
         
+        <!-- Live Status Badge -->
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-[11px] font-bold mb-5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>v2.0 Ultra Secure Stream</span>
+        </div>
+
+        <!-- Warning Banner -->
         <div id="warning-banner" class="hidden mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-400 text-xs font-semibold animate-pulse">
             ${warningText}
         </div>
 
-        <div class="flex items-center justify-center gap-2 mb-5">
-            <div id="step-1-dot" class="flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-500/30">1</div>
-            <div class="w-6 h-0.5 bg-slate-700"></div>
-            <div id="step-2-dot" class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800 text-slate-400 text-xs font-bold border border-slate-700">2</div>
-            <div class="w-6 h-0.5 bg-slate-700"></div>
-            <div id="step-3-dot" class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800 text-slate-400 text-xs font-bold border border-slate-700">3</div>
+        <!-- Step Indicators -->
+        <div class="flex items-center justify-center gap-2 mb-6">
+            <div id="step-1-dot" class="flex items-center justify-center w-8 h-8 rounded-2xl bg-sky-500 text-white text-xs font-bold shadow-lg shadow-sky-500/30">1</div>
+            <div class="w-8 h-0.5 bg-slate-800"></div>
+            <div id="step-2-dot" class="flex items-center justify-center w-8 h-8 rounded-2xl bg-slate-800 text-slate-400 text-xs font-bold border border-slate-700">2</div>
+            <div class="w-8 h-0.5 bg-slate-800"></div>
+            <div id="step-3-dot" class="flex items-center justify-center w-8 h-8 rounded-2xl bg-slate-800 text-slate-400 text-xs font-bold border border-slate-700">3</div>
         </div>
 
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-sky-500/10 border border-sky-500/20 rounded-2xl text-3xl mb-4 shadow-inner relative">
+        <!-- Icon Animation -->
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-sky-500/20 to-indigo-500/20 border border-sky-500/30 rounded-2xl text-3xl mb-4 shadow-inner relative">
             🎬
             <div class="absolute inset-0 border-2 border-sky-400/40 rounded-2xl spinner-ring pointer-events-none"></div>
         </div>
         
-        <h1 class="text-xl font-extrabold tracking-tight mb-2 text-slate-100">${t.appTitle}</h1>
+        <h1 class="text-xl font-extrabold tracking-tight mb-2 text-white">${t.appTitle}</h1>
         <p id="instruction-text" class="text-slate-400 text-xs mb-6 leading-relaxed">
             ${instructionText}
         </p>
 
+        <!-- Ad Button 1 -->
         <div class="mb-3" id="ad-box-1">
             <a href="${adLink1}" target="_blank" id="ad-btn-1" onclick="openAd(1)" class="glow-effect flex items-center justify-between w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm active:scale-95">
-                <span>⭐ Watch Ad 1</span>
+                <span class="flex items-center gap-2">⭐ Watch Ad 1</span>
                 <span id="ad-status-1" class="text-xs bg-white/20 px-2.5 py-1 rounded-xl">Pending</span>
             </a>
         </div>
 
+        <!-- Ad Button 2 -->
         <div class="mb-5" id="ad-box-2">
             <a href="${adLink2}" target="_blank" id="ad-btn-2" onclick="openAd(2)" class="flex items-center justify-between w-full bg-slate-800/80 text-slate-500 font-bold py-3.5 px-4 rounded-2xl transition-all text-sm pointer-events-none border border-slate-700/50">
-                <span>⭐ Watch Ad 2</span>
+                <span class="flex items-center gap-2">⭐ Watch Ad 2</span>
                 <span id="ad-status-2" class="text-xs bg-slate-700 px-2.5 py-1 rounded-xl text-slate-400">Locked</span>
             </a>
         </div>
 
+        <!-- Countdown Timer Box -->
         <div id="timer-box" class="my-5 hidden">
             <div class="relative w-20 h-20 mx-auto flex items-center justify-center bg-slate-800/80 border border-sky-500/30 rounded-full mb-3 shadow-inner">
                 <div id="countdown" class="text-3xl font-black text-sky-400">5</div>
@@ -1137,8 +1176,9 @@ app.get('/miniapp', async (req, res) => {
             </div>
         </div>
 
+        <!-- Success Unlock Box -->
         <div id="success-box" class="hidden">
-            <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-4">
+            <div class="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-4">
                 <p class="text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5">
                     ${t.appSuccessMsg}
                 </p>
@@ -1148,7 +1188,8 @@ app.get('/miniapp', async (req, res) => {
             </button>
         </div>
 
-        <div class="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-around text-center">
+        <!-- Footer Statistics Dashboard -->
+        <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-around text-center">
             <div>
                 <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Total Users</p>
                 <p class="text-sm font-extrabold text-sky-400 mt-0.5">👥 ${totalUsers.toLocaleString()}</p>
@@ -1167,6 +1208,11 @@ app.get('/miniapp', async (req, res) => {
             const isVerified = localStorage.getItem('age_verified');
             if (isVerified !== 'true') {
                 document.getElementById('age-modal').classList.remove('hidden');
+            } else {
+                const seenChangelog = localStorage.getItem('seen_v2_changelog');
+                if (seenChangelog !== 'true') {
+                    document.getElementById('changelog-modal').classList.remove('hidden');
+                }
             }
 
             if (window.Telegram && window.Telegram.WebApp) {
@@ -1175,10 +1221,20 @@ app.get('/miniapp', async (req, res) => {
             }
         });
 
+        function closeChangelog() {
+            localStorage.setItem('seen_v2_changelog', 'true');
+            document.getElementById('changelog-modal').classList.add('hidden');
+        }
+
         function handleAgeVerify(allowed) {
             if (allowed) {
                 localStorage.setItem('age_verified', 'true');
                 document.getElementById('age-modal').classList.add('hidden');
+                
+                const seenChangelog = localStorage.getItem('seen_v2_changelog');
+                if (seenChangelog !== 'true') {
+                    document.getElementById('changelog-modal').classList.remove('hidden');
+                }
             } else {
                 alert('You must be 18 or older to access this content.');
                 if (window.Telegram && window.Telegram.WebApp) {
@@ -1236,8 +1292,8 @@ app.get('/miniapp', async (req, res) => {
 
                     if (adNum === 1) {
                         ad1Completed = true;
-                        document.getElementById('step-1-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold";
-                        document.getElementById('step-2-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-500/30";
+                        document.getElementById('step-1-dot').className = "flex items-center justify-center w-8 h-8 rounded-2xl bg-emerald-500 text-white text-xs font-bold";
+                        document.getElementById('step-2-dot').className = "flex items-center justify-center w-8 h-8 rounded-2xl bg-sky-500 text-white text-xs font-bold shadow-lg shadow-sky-500/30";
 
                         const ad2Btn = document.getElementById('ad-btn-2');
                         ad2Btn.className = "glow-effect flex items-center justify-between w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-lg text-sm";
@@ -1245,8 +1301,8 @@ app.get('/miniapp', async (req, res) => {
                         document.getElementById('ad-status-2').className = "text-xs bg-white/20 px-2.5 py-1 rounded-xl";
                     } else if (adNum === 2) {
                         ad2Completed = true;
-                        document.getElementById('step-2-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold";
-                        document.getElementById('step-3-dot').className = "flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-500/30";
+                        document.getElementById('step-2-dot').className = "flex items-center justify-center w-8 h-8 rounded-2xl bg-emerald-500 text-white text-xs font-bold";
+                        document.getElementById('step-3-dot').className = "flex items-center justify-center w-8 h-8 rounded-2xl bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-500/30";
 
                         document.getElementById('ad-box-1').style.display = 'none';
                         document.getElementById('ad-box-2').style.display = 'none';
@@ -1303,9 +1359,11 @@ app.get('/miniapp', async (req, res) => {
         `);
     } catch (err) {
         console.error("MiniApp Error:", err);
-        res.send(`<!DOCTYPE html><html><body style="background:#09090b;color:white;text-align:center;padding-top:50px;"><h2>System Error. Please try again.</h2></body></html>`);
+        res.send(`<!DOCTYPE html><html><body style="background:#030712;color:white;text-align:center;padding-top:100px;"><h2>System Error. Please try again.</h2></body></html>`);
     }
 });
+
+                                
 
 bot.use(async (ctx, next) => {
     try {
