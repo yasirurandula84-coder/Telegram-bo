@@ -974,6 +974,7 @@ const limiter = rateLimit({
     message: "Too many requests from this IP, please try again later."
 });
 app.use(limiter);
+
 app.get('/miniapp', async (req, res) => {
     const token = req.query.token || '';
     const userId = req.query.uid || '';
@@ -1064,7 +1065,7 @@ app.get('/miniapp', async (req, res) => {
 </head>
 <body class="flex min-h-screen flex-col items-center justify-center p-4 text-slate-100 select-none font-sans relative overflow-x-hidden">
 
-    <!-- Version 2.0 Welcome Update Modal -->
+    <!-- Version 2.0 Welcome Update Modal (Appears ONCE per user) -->
     <div id="changelog-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-2xl hidden">
         <div class="w-full max-w-sm rounded-[2.5rem] bg-slate-900/90 border border-slate-800 p-7 text-center shadow-2xl relative overflow-hidden backdrop-blur-3xl">
             <div class="absolute -top-12 -right-12 w-32 h-32 bg-sky-500/20 rounded-full blur-2xl"></div>
@@ -1209,10 +1210,7 @@ app.get('/miniapp', async (req, res) => {
             if (isVerified !== 'true') {
                 document.getElementById('age-modal').classList.remove('hidden');
             } else {
-                const seenChangelog = localStorage.getItem('seen_v2_changelog');
-                if (seenChangelog !== 'true') {
-                    document.getElementById('changelog-modal').classList.remove('hidden');
-                }
+                checkAndShowChangelog();
             }
 
             if (window.Telegram && window.Telegram.WebApp) {
@@ -1221,8 +1219,15 @@ app.get('/miniapp', async (req, res) => {
             }
         });
 
+        function checkAndShowChangelog() {
+            const seenChangelog = localStorage.getItem('seen_v2_changelog_once');
+            if (seenChangelog !== 'true') {
+                document.getElementById('changelog-modal').classList.remove('hidden');
+            }
+        }
+
         function closeChangelog() {
-            localStorage.setItem('seen_v2_changelog', 'true');
+            localStorage.setItem('seen_v2_changelog_once', 'true');
             document.getElementById('changelog-modal').classList.add('hidden');
         }
 
@@ -1230,11 +1235,7 @@ app.get('/miniapp', async (req, res) => {
             if (allowed) {
                 localStorage.setItem('age_verified', 'true');
                 document.getElementById('age-modal').classList.add('hidden');
-                
-                const seenChangelog = localStorage.getItem('seen_v2_changelog');
-                if (seenChangelog !== 'true') {
-                    document.getElementById('changelog-modal').classList.remove('hidden');
-                }
+                checkAndShowChangelog();
             } else {
                 alert('You must be 18 or older to access this content.');
                 if (window.Telegram && window.Telegram.WebApp) {
@@ -1362,8 +1363,6 @@ app.get('/miniapp', async (req, res) => {
         res.send(`<!DOCTYPE html><html><body style="background:#030712;color:white;text-align:center;padding-top:100px;"><h2>System Error. Please try again.</h2></body></html>`);
     }
 });
-
-                                
 
 bot.use(async (ctx, next) => {
     try {
